@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"callcenter-middleware/internal/domain"
+
 	"github.com/coder/websocket"
 )
 

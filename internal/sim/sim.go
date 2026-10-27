@@ -28,7 +28,7 @@ type Options struct {
 }
 
 type channel struct {
-	ID, Name, State string
+	ID, Name, State    string
 	Number, CallerName string
 	Exten              string
 	Args               []string
