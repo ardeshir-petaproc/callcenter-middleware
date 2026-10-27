@@ -52,7 +52,7 @@
 .status-btn:disabled { opacity: .5; cursor: not-allowed; }
 .status-hero { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .status-hero .big-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 5px var(--s); }
-.status-hero .label { font-size: 22px; font-weight: 700; color: var(--t); text-transform: capitalize; }
+.status-hero .label { font-size: 22px; font-weight: 700; color: var(--t); }
 .status-hero .timer { font-size: 22px; font-variant-numeric: tabular-nums; color: var(--text-2); }
 
 .screenpop { border: 2px solid var(--info-solid); box-shadow: 0 0 0 4px color-mix(in srgb, var(--info-solid) 18%, transparent), var(--shadow-lg); animation: ring-glow 1.2s ease-in-out infinite; }

@@ -29,8 +29,11 @@ export function effectiveTheme(): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
+function subscribe(fn: () => void) { subs.add(fn); return () => { subs.delete(fn); }; }
+const snapshot = () => pref;
+
 export function useTheme(): [ThemePref, (p: ThemePref) => void] {
-  const p = useSyncExternalStore((fn) => { subs.add(fn); return () => subs.delete(fn); }, () => pref);
+  const p = useSyncExternalStore(subscribe, snapshot);
   return [p, setTheme];
 }
 

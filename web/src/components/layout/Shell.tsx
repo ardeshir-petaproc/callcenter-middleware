@@ -9,6 +9,7 @@ import { get } from '../../api/client';
 import type { Voicemail } from '../../api/types';
 import { notify, startRinging, stopRinging, unlockAudio } from '../../lib/ringtone';
 import { useLocalStorage } from '../../lib/hooks';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 /** Rings + notifies on screen-pops anywhere in the app, and offers a jump to the console. */
 function ScreenPopWatcher() {
@@ -40,6 +41,7 @@ function ScreenPopWatcher() {
 }
 
 export function Shell() {
+  const loc = useLocation();
   const [collapsed, setCollapsed] = useLocalStorage('cc.sidebar.collapsed', false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -61,7 +63,7 @@ export function Shell() {
       <div className="main">
         <Header onMenu={() => setMobileOpen(true)} />
         <main className="content">
-          <Outlet />
+          <ErrorBoundary resetKey={loc.pathname}><Outlet /></ErrorBoundary>
         </main>
       </div>
       <ScreenPopWatcher />

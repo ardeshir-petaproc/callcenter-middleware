@@ -35,13 +35,26 @@ let offset = 0; // server clock - local clock (ms)
 const clockSubs = new Set<() => void>();
 let timer: number | undefined;
 
-function ensureTimer() {
-  if (timer !== undefined) return;
+function tick() {
   now = Date.now();
-  timer = window.setInterval(() => {
-    now = Date.now();
-    clockSubs.forEach((fn) => fn());
-  }, 1000);
+  clockSubs.forEach((fn) => fn());
+}
+
+// Stable subscribe function: an inline closure would make React resubscribe on every render.
+function subscribeClock(fn: () => void): () => void {
+  clockSubs.add(fn);
+  if (timer === undefined) timer = window.setInterval(tick, 1000);
+  return () => {
+    clockSubs.delete(fn);
+    if (clockSubs.size === 0 && timer !== undefined) { clearInterval(timer); timer = undefined; }
+  };
+}
+
+function clockSnapshot(): number {
+  // Refresh a stale clock lazily (e.g. first render after the timer was idle) without
+  // changing the value between two reads in the same tick.
+  if (timer === undefined && Date.now() - now > 1000) now = Date.now();
+  return now + offset;
 }
 
 export function setServerOffset(ms: number) {
@@ -53,15 +66,5 @@ export function serverNow(): number { return Date.now() + offset; }
 
 /** Server-adjusted epoch ms, re-rendering every second. */
 export function useNow(): number {
-  return useSyncExternalStore(
-    (fn) => {
-      clockSubs.add(fn);
-      ensureTimer();
-      return () => {
-        clockSubs.delete(fn);
-        if (clockSubs.size === 0 && timer !== undefined) { clearInterval(timer); timer = undefined; }
-      };
-    },
-    () => now + offset,
-  );
+  return useSyncExternalStore(subscribeClock, clockSnapshot);
 }
