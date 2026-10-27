@@ -190,6 +190,7 @@ func (c *Core) handleEvent(ev domain.TelephonyEvent) {
 		c.onRecordingFinished(ev)
 	case domain.EventStreamConnected:
 		slog.Info("ARI stream (re)connected", "live_calls", len(c.calls))
+		c.reconcile()
 	}
 }
 

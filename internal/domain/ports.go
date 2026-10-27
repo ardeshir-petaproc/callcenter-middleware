@@ -50,6 +50,7 @@ type SwitchController interface {
 	ExternalMedia(ctx context.Context, req ExternalMediaRequest) error
 	Snoop(ctx context.Context, req SnoopRequest) error
 	SetMute(ctx context.Context, channelID string, mute bool) error
+	ListChannels(ctx context.Context) ([]string, error)
 }
 
 // EventSource streams normalized telephony events from Asterisk ARI WebSocket.

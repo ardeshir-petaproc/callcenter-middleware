@@ -165,6 +165,7 @@ func (c *Core) ring(call *liveCall, a *agentRT) {
 		delete(c.legs, chanID)
 		delete(call.ringing, chanID)
 		a.CallID = ""
+		a.retryAfter = c.now().Add(5 * time.Second)
 		c.setAgentStatus(a, domain.AgentAvailable, "")
 		return
 	}

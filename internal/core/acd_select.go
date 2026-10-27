@@ -100,7 +100,8 @@ func (c *Core) candidates(call *liveCall, q *domain.Queue, ignoreTried bool) []c
 }
 
 func (c *Core) ringable(a *agentRT) bool {
-	return a.Status == domain.AgentAvailable && a.user.Enabled && a.user.DialEndpoint() != ""
+	return a.Status == domain.AgentAvailable && a.user.Enabled && a.user.DialEndpoint() != "" &&
+		!c.now().Before(a.retryAfter)
 }
 
 // loggedIn counts members of q that are not offline.

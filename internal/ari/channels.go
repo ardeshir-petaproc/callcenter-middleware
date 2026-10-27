@@ -2,6 +2,7 @@ package ari
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 )
@@ -42,4 +43,22 @@ func (c *Client) HangupChannel(ctx context.Context, channelID, reason string) er
 	}
 	resp.Body.Close()
 	return nil
+}
+
+// ListChannels returns the ids of all active channels.
+func (c *Client) ListChannels(ctx context.Context) ([]string, error) {
+	resp, err := c.doRequest(ctx, "list_channels", "GET", "/channels")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var chans []RawChannel
+	if err := json.NewDecoder(resp.Body).Decode(&chans); err != nil {
+		return nil, err
+	}
+	ids := make([]string, 0, len(chans))
+	for _, ch := range chans {
+		ids = append(ids, ch.ID)
+	}
+	return ids, nil
 }

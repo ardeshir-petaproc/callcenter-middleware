@@ -104,6 +104,7 @@ func (f *fakeSwitch) ExternalMedia(_ context.Context, r domain.ExternalMediaRequ
 func (f *fakeSwitch) Snoop(_ context.Context, r domain.SnoopRequest) error {
 	return f.rec("snoop %s %s %s", r.ChannelID, r.SnoopID, r.Whisper)
 }
+func (f *fakeSwitch) ListChannels(_ context.Context) ([]string, error) { return nil, nil }
 func (f *fakeSwitch) SetMute(_ context.Context, ch string, m bool) error { return f.rec("mute %s %v", ch, m) }
 
 // harness wires a core to a fake switch and an in-memory store.

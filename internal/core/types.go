@@ -77,6 +77,7 @@ type agentRT struct {
 	pendingStatus domain.AgentStatus
 	pendingReason string
 	idleSince     time.Time
+	retryAfter    time.Time // backoff after a failed origination
 }
 
 // recordingRef remembers who a voicemail recording belongs to.
