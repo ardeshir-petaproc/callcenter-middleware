@@ -20,6 +20,12 @@ func TestAPI_AuthAndRoles(t *testing.T) {
 	if code := s.call("POST", "/auth/login", "", map[string]string{"username": "admin", "password": "nope"}, nil); code != 401 {
 		t.Fatalf("expected 401 for bad password, got %d", code)
 	}
+	for i := 0; i < 8; i++ {
+		s.call("POST", "/auth/login", "", map[string]string{"username": "dave", "password": "nope"}, nil)
+	}
+	if code := s.call("POST", "/auth/login", "", map[string]string{"username": "dave", "password": "agent123"}, nil); code != 429 {
+		t.Fatalf("expected lockout after repeated failures, got %d", code)
+	}
 	agent := s.login("bob", "agent123")
 	sup := s.login("sara", "agent123")
 	admin := s.login("admin", "admin123")

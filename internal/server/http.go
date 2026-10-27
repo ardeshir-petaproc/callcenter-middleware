@@ -45,16 +45,18 @@ type Server struct {
 	httpServer *http.Server
 	stream     domain.EventSource
 	wsClients  atomic.Int64
+	limiter    *loginLimiter
 }
 
 // NewServer sets up the chi router and HTTP server.
 func NewServer(port string, d Deps) *Server {
-	s := &Server{d: d, stream: d.Stream}
+	s := &Server{d: d, stream: d.Stream, limiter: newLoginLimiter()}
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 	r.Use(s.cors)
+	r.Use(securityHeaders)
 	s.registerRoutes(r)
 
 	s.httpServer = &http.Server{

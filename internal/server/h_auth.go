@@ -17,12 +17,18 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request) error {
 	if err := decode(r, &req); err != nil {
 		return err
 	}
+	key := limiterKey(r, req.Username)
+	if s.limiter.blocked(key) {
+		return errStatus(http.StatusTooManyRequests, "too many failed attempts, try again later")
+	}
 	u, err := s.d.Store.GetUserByUsername(r.Context(), strings.TrimSpace(req.Username))
 	if err != nil || !u.Enabled || !auth.CheckPassword(u.PasswordHash, req.Password) {
+		s.limiter.fail(key)
 		// Constant-ish failure path to avoid username probing.
 		time.Sleep(200 * time.Millisecond)
 		return errStatus(http.StatusUnauthorized, "invalid username or password")
 	}
+	s.limiter.reset(key)
 	tok, exp, err := s.d.Issuer.Issue(u)
 	if err != nil {
 		return err
