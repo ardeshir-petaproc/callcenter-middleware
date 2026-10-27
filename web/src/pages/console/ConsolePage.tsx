@@ -34,6 +34,7 @@ export default function ConsolePage() {
   const pop = useStore(live, (s) => s.screenpop);
   const wrapup = useStore(live, (s) => s.wrapup);
   const current = useMyCurrentCall();
+  const campaignId = current?.campaign_id || pop?.call.campaign_id || 0;
 
   return (
     <>
@@ -48,8 +49,8 @@ export default function ConsolePage() {
             <StatusControl agent={agent} />
           </Card>
           {pop && <ScreenPopPanel pop={pop} />}
-          {current && <CurrentCallCard call={current} />}
-          {current && current.campaign_id > 0 && <CampaignScript campaignId={current.campaign_id} />}
+          {current && current.id !== pop?.call.id && <CurrentCallCard call={current} />}
+          {campaignId > 0 && <CampaignScript campaignId={campaignId} />}
           {wrapup && !current && <WrapUpForm key={wrapup.id} call={wrapup} />}
           <MyCallbacks />
         </div>

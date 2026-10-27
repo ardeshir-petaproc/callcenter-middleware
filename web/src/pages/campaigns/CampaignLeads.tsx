@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Upload, UserRoundSearch } from 'lucide-react';
 import type { Lead, LeadStatus } from '../../api/types';
@@ -25,6 +25,9 @@ export function CampaignLeads({ campaignId, canEdit, counts, onChanged }: {
     (s) => get<Lead[]>(`/campaigns/${campaignId}/leads`, { status: status === 'all' ? undefined : status, limit: LIMIT, offset }, s),
     [campaignId, status, offset],
   );
+  const countsKey = JSON.stringify(counts);
+  // Refresh the table whenever the (periodically refreshed) stats change.
+  useEffect(() => { reload(); }, [countsKey, reload]);
   const total = (status === 'all' ? counts.total : counts[status]) ?? (data?.length ?? 0);
   const rows = data ?? [];
 

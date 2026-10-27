@@ -35,3 +35,9 @@ export function useLiveAgents(): AgentState[] {
       || (a.display_name || a.username).localeCompare(b.display_name || b.username));
   }, [agents]);
 }
+
+/** Queue ids currently in alert (snapshot `alerts` plus live `queue.alert` events). */
+export function useAlertingQueues(): Set<number> {
+  const events = useStore(live, (s) => s.queueAlerts);
+  return useMemo(() => new Set<number>(Object.keys(events).map(Number)), [events]);
+}

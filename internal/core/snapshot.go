@@ -31,6 +31,13 @@ func (c *Core) snapshot() Snapshot {
 	}
 	sort.Slice(s.Agents, func(i, j int) bool { return s.Agents[i].UserID < s.Agents[j].UserID })
 	s.Queues = c.queueViews()
+	s.Alerts = []QueueAlert{}
+	for _, v := range s.Queues {
+		if c.alerts[v.ID] {
+			s.Alerts = append(s.Alerts, QueueAlert{QueueID: v.ID, Name: v.Name, Level: "alert",
+				Waiting: v.Waiting, LongestWaitSec: v.LongestWaitSec, Available: v.Available})
+		}
+	}
 	if c.AI != nil {
 		s.AI = c.AI.Active()
 	}

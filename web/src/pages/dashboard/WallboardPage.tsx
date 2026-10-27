@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Maximize, Minimize, X } from 'lucide-react';
 import { useNow, useStore } from '../../lib/store';
 import { live } from '../../state/live';
-import { useLiveAgents } from '../../state/selectors';
+import { useAlertingQueues, useLiveAgents } from '../../state/selectors';
 import { fmtCsat, fmtDuration, fmtPct, fmtNum } from '../../lib/format';
 import { AgentBoard } from './AgentBoard';
 import { useLiveKpis, useTodaySummary } from './useKpis';
@@ -19,7 +19,7 @@ export default function WallboardPage() {
   const s = useTodaySummary(15000);
   const queues = useStore(live, (st) => st.queues);
   const conn = useStore(live, (st) => st.conn);
-  const alerts = useStore(live, (st) => st.queueAlerts);
+  const alerts = useAlertingQueues();
   const agents = useLiveAgents();
   const now = useNow();
   const nav = useNavigate();
@@ -61,7 +61,7 @@ export default function WallboardPage() {
       </div>
       <div className="wb-queues">
         {queues.map((q) => (
-          <div key={q.id} className={`wb-queue ${alerts[q.id] ? 'queue-alert' : ''}`}>
+          <div key={q.id} className={`wb-queue ${alerts.has(q.id) ? 'queue-alert' : ''}`}>
             <div className="name">{q.name}</div>
             <div className="nums">
               <div><b style={q.waiting ? { color: q.available ? 'var(--warn)' : 'var(--danger)' } : undefined}>{q.waiting}</b>waiting</div>

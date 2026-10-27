@@ -27,7 +27,7 @@ Roles: `admin` > `supervisor` > `agent`. "sup+" means supervisor or admin.
 | GET | `/live` | any | `Snapshot` |
 | GET | `/ws?token=` | any | WebSocket stream (see below) |
 
-`Snapshot = {calls: CallView[], agents: AgentState[], queues: QueueView[], ai_sessions: number, at}`
+`Snapshot = {calls: CallView[], agents: AgentState[], queues: QueueView[], ai_sessions: number, alerts: QueueAlert[] /* currently active */, at}`
 
 WebSocket messages are `{type, data, at}`:
 

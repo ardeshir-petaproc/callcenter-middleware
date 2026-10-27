@@ -43,6 +43,7 @@ export function applySnapshot(s: Snapshot) {
   for (const a of s.agents ?? []) agents[a.user_id] = a;
   live.set((st) => ({
     hasSnapshot: true, calls, agents, queues: s.queues ?? [], aiSessions: s.ai_sessions ?? 0, snapshotAt: s.at,
+    queueAlerts: s.alerts ? Object.fromEntries(s.alerts.map((a) => [a.queue_id, a])) : st.queueAlerts,
     screenpop: st.screenpop && calls[st.screenpop.call.id] && stillRingingMe(calls[st.screenpop.call.id], st.meId)
       ? { ...st.screenpop, call: calls[st.screenpop.call.id] } : null,
   }));

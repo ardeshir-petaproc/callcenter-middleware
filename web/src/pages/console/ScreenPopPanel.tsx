@@ -4,7 +4,7 @@ import { useNow, useStore } from '../../lib/store';
 import { clearScreenPop, live } from '../../state/live';
 import { useQueueNames } from '../../state/lookups';
 import { softphone, answer, hangup } from '../../state/softphone';
-import { liveWait } from '../../lib/calls';
+import { liveDuration, liveWait } from '../../lib/calls';
 import { fmtDuration } from '../../lib/format';
 import { stopRinging } from '../../lib/ringtone';
 import { ContactPanel } from './ContactPanel';
@@ -19,28 +19,29 @@ export function ScreenPopPanel({ pop }: { pop: ScreenPop }) {
   const queueName = useQueueNames();
   const transcript = useStore(live, (s) => s.transcripts[c.id] ?? EMPTY);
   const soft = useStore(softphone, (s) => s.call);
+  const outbound = c.direction === 'outbound';
   const viaAI = c.ai_profile_id > 0 || transcript.some((t) => t.speaker === 'ai');
 
   return (
     <section className="card screenpop" aria-live="assertive">
       <div className="card-head">
-        <h2><PhoneIncoming style={{ color: 'var(--info-solid)' }} />Incoming call{c.queue_id ? ` · ${queueName(c.queue_id)}` : ''}</h2>
+        <h2><PhoneIncoming style={{ color: 'var(--info-solid)' }} />{outbound ? (c.campaign_id ? 'Campaign call' : 'Outbound call') : 'Incoming call'}{c.queue_id ? ` · ${queueName(c.queue_id)}` : ''}</h2>
         <button className="btn ghost icon sm" aria-label="Dismiss" onClick={() => { stopRinging(); clearScreenPop(); }}><X /></button>
       </div>
       <div className="card-body col gap-lg">
         <div className="row between wrap">
           <div>
-            <div className="caller">{c.caller_name || c.caller_number || 'Unknown caller'}</div>
-            {c.caller_name && <div className="muted">{c.caller_number}</div>}
+            <div className="caller">{c.caller_name || (outbound ? c.dnis : c.caller_number) || 'Unknown caller'}</div>
+            {c.caller_name && <div className="muted">{outbound ? c.dnis || c.caller_number : c.caller_number}</div>}
           </div>
           <div className="right">
-            <div className="num strong" style={{ fontSize: 18 }}>{fmtDuration(liveWait(c, now))}</div>
-            <div className="small muted">waiting</div>
+            <div className="num strong" style={{ fontSize: 18 }}>{fmtDuration(outbound ? liveDuration(c, now) : liveWait(c, now))}</div>
+            <div className="small muted">{outbound ? 'ringing' : 'waiting'}</div>
           </div>
         </div>
         <div className="row wrap small">
           {c.ivr_path && <span>IVR path: <code>{c.ivr_path}</code></span>}
-          {c.dnis && <span className="muted">Dialed {c.dnis}</span>}
+          {!outbound && c.dnis && <span className="muted">Dialed {c.dnis}</span>}
         </div>
         {soft?.direction === 'incoming' && soft.state === 'ringing' ? (
           <div className="btn-group">
@@ -48,7 +49,7 @@ export function ScreenPopPanel({ pop }: { pop: ScreenPop }) {
             <button className="btn danger lg" onClick={hangup}><PhoneOff />Decline</button>
           </div>
         ) : (
-          <div className="alert info small">Your phone is ringing — pick up to connect.</div>
+          <div className="alert info small">{outbound ? 'Your phone is ringing — pick up and the customer will be dialed.' : 'Your phone is ringing — pick up to connect.'}</div>
         )}
         {viaAI && (
           <div className="col">
@@ -61,7 +62,7 @@ export function ScreenPopPanel({ pop }: { pop: ScreenPop }) {
             )}
           </div>
         )}
-        <ContactPanel phone={c.caller_number} excludeCallId={c.id} />
+        <ContactPanel phone={outbound ? c.dnis || c.caller_number : c.caller_number} excludeCallId={c.id} />
       </div>
     </section>
   );

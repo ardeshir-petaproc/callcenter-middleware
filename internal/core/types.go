@@ -121,6 +121,7 @@ type Snapshot struct {
 	Agents []domain.AgentState `json:"agents"`
 	Queues []QueueView         `json:"queues"`
 	AI     int                 `json:"ai_sessions"`
+	Alerts []QueueAlert        `json:"alerts"`
 	At     time.Time           `json:"at"`
 }
 

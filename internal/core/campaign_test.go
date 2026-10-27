@@ -100,6 +100,9 @@ func TestQueueAlert_RaisedAndCleared(t *testing.T) {
 		h.dtmf(ch, "1")
 	}
 	h.core.Tick()
+	if snap := h.core.Snapshot(); len(snap.Alerts) != 1 || snap.Alerts[0].QueueID != q.ID {
+		t.Fatalf("expected active alert in snapshot, got %+v", snap.Alerts)
+	}
 	h.gone("c1", 16)
 	h.core.Tick()
 	var levels []string

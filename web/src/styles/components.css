@@ -103,7 +103,7 @@
 .table tr.clickable { cursor: pointer; }
 .table td.actions { text-align: right; white-space: nowrap; width: 1%; }
 .table .sub { font-size: 12px; color: var(--text-3); }
-.table td.num, .table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.table td.num, .table th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* KPI tiles */
 .kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }

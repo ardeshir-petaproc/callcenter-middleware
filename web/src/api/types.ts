@@ -95,7 +95,7 @@ export interface AgentTime { user_id: number; seconds: Record<string, number> }
 export interface Bucket { key: string; total: number; answered: number; abandoned: number }
 export interface LabelCount { label: string; count: number }
 
-export interface Snapshot { calls: CallView[]; agents: AgentState[]; queues: QueueView[]; ai_sessions: number; at: string }
+export interface Snapshot { calls: CallView[]; agents: AgentState[]; queues: QueueView[]; ai_sessions: number; alerts?: QueueAlert[]; at: string }
 export interface LoginResponse { token: string; expires_at: string; user: User }
 export interface MeResponse { user: User; agent: AgentState | null }
 export interface CallDetail { call: Call; live: CallView | null; transcript: TranscriptEntry[]; events: CallEvent[]; contact: Contact | null }

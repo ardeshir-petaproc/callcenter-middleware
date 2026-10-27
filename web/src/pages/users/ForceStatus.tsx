@@ -29,7 +29,7 @@ export function ForceStatus({ userId, agent }: { userId: number; agent?: AgentSt
       <div className="col gap-lg">
         <div className="row wrap">
           <AgentStatusBadge status={agent?.status ?? 'offline'} reason={agent?.pause_reason} />
-          {agent && <span className="small muted">for {fmtDuration(secsSince(agent.since, now))} · {agent.calls_today} calls · {fmtLongDuration(agent.talk_secs_today)} talk today</span>}
+          {agent && <span className="small muted">for {fmtDuration(secsSince(agent.since, now))} · {agent.calls_today} call{agent.calls_today === 1 ? "" : "s"} · {fmtLongDuration(agent.talk_secs_today)} talk today</span>}
         </div>
         <div className="row wrap">
           <button className="btn sm" disabled={busy} onClick={() => force('available')}>Set available</button>

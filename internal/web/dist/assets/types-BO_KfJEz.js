@@ -1,1 +1,0 @@
-const e=["answered","abandoned","voicemail","callback_requested","ai_resolved","sent_to_dialplan","failed","no_answer","ivr_hangup","transferred_external"],a=["call.updated","call.ended","agent.updated","queue.updated","call.transcript","agent.screenpop","callback.created","voicemail.created","config.changed"];export{a as E,e as O};

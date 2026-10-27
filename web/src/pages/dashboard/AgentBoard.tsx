@@ -32,7 +32,7 @@ export function AgentBoard({ agents, hideOffline }: { agents: AgentState[]; hide
               {a.missed_in_row > 0 && <span className="badge warn" title="Missed calls in a row">{a.missed_in_row} missed</span>}
             </div>
             <div className="meta">
-              <span className="ellipsis">{call ? `☎ ${callerLabel(call)}` : `${a.calls_today} calls today`}</span>
+              <span className="ellipsis">{call ? `☎ ${callerLabel(call)}` : `${a.calls_today} call${a.calls_today === 1 ? "" : "s"} today`}</span>
               <span>{fmtLongDuration(a.talk_secs_today)} talk</span>
             </div>
           </div>
