@@ -85,6 +85,11 @@ func (s *Stream) Subscribe(ctx context.Context, out chan<- domain.TelephonyEvent
 		backoff = 100 * time.Millisecond
 		slog.Info("Connected to Asterisk ARI WebSocket", "url", connURL)
 
+		conn.SetReadLimit(1 << 20)
+		select {
+		case out <- domain.TelephonyEvent{Type: domain.EventStreamConnected, Timestamp: time.Now()}:
+		case <-ctx.Done():
+		}
 		s.readLoop(ctx, conn, out)
 		s.setConnected(false)
 		conn.Close(websocket.StatusNormalClosure, "disconnecting")
@@ -110,46 +115,4 @@ func (s *Stream) readLoop(ctx context.Context, conn *websocket.Conn, out chan<- 
 			}
 		}
 	}
-}
-
-func normalizeEvent(raw *RawEvent) (domain.TelephonyEvent, bool) {
-	now := time.Now()
-	switch raw.Type {
-	case "StasisStart":
-		if raw.Channel != nil {
-			return domain.TelephonyEvent{
-				Type:         domain.EventCallStarted,
-				ChannelID:    raw.Channel.ID,
-				CallerNumber: raw.Channel.Caller.Number,
-				CallerName:   raw.Channel.Caller.Name,
-				Timestamp:    now,
-			}, true
-		}
-	case "PlaybackFinished":
-		if raw.Playback != nil {
-			return domain.TelephonyEvent{
-				Type:       domain.EventPlaybackFinished,
-				PlaybackID: raw.Playback.ID,
-				Timestamp:  now,
-			}, true
-		}
-	case "ChannelDtmfReceived":
-		if raw.Channel != nil {
-			return domain.TelephonyEvent{
-				Type:      domain.EventDTMFReceived,
-				ChannelID: raw.Channel.ID,
-				Digit:     raw.Digit,
-				Timestamp: now,
-			}, true
-		}
-	case "StasisEnd", "ChannelHangupRequest":
-		if raw.Channel != nil {
-			return domain.TelephonyEvent{
-				Type:      domain.EventCallEnded,
-				ChannelID: raw.Channel.ID,
-				Timestamp: now,
-			}, true
-		}
-	}
-	return domain.TelephonyEvent{}, false
 }

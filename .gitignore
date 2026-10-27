@@ -1,0 +1,9 @@
+bin/
+web/node_modules/
+desktop/node_modules/
+desktop/dist/
+*.db
+*.db-*
+data/
+.env
+coverage.out

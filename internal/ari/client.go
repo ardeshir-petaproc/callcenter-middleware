@@ -1,7 +1,9 @@
 package ari
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,16 +17,18 @@ type Client struct {
 	baseURL    string
 	username   string
 	password   string
+	app        string
 	httpClient *http.Client
 	metrics    domain.MetricsRecorder
 }
 
 // NewClient creates a new ARI REST client instance.
-func NewClient(baseURL, username, password string, metrics domain.MetricsRecorder) *Client {
+func NewClient(baseURL, username, password, app string, metrics domain.MetricsRecorder) *Client {
 	return &Client{
 		baseURL:  baseURL,
 		username: username,
 		password: password,
+		app:      app,
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -33,12 +37,37 @@ func NewClient(baseURL, username, password string, metrics domain.MetricsRecorde
 }
 
 func (c *Client) doRequest(ctx context.Context, op, method, path string) (*http.Response, error) {
+	return c.doRequestBody(ctx, op, method, path, nil)
+}
+
+// do executes a request and discards the response body.
+func (c *Client) do(ctx context.Context, op, method, path string) error {
+	resp, err := c.doRequest(ctx, op, method, path)
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	return nil
+}
+
+func (c *Client) doRequestBody(ctx context.Context, op, method, path string, body any) (*http.Response, error) {
 	start := time.Now()
-	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, nil)
+	var reader io.Reader
+	if body != nil {
+		raw, err := json.Marshal(body)
+		if err != nil {
+			return nil, fmt.Errorf("marshal %s: %w", op, err)
+		}
+		reader = bytes.NewReader(raw)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, reader)
 	if err != nil {
 		return nil, fmt.Errorf("create req %s: %w", op, err)
 	}
 	req.SetBasicAuth(c.username, c.password)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 
 	resp, err := c.httpClient.Do(req)
 	duration := time.Since(start).Seconds()

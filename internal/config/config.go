@@ -1,27 +1,59 @@
 package config
 
 import (
-	"os"
-	"strconv"
-	"strings"
+	"crypto/rand"
+	"encoding/hex"
 	"time"
 )
 
 // Config aggregates all runtime configuration for callcenter-middleware.
 type Config struct {
-	HTTPPort       string
-	ARIURL         string
-	ARIWSURL       string
-	ARIUsername    string
-	ARIPassword    string
-	ARIApp         string
-	DefaultQueue   string
-	QueueContext   string
-	IVRTimeout     time.Duration
-	MaxRetries     int
-	GreetingMedia  string
-	WebhookURL     string
-	QueueMappings  map[string]string
+	HTTPPort      string
+	ARIURL        string
+	ARIWSURL      string
+	ARIUsername   string
+	ARIPassword   string
+	ARIApp        string
+	DefaultQueue  string
+	QueueContext  string
+	IVRTimeout    time.Duration
+	MaxRetries    int
+	GreetingMedia string
+	WebhookURL    string
+	QueueMappings map[string]string
+
+	DBPath        string
+	JWTSecret     string
+	JWTGenerated  bool
+	TokenTTL      time.Duration
+	AdminUsername string
+	AdminPassword string
+	SeedDemo      bool
+	CORSOrigins   []string
+	DrainTimeout  time.Duration
+
+	OpenAIAPIKey          string
+	OpenAIBaseURL         string
+	OpenAIRealtimeURL     string
+	OpenAIRealtimeModel   string
+	OpenAIVoice           string
+	OpenAISummaryModel    string
+	OpenAITranscribeModel string
+
+	MediaBindHost      string
+	MediaAdvertiseHost string
+	MediaPortMin       int
+	MediaPortMax       int
+
+	OutboundDialTemplate string
+	OutboundCallerID     string
+	AutoPauseMisses      int
+	DefaultRingTimeout   int
+	DefaultWrapupSec     int
+	VoicemailMaxSec      int
+	VoicemailMedia       string
+	CallbackMedia        string
+	ClosedMedia          string
 }
 
 // LoadFromEnv loads configuration parameters with sensible defaults.
@@ -40,34 +72,51 @@ func LoadFromEnv() *Config {
 		GreetingMedia: getEnv("GREETING_MEDIA", "sound:custom/ivr-welcome"),
 		WebhookURL:    getEnv("WEBHOOK_URL", ""),
 		QueueMappings: parseQueueMappings(getEnv("QUEUE_MAPPINGS", "1=600,2=601,0=600")),
+
+		DBPath:        getEnv("DB_PATH", "data/callcenter.db"),
+		JWTSecret:     getEnv("JWT_SECRET", ""),
+		TokenTTL:      time.Duration(getEnvInt("TOKEN_TTL_HOURS", 12)) * time.Hour,
+		AdminUsername: getEnv("ADMIN_USERNAME", "admin"),
+		AdminPassword: getEnv("ADMIN_PASSWORD", "admin123"),
+		SeedDemo:      getEnvBool("SEED_DEMO", false),
+		CORSOrigins:   splitList(getEnv("CORS_ORIGINS", "")),
+		DrainTimeout:  time.Duration(getEnvInt("DRAIN_TIMEOUT_SEC", 10)) * time.Second,
+
+		OpenAIAPIKey:          getEnv("OPENAI_API_KEY", ""),
+		OpenAIBaseURL:         getEnv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+		OpenAIRealtimeURL:     getEnv("OPENAI_REALTIME_URL", "wss://api.openai.com/v1/realtime"),
+		OpenAIRealtimeModel:   getEnv("OPENAI_REALTIME_MODEL", "gpt-realtime"),
+		OpenAIVoice:           getEnv("OPENAI_VOICE", "marin"),
+		OpenAISummaryModel:    getEnv("OPENAI_SUMMARY_MODEL", "gpt-4o-mini"),
+		OpenAITranscribeModel: getEnv("OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe"),
+
+		MediaBindHost:      getEnv("MEDIA_BIND_HOST", "0.0.0.0"),
+		MediaAdvertiseHost: getEnv("MEDIA_ADVERTISE_HOST", "127.0.0.1"),
+		MediaPortMin:       getEnvInt("MEDIA_PORT_MIN", 40000),
+		MediaPortMax:       getEnvInt("MEDIA_PORT_MAX", 40199),
+
+		OutboundDialTemplate: getEnv("OUTBOUND_DIAL_TEMPLATE", "PJSIP/{number}@trunk"),
+		OutboundCallerID:     getEnv("OUTBOUND_CALLER_ID", ""),
+		AutoPauseMisses:      getEnvInt("AUTO_PAUSE_MISSES", 3),
+		DefaultRingTimeout:   getEnvInt("DEFAULT_RING_TIMEOUT_SEC", 20),
+		DefaultWrapupSec:     getEnvInt("DEFAULT_WRAPUP_SEC", 10),
+		VoicemailMaxSec:      getEnvInt("VOICEMAIL_MAX_SEC", 120),
+		VoicemailMedia:       getEnv("VOICEMAIL_MEDIA", "sound:vm-intro"),
+		CallbackMedia:        getEnv("CALLBACK_MEDIA", "sound:custom/callback-confirm"),
+		ClosedMedia:          getEnv("CLOSED_MEDIA", "sound:custom/closed"),
+	}
+	if cfg.JWTSecret == "" {
+		cfg.JWTSecret = randomHex(32)
+		cfg.JWTGenerated = true
 	}
 	return cfg
 }
 
-func getEnv(key, defaultVal string) string {
-	if val := os.Getenv(key); val != "" {
-		return val
-	}
-	return defaultVal
-}
+// AIEnabled reports whether an OpenAI key is configured.
+func (c *Config) AIEnabled() bool { return c.OpenAIAPIKey != "" }
 
-func getEnvInt(key string, defaultVal int) int {
-	if val := os.Getenv(key); val != "" {
-		if i, err := strconv.Atoi(val); err == nil {
-			return i
-		}
-	}
-	return defaultVal
-}
-
-func parseQueueMappings(raw string) map[string]string {
-	out := make(map[string]string)
-	pairs := strings.Split(raw, ",")
-	for _, pair := range pairs {
-		kv := strings.SplitN(strings.TrimSpace(pair), "=", 2)
-		if len(kv) == 2 {
-			out[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
-		}
-	}
-	return out
+func randomHex(n int) string {
+	b := make([]byte, n)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
 }
