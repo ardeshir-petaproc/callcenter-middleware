@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	_ "time/tzdata" // embedded zone database for schedules in minimal images
 
 	"callcenter-middleware/internal/ai"
 	"callcenter-middleware/internal/ari"

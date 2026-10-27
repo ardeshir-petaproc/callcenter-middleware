@@ -22,7 +22,8 @@ RUN go build -trimpath -ldflags "-s -w -X callcenter-middleware/internal/server.
 
 # 3. Minimal runtime image.
 FROM alpine:3.22
-RUN apk add --no-cache ca-certificates tzdata && adduser -D -u 10001 cc && mkdir -p /data && chown cc /data
+RUN adduser -D -u 10001 cc && mkdir -p /data && chown cc /data
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/middleware /out/ari-sim /usr/local/bin/
 USER cc
 ENV DB_PATH=/data/callcenter.db HTTP_PORT=8080
