@@ -60,6 +60,8 @@ type Queue struct {
 	AllowCallback  bool     `json:"allow_callback"`
 	LeaveWhenEmpty bool     `json:"leave_when_empty"`
 	Survey         bool     `json:"survey"`
+	AlertWaiting   int      `json:"alert_waiting"`
+	AlertWaitSec   int      `json:"alert_wait_sec"`
 	Overflow       Action   `json:"overflow"`
 	Enabled        bool     `json:"enabled"`
 }

@@ -64,4 +64,5 @@ const (
 	EvVoicemail       = "voicemail.created"
 	EvScreenPop       = "agent.screenpop"
 	EvConfigChanged   = "config.changed"
+	EvQueueAlert      = "queue.alert"
 )

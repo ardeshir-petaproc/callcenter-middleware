@@ -40,6 +40,7 @@ WebSocket messages are `{type, data, at}`:
 - `callback.created` → `Callback`
 - `voicemail.created` → `Voicemail`
 - `config.changed` → `{entity}`
+- `queue.alert` → `{queue_id, name, level: "alert"|"clear", waiting, longest_wait_sec, available}` (thresholds `alert_waiting` / `alert_wait_sec` on the queue)
 
 ## Calls
 
@@ -155,7 +156,8 @@ interface Queue { id: number; name: string; description: string; mode: "native" 
   strategy: "ringall" | "longest_idle" | "round_robin" | "fewest_calls" | "random"; priority: number;
   ring_timeout_sec: number; max_wait_sec: number; wrapup_sec: number; sla_sec: number; moh_class: string;
   join_media: string; required_skills: string[]; record: boolean; allow_callback: boolean;
-  leave_when_empty: boolean; survey: boolean /* post-call CSAT 1-5 by keypad */; overflow: Action; enabled: boolean }
+  leave_when_empty: boolean; survey: boolean /* post-call CSAT 1-5 by keypad */;
+  alert_waiting: number /* 0 = off */; alert_wait_sec: number /* 0 = off */; overflow: Action; enabled: boolean }
 interface Campaign { id: number; name: string; description: string; queue_id: number;
   status: "draft" | "running" | "paused" | "completed"; max_attempts: number; retry_minutes: number;
   schedule_id: number; script: string }

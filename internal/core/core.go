@@ -35,6 +35,7 @@ type Core struct {
 	rr         map[int64]int
 	seq        int
 	lastDial   time.Time
+	alerts     map[int64]bool
 }
 
 // New creates a core; call Reload before Run to load configuration.
@@ -53,6 +54,7 @@ func New(d Deps) *Core {
 		agents:     map[int64]*agentRT{},
 		cache:      &configCache{},
 		rr:         map[int64]int{},
+		alerts:     map[int64]bool{},
 	}
 }
 

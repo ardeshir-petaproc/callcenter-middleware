@@ -90,11 +90,13 @@ func (c *Core) Agent(userID int64) (domain.AgentState, bool) {
 
 func (c *Core) updateGauges() {
 	if c.Metrics == nil {
+		c.checkAlerts()
 		return
 	}
 	for _, v := range c.queueViews() {
 		c.Metrics.SetQueueWaiting(v.Name, v.Waiting)
 	}
+	c.checkAlerts()
 	counts := map[string]int{}
 	for _, a := range c.agents {
 		counts[string(a.Status)]++

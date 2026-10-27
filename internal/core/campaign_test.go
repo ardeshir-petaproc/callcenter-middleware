@@ -84,3 +84,31 @@ func TestCampaign_ProgressiveDialerAndRetries(t *testing.T) {
 		t.Fatalf("expected 2 campaign calls, got %+v", calls)
 	}
 }
+
+type capture struct{ events []domain.Event }
+
+func (c *capture) Publish(ev domain.Event) { c.events = append(c.events, ev) }
+
+func TestQueueAlert_RaisedAndCleared(t *testing.T) {
+	h := newHarness(t, nil)
+	q := h.queue(domain.Queue{Name: "Hot", AlertWaiting: 2})
+	setupQueueFlow(h, q)
+	pub := &capture{}
+	h.core.SetPublisherForTest(pub)
+	for _, ch := range []string{"c1", "c2"} {
+		h.incoming(ch, "555", "200")
+		h.dtmf(ch, "1")
+	}
+	h.core.Tick()
+	h.gone("c1", 16)
+	h.core.Tick()
+	var levels []string
+	for _, ev := range pub.events {
+		if ev.Type == domain.EvQueueAlert {
+			levels = append(levels, ev.Data.(interface{ LevelString() string }).LevelString())
+		}
+	}
+	if len(levels) != 2 || levels[0] != "alert" || levels[1] != "clear" {
+		t.Fatalf("expected alert then clear, got %v", levels)
+	}
+}
