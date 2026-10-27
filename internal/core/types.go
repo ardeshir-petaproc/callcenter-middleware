@@ -58,6 +58,9 @@ type liveCall struct {
 	aiStart      time.Time
 	aiHandoff    int64
 	callbackID   int64
+	leadID       int64
+	surveyUntil  time.Time
+	talkEnd      time.Time
 	transferring bool
 	ended        bool
 }

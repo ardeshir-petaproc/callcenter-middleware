@@ -30,6 +30,7 @@ type Store struct {
 	PauseReasons *Collection[domain.PauseReason]
 	Webhooks     *Collection[domain.Webhook]
 	Contacts     *Collection[domain.Contact]
+	Campaigns    *Collection[domain.Campaign]
 }
 
 // Open opens (and migrates) the database at path. Use ":memory:" for tests.
@@ -66,6 +67,7 @@ func Open(path string) (*Store, error) {
 	s.PauseReasons = newCollection(db, "pause_reason", func(x *domain.PauseReason) *int64 { return &x.ID })
 	s.Webhooks = newCollection(db, "webhook", func(x *domain.Webhook) *int64 { return &x.ID })
 	s.Contacts = newCollection(db, "contact", func(x *domain.Contact) *int64 { return &x.ID })
+	s.Campaigns = newCollection(db, "campaign", func(x *domain.Campaign) *int64 { return &x.ID })
 	return s, nil
 }
 
@@ -79,6 +81,12 @@ func (s *Store) migrate(ctx context.Context) error {
 	for i, stmt := range migrations {
 		if _, err := s.db.ExecContext(ctx, stmt); err != nil {
 			return fmt.Errorf("migration %d: %w", i, err)
+		}
+	}
+	// Additive column migrations; "duplicate column" means already applied.
+	for _, stmt := range columnMigrations {
+		if _, err := s.db.ExecContext(ctx, stmt); err != nil && !strings.Contains(err.Error(), "duplicate column") {
+			return fmt.Errorf("column migration %q: %w", stmt, err)
 		}
 	}
 	return nil

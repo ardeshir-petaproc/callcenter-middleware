@@ -37,49 +37,61 @@ func (c *Core) Dial(agentID int64, number string, callbackID int64) (string, err
 		if a == nil {
 			return ErrUnknownAgent
 		}
-		if a.CallID != "" || a.Status == domain.AgentBusy || a.Status == domain.AgentRinging {
-			return ErrAgentBusy
+		call, err := c.dialLocked(a, number, func(call *liveCall) { call.callbackID = callbackID })
+		if call != nil {
+			id = call.ID
 		}
-		if NormalizePhone(number) == "" {
-			return errors.New("invalid number")
-		}
-		if a.user.DialEndpoint() == "" {
-			return errors.New("agent has no extension")
-		}
-		call := newLiveCall(uuid.NewString())
-		call.Direction = domain.DirectionOutbound
-		call.CallerNumber = NormalizePhoneKeepPlus(number)
-		call.StartedAt = c.now().UTC()
-		call.State = domain.CallDialing
-		call.AgentID = agentID
-		call.callbackID = callbackID
-		c.matchContact(call)
-		c.calls[call.ID] = call
-		if c.Metrics != nil {
-			c.Metrics.IncActiveCalls()
-		}
-		a.CallID = call.ID
-		c.setAgentStatus(a, domain.AgentBusy, "")
-
-		chanID := c.nextChan("oagent", call.ID)
-		c.legs[chanID] = &leg{chanID: chanID, call: call, role: roleOutAgent, agentID: agentID, since: c.now()}
-		ctx, cancel := c.opCtx()
-		err := c.Switch.Originate(ctx, domain.OriginateRequest{
-			Endpoint: a.user.DialEndpoint(), ChannelID: chanID, TimeoutSec: 30,
-			CallerID: "\"Outbound\" <" + call.CallerNumber + ">", AppArgs: roleOutAgent + "," + call.ID,
-		})
-		cancel()
-		c.timeline(call, "dial", call.CallerNumber+" by "+a.Username)
-		if err != nil {
-			call.Outcome = domain.OutcomeFailed
-			c.finish(call, "middleware")
-			return err
-		}
-		c.changed(call)
-		id = call.ID
-		return nil
+		return err
 	})
 	return id, err
+}
+
+// dialLocked places an agent-first outbound call; setup customizes the call
+// before it is published. Runs on the loop.
+func (c *Core) dialLocked(a *agentRT, number string, setup func(*liveCall)) (*liveCall, error) {
+	if a.CallID != "" || a.Status == domain.AgentBusy || a.Status == domain.AgentRinging {
+		return nil, ErrAgentBusy
+	}
+	if NormalizePhone(number) == "" {
+		return nil, errors.New("invalid number")
+	}
+	if a.user.DialEndpoint() == "" {
+		return nil, errors.New("agent has no extension")
+	}
+	call := newLiveCall(uuid.NewString())
+	call.Direction = domain.DirectionOutbound
+	call.CallerNumber = NormalizePhoneKeepPlus(number)
+	call.StartedAt = c.now().UTC()
+	call.State = domain.CallDialing
+	call.AgentID = a.UserID
+	if setup != nil {
+		setup(call)
+	}
+	c.matchContact(call)
+	c.calls[call.ID] = call
+	if c.Metrics != nil {
+		c.Metrics.IncActiveCalls()
+	}
+	a.CallID = call.ID
+	c.setAgentStatus(a, domain.AgentBusy, "")
+
+	chanID := c.nextChan("oagent", call.ID)
+	c.legs[chanID] = &leg{chanID: chanID, call: call, role: roleOutAgent, agentID: a.UserID, since: c.now()}
+	ctx, cancel := c.opCtx()
+	err := c.Switch.Originate(ctx, domain.OriginateRequest{
+		Endpoint: a.user.DialEndpoint(), ChannelID: chanID, TimeoutSec: 30,
+		CallerID: "\"Outbound\" <" + call.CallerNumber + ">", AppArgs: roleOutAgent + "," + call.ID,
+	})
+	cancel()
+	c.timeline(call, "dial", call.CallerNumber+" by "+a.Username)
+	if err != nil {
+		call.Outcome = domain.OutcomeFailed
+		c.finish(call, "middleware")
+		return call, err
+	}
+	c.changed(call)
+	c.publish(domain.EvScreenPop, map[string]any{"user_id": a.UserID, "call": c.view(call)})
+	return call, nil
 }
 
 func (c *Core) onOutboundAgentAnswered(l *leg) {
@@ -143,30 +155,4 @@ func (c *Core) onRemotePartyAnswered(l *leg) {
 	}
 	c.timeline(call, "external_answered", "")
 	c.changed(call)
-}
-
-// transferExternal dials an outside number and bridges the caller to it.
-func (c *Core) transferExternal(call *liveCall, number string) {
-	if NormalizePhone(number) == "" {
-		c.execute(call, c.defaultAction())
-		return
-	}
-	call.State = domain.CallDialing
-	c.changed(call)
-	c.startMOH(call)
-	c.originateRemote(call, roleExternal, number)
-}
-
-func (c *Core) onExternalGone(call *liveCall, l *leg) {
-	if l.answered {
-		c.finish(call, "external")
-		return
-	}
-	call.extChan = ""
-	c.timeline(call, "external_failed", "")
-	if call.queue != nil {
-		c.enqueue(call, call.queue)
-		return
-	}
-	c.execute(call, c.defaultAction())
 }

@@ -49,8 +49,12 @@ func (c *Core) finish(call *liveCall, by string) {
 		call.HoldSec += secs(now.Sub(call.holdStart))
 		call.holdStart = time.Time{}
 	}
+	talkEnd := now
+	if !call.talkEnd.IsZero() {
+		talkEnd = call.talkEnd
+	}
 	if call.AnsweredAt != nil {
-		call.TalkSec = secs(now.Sub(*call.AnsweredAt)) - call.HoldSec
+		call.TalkSec = secs(talkEnd.Sub(*call.AnsweredAt)) - call.HoldSec
 		if call.TalkSec < 0 {
 			call.TalkSec = 0
 		}
@@ -73,6 +77,7 @@ func (c *Core) finish(call *liveCall, by string) {
 	c.persist(call)
 	c.publish(domain.EvCallEnded, c.view(call))
 	c.updateCallback(call)
+	c.updateLead(call)
 	if c.Analyzer != nil && (call.AnsweredAt != nil || call.AIProfileID > 0) {
 		id := call.ID
 		go c.Analyzer.Analyze(context.Background(), id)

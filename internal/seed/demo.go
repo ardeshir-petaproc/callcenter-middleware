@@ -68,7 +68,16 @@ func demoConfig(ctx context.Context, st *store.Store, queues []*domain.Queue) er
 			return err
 		}
 	}
-	return nil
+	cp := &domain.Campaign{Name: "Q4 renewals", Description: "Call customers whose plan renews this month",
+		QueueID: queues[0].ID, Status: domain.CampaignDraft, MaxAttempts: 3, RetryMinutes: 60,
+		Script: "Hi, this is {agent} from Acme. Your plan renews soon. Can I walk you through the Pro upgrade?"}
+	if err := st.Campaigns.Create(ctx, cp); err != nil {
+		return err
+	}
+	leads := []domain.Lead{{Number: "+15550101", Name: "John Smith"}, {Number: "+15550123", Name: "Ava Patel"},
+		{Number: "+15550145", Name: "Noah Kim"}, {Number: "+15550167", Name: "Emma Garcia"}}
+	_, err := st.AddLeads(ctx, cp.ID, leads)
+	return err
 }
 
 // demoHistory fabricates plausible call records for the last 14 days so
@@ -103,6 +112,9 @@ func demoHistory(ctx context.Context, st *store.Store, queues []*domain.Queue, a
 				c.SLAMet = wait <= q.SLASec
 				c.Disposition = dispositions[rng.IntN(len(dispositions))]
 				c.Sentiment = []string{"positive", "neutral", "neutral", "negative"}[rng.IntN(4)]
+				if rng.IntN(3) == 0 {
+					c.CSAT = 3 + rng.IntN(3)
+				}
 			case roll < 84:
 				end := queued.Add(time.Duration(wait) * time.Second)
 				c.EndedAt, c.Outcome, c.WaitSec = &end, domain.OutcomeAbandoned, wait

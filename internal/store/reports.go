@@ -25,6 +25,8 @@ type Summary struct {
 	AvgTalkSec  float64 `json:"avg_talk_sec"`
 	MaxWaitSec  int     `json:"max_wait_sec"`
 	TotalTalk   int     `json:"total_talk_sec"`
+	CSATCount   int     `json:"csat_count"`
+	CSATAvg     float64 `json:"csat_avg"`
 }
 
 // GroupStat is a Summary for one queue or agent.
@@ -55,12 +57,13 @@ const summarySelect = `SELECT COUNT(*),
 	COALESCE(SUM(sla_met), 0),
 	COALESCE(AVG(CASE WHEN answered_at IS NOT NULL AND queued_at IS NOT NULL THEN wait_sec END), 0),
 	COALESCE(AVG(CASE WHEN answered_at IS NOT NULL THEN talk_sec END), 0),
-	COALESCE(MAX(wait_sec), 0), COALESCE(SUM(talk_sec), 0)`
+	COALESCE(MAX(wait_sec), 0), COALESCE(SUM(talk_sec), 0),
+	COALESCE(SUM(csat > 0), 0), COALESCE(AVG(CASE WHEN csat > 0 THEN csat END), 0)`
 
 func scanSummary(sc interface{ Scan(...any) error }, extra ...any) (Summary, error) {
 	var s Summary
 	dest := append(extra, &s.Total, &s.Inbound, &s.Outbound, &s.Queued, &s.Answered, &s.Abandoned,
-		&s.Voicemail, &s.Callbacks, &s.AIResolved, &s.SLAMet, &s.AvgWaitSec, &s.AvgTalkSec, &s.MaxWaitSec, &s.TotalTalk)
+		&s.Voicemail, &s.Callbacks, &s.AIResolved, &s.SLAMet, &s.AvgWaitSec, &s.AvgTalkSec, &s.MaxWaitSec, &s.TotalTalk, &s.CSATCount, &s.CSATAvg)
 	if err := sc.Scan(dest...); err != nil {
 		return s, err
 	}

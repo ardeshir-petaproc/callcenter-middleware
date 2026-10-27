@@ -55,6 +55,12 @@ var migrations = []string{
 		summary TEXT NOT NULL DEFAULT '',
 		sentiment TEXT NOT NULL DEFAULT '',
 		hangup_by TEXT NOT NULL DEFAULT '')`,
+	`CREATE TABLE IF NOT EXISTS leads (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		campaign_id INTEGER NOT NULL, number TEXT NOT NULL, name TEXT NOT NULL DEFAULT '',
+		status TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, next_attempt INTEGER NOT NULL DEFAULT 0,
+		call_id TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL)`,
+	`CREATE INDEX IF NOT EXISTS idx_leads_campaign ON leads(campaign_id, status, next_attempt)`,
 	`CREATE INDEX IF NOT EXISTS idx_calls_started ON calls(started_at)`,
 	`CREATE INDEX IF NOT EXISTS idx_calls_agent ON calls(agent_id, started_at)`,
 	`CREATE INDEX IF NOT EXISTS idx_calls_queue ON calls(queue_id, started_at)`,
@@ -87,4 +93,9 @@ var migrations = []string{
 		user_id INTEGER NOT NULL, status TEXT NOT NULL, reason TEXT NOT NULL DEFAULT '', at INTEGER NOT NULL)`,
 	`CREATE INDEX IF NOT EXISTS idx_agent_events_user ON agent_events(user_id, at)`,
 	`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`,
+}
+
+var columnMigrations = []string{
+	`ALTER TABLE calls ADD COLUMN csat INTEGER NOT NULL DEFAULT 0`,
+	`ALTER TABLE calls ADD COLUMN campaign_id INTEGER NOT NULL DEFAULT 0`,
 }

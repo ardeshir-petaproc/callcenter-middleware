@@ -12,17 +12,17 @@ import (
 
 const callCols = `id, direction, caller_number, caller_name, dnis, state, outcome, flow_id, queue_id, agent_id,
 	ai_profile_id, contact_id, ivr_path, started_at, queued_at, answered_at, ended_at, wait_sec, talk_sec,
-	hold_sec, sla_met, disposition, notes, tags, recording, summary, sentiment, hangup_by`
+	hold_sec, sla_met, disposition, notes, tags, recording, summary, sentiment, hangup_by, csat, campaign_id`
 
 // SaveCall inserts or fully replaces a call record.
 func (s *Store) SaveCall(ctx context.Context, c *domain.Call) error {
 	tags, _ := json.Marshal(nonNil(c.Tags))
 	_, err := s.db.ExecContext(ctx, `INSERT OR REPLACE INTO calls (`+callCols+`)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 		c.ID, c.Direction, c.CallerNumber, c.CallerName, c.DNIS, c.State, c.Outcome, c.FlowID, c.QueueID,
 		c.AgentID, c.AIProfileID, c.ContactID, c.IVRPath, ms(c.StartedAt), msPtr(c.QueuedAt),
 		msPtr(c.AnsweredAt), msPtr(c.EndedAt), c.WaitSec, c.TalkSec, c.HoldSec, boolInt(c.SLAMet),
-		c.Disposition, c.Notes, string(tags), c.Recording, c.Summary, c.Sentiment, c.HangupBy)
+		c.Disposition, c.Notes, string(tags), c.Recording, c.Summary, c.Sentiment, c.HangupBy, c.CSAT, c.CampaignID)
 	return err
 }
 
@@ -52,7 +52,7 @@ func scanCall(sc interface{ Scan(...any) error }) (*domain.Call, error) {
 	err := sc.Scan(&c.ID, &c.Direction, &c.CallerNumber, &c.CallerName, &c.DNIS, &c.State, &c.Outcome,
 		&c.FlowID, &c.QueueID, &c.AgentID, &c.AIProfileID, &c.ContactID, &c.IVRPath, &started, &queued,
 		&answered, &ended, &c.WaitSec, &c.TalkSec, &c.HoldSec, &sla, &c.Disposition, &c.Notes, &tags,
-		&c.Recording, &c.Summary, &c.Sentiment, &c.HangupBy)
+		&c.Recording, &c.Summary, &c.Sentiment, &c.HangupBy, &c.CSAT, &c.CampaignID)
 	if err != nil {
 		return nil, err
 	}
@@ -120,6 +120,9 @@ func callWhere(f domain.CallFilter) (string, []any) {
 	}
 	if f.Outcome != "" {
 		conds, args = append(conds, "outcome = ?"), append(args, f.Outcome)
+	}
+	if f.CampaignID > 0 {
+		conds, args = append(conds, "campaign_id = ?"), append(args, f.CampaignID)
 	}
 	if f.Direction != "" {
 		conds, args = append(conds, "direction = ?"), append(args, f.Direction)

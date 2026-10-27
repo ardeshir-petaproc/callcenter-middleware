@@ -84,7 +84,7 @@ func Demo(ctx context.Context, st *store.Store) error {
 		{Name: "Sales", Description: "New customers and upgrades", Strategy: domain.StrategyLongestIdle, Priority: 5,
 			RingTimeoutSec: 20, MaxWaitSec: 300, WrapupSec: 15, SLASec: 20, Record: true, AllowCallback: true},
 		{Name: "Support", Description: "Technical support", Strategy: domain.StrategyRingAll, Priority: 3,
-			RingTimeoutSec: 20, MaxWaitSec: 600, WrapupSec: 20, SLASec: 30, Record: true, AllowCallback: true},
+			RingTimeoutSec: 20, MaxWaitSec: 600, WrapupSec: 20, SLASec: 30, Record: true, AllowCallback: true, Survey: true},
 		{Name: "Billing", Description: "Invoices and payments", Strategy: domain.StrategyRoundRobin, Priority: 1,
 			RingTimeoutSec: 20, MaxWaitSec: 240, WrapupSec: 10, SLASec: 30, LeaveWhenEmpty: true},
 	}

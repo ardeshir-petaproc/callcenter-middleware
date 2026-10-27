@@ -117,6 +117,10 @@ func (c *Core) onLegGone(l *leg, cause int) {
 			return
 		}
 		if l.chanID == call.agentChan && !call.transferring {
+			if call.queue != nil && call.queue.Survey && call.callerChan != "" {
+				c.startSurvey(call)
+				return
+			}
 			c.finish(call, "agent")
 		}
 	case roleOutAgent:

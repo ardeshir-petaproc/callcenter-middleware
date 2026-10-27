@@ -14,7 +14,7 @@ func callFilter(r *http.Request) domain.CallFilter {
 		From: qTime(r, "from", false), To: qTime(r, "to", true),
 		QueueID: qInt64(r, "queue_id"), AgentID: qInt64(r, "agent_id"),
 		Outcome: q.Get("outcome"), Direction: q.Get("direction"), Search: q.Get("q"),
-		Limit: qInt(r, "limit", 50), Offset: qInt(r, "offset", 0),
+		Limit: qInt(r, "limit", 50), Offset: qInt(r, "offset", 0), CampaignID: qInt64(r, "campaign_id"),
 	}
 }
 

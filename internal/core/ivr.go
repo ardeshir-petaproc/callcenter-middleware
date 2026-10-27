@@ -30,6 +30,8 @@ func (c *Core) onDTMF(chanID, digit string) {
 	switch call.State {
 	case domain.CallIVR:
 		c.ivrDigit(call, digit)
+	case domain.CallSurvey:
+		c.surveyDigit(call, digit)
 	case domain.CallQueued, domain.CallRinging:
 		if digit == "*" && call.queue != nil && call.queue.AllowCallback {
 			c.leaveQueue(call)
@@ -103,6 +105,11 @@ func (c *Core) tickCall(call *liveCall, now time.Time) {
 		c.tickQueued(call, now)
 	case domain.CallAI:
 		c.tickAI(call, now)
+	case domain.CallSurvey:
+		if !call.surveyUntil.IsZero() && now.After(call.surveyUntil) {
+			c.hangup(call.callerChan, "normal")
+			c.finish(call, "survey_timeout")
+		}
 	}
 	for chanID, l := range c.legs {
 		if l.call != call || l.answered || l.role == roleCaller {

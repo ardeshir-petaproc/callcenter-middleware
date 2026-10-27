@@ -54,6 +54,8 @@ type Config struct {
 	VoicemailMedia       string
 	CallbackMedia        string
 	ClosedMedia          string
+	SurveyMedia          string
+	SurveyThanksMedia    string
 }
 
 // LoadFromEnv loads configuration parameters with sensible defaults.
@@ -104,6 +106,8 @@ func LoadFromEnv() *Config {
 		VoicemailMedia:       getEnv("VOICEMAIL_MEDIA", "sound:vm-intro"),
 		CallbackMedia:        getEnv("CALLBACK_MEDIA", "sound:custom/callback-confirm"),
 		ClosedMedia:          getEnv("CLOSED_MEDIA", "sound:custom/closed"),
+		SurveyMedia:          getEnv("SURVEY_MEDIA", "sound:custom/survey"),
+		SurveyThanksMedia:    getEnv("SURVEY_THANKS_MEDIA", "sound:custom/thanks"),
 	}
 	if cfg.JWTSecret == "" {
 		cfg.JWTSecret = randomHex(32)

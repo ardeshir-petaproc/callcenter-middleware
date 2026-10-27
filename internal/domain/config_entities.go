@@ -59,6 +59,7 @@ type Queue struct {
 	Record         bool     `json:"record"`
 	AllowCallback  bool     `json:"allow_callback"`
 	LeaveWhenEmpty bool     `json:"leave_when_empty"`
+	Survey         bool     `json:"survey"`
 	Overflow       Action   `json:"overflow"`
 	Enabled        bool     `json:"enabled"`
 }

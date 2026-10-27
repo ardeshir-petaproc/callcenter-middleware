@@ -31,6 +31,7 @@ func (s *Server) registerRoutes(r chi.Router) {
 				s.configRoutes(r)
 				s.workRoutes(r)
 				s.reportRoutes(r)
+				s.campaignRoutes(r)
 			})
 		})
 	})

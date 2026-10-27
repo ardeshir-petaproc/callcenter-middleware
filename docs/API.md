@@ -45,7 +45,7 @@ WebSocket messages are `{type, data, at}`:
 
 | Method | Path | Role | Body / Query | Response |
 |---|---|---|---|---|
-| GET | `/calls` | any (agents: own) | `from,to` (RFC3339 or YYYY-MM-DD), `queue_id, agent_id, outcome, direction, q, limit, offset` | `{items: Call[], total}` |
+| GET | `/calls` | any (agents: own) | `from,to` (RFC3339 or YYYY-MM-DD), `queue_id, agent_id, campaign_id, outcome, direction, q, limit, offset` | `{items: Call[], total}` |
 | GET | `/calls/{id}` | any (agents: own) | | `{call: Call, live: CallView\|null, transcript: TranscriptEntry[], events: CallEvent[], contact: Contact\|null}` |
 | PATCH | `/calls/{id}` | any (agents: own) | `{disposition?, notes?, tags?}` | `Call` |
 | POST | `/calls/{id}/hangup` | sup+ or own agent | | `{ok}` |
@@ -99,6 +99,21 @@ Extra endpoints:
 | DELETE | `/voicemails/{id}` | sup+ | | `{ok}` |
 | GET | `/voicemails/{id}/audio` | any | `?token=` | `audio/wav` |
 
+## Outbound campaigns
+
+Progressive (agent-first) dialer: while a campaign is `running`, every
+available member of its queue is rung and then connected to the next due
+lead. Inbound callers waiting in that queue are always served first.
+
+| Method | Path | Role | Body / Query | Response |
+|---|---|---|---|---|
+| GET/POST/PUT/DELETE | `/campaigns`, `/campaigns/{id}` | read any, write sup+ | `Campaign` | `Campaign` |
+| POST | `/campaigns/{id}/start` / `/pause` | sup+ | | `Campaign` |
+| GET | `/campaigns/{id}/leads` | any | `status?, limit, offset` | `Lead[]` |
+| POST | `/campaigns/{id}/leads` | sup+ | `{leads: [{number, name?, notes?}]}` or `{csv: "number,name,notes\n..."}` | `{added, skipped}` |
+| DELETE | `/campaigns/{id}/leads` | sup+ | `status?` | `{ok}` |
+| GET | `/campaigns/{id}/stats` | any | | `{leads: Record<status|"total", number>, calls: Summary}` |
+
 ## Reports (sup+)
 
 All accept `from, to, queue_id, agent_id`. Defaults: today.
@@ -140,7 +155,13 @@ interface Queue { id: number; name: string; description: string; mode: "native" 
   strategy: "ringall" | "longest_idle" | "round_robin" | "fewest_calls" | "random"; priority: number;
   ring_timeout_sec: number; max_wait_sec: number; wrapup_sec: number; sla_sec: number; moh_class: string;
   join_media: string; required_skills: string[]; record: boolean; allow_callback: boolean;
-  leave_when_empty: boolean; overflow: Action; enabled: boolean }
+  leave_when_empty: boolean; survey: boolean /* post-call CSAT 1-5 by keypad */; overflow: Action; enabled: boolean }
+interface Campaign { id: number; name: string; description: string; queue_id: number;
+  status: "draft" | "running" | "paused" | "completed"; max_attempts: number; retry_minutes: number;
+  schedule_id: number; script: string }
+interface Lead { id: number; campaign_id: number; number: string; name: string;
+  status: "pending" | "dialing" | "answered" | "failed" | "done"; attempts: number; next_attempt: string;
+  call_id: string; notes: string; updated_at: string }
 interface QueueMember { queue_id: number; user_id: number; penalty: number }
 interface IVRFlow { id: number; name: string; dnis: string; greeting_media: string; invalid_media: string;
   timeout_sec: number; max_retries: number; options: Record<string, Action>; timeout_action: Action;
@@ -154,12 +175,13 @@ interface Disposition { id: number; code: string; label: string; enabled: boolea
 interface PauseReason { id: number; label: string; enabled: boolean }
 interface Webhook { id: number; url: string; events: string[]; secret: string; enabled: boolean }
 interface Contact { id: number; name: string; phone: string; email: string; company: string; notes: string; tags: string[]; vip: boolean }
-type CallState = "ivr" | "ai" | "queued" | "ringing" | "connected" | "hold" | "voicemail" | "dialing" | "message" | "ended";
+type CallState = "ivr" | "ai" | "queued" | "ringing" | "connected" | "hold" | "voicemail" | "dialing" | "message" | "survey" | "ended";
 interface Call { id: string; direction: "inbound" | "outbound"; caller_number: string; caller_name: string; dnis: string;
   state: CallState; outcome: string; flow_id: number; queue_id: number; agent_id: number; ai_profile_id: number;
   contact_id: number; ivr_path: string; started_at: string; queued_at?: string; answered_at?: string; ended_at?: string;
   wait_sec: number; talk_sec: number; hold_sec: number; sla_met: boolean; disposition: string; notes: string;
-  tags: string[]; recording: string; summary: string; sentiment: string; hangup_by: string }
+  tags: string[]; recording: string; summary: string; sentiment: string; hangup_by: string;
+  csat: number /* 0 = not rated, else 1-5 */; campaign_id: number }
 interface CallView extends Call { ringing_agents: number[]; waiting_sec: number; duration_sec: number; monitors: number }
 interface QueueView { id: number; name: string; waiting: number; longest_wait_sec: number; available: number;
   busy: number; paused: number; logged_in: number; members: number }
@@ -173,7 +195,8 @@ interface Voicemail { id: number; call_id: string; caller_number: string; caller
 interface AuditEntry { id: number; user_id: number; username: string; action: string; entity: string; entity_id: string; detail: string; at: string }
 interface Summary { total: number; inbound: number; outbound: number; queued: number; answered: number; abandoned: number;
   voicemail: number; callbacks: number; ai_resolved: number; sla_met: number; sla_percent: number; abandon_rate: number;
-  avg_wait_sec: number; avg_talk_sec: number; max_wait_sec: number; total_talk_sec: number }
+  avg_wait_sec: number; avg_talk_sec: number; max_wait_sec: number; total_talk_sec: number;
+  csat_count: number; csat_avg: number }
 interface GroupStat extends Summary { id: number }
 interface AgentTime { user_id: number; seconds: Record<string, number> }
 interface Bucket { key: string; total: number; answered: number; abandoned: number }

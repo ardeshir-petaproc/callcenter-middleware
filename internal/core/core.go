@@ -34,6 +34,7 @@ type Core struct {
 	cache      *configCache
 	rr         map[int64]int
 	seq        int
+	lastDial   time.Time
 }
 
 // New creates a core; call Reload before Run to load configuration.
@@ -159,5 +160,6 @@ func (c *Core) tick() {
 	}
 	c.tickAgents(now)
 	c.dispatch()
+	c.tickCampaigns(now)
 	c.updateGauges()
 }

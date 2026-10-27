@@ -17,6 +17,7 @@ type configCache struct {
 	profiles  map[int64]*domain.AIProfile
 	members   map[int64][]domain.QueueMember
 	users     map[int64]*domain.User
+	campaigns []domain.Campaign
 }
 
 func loadCache(ctx context.Context, d Deps) (*configCache, error) {
@@ -49,6 +50,9 @@ func loadCache(ctx context.Context, d Deps) (*configCache, error) {
 	}
 	for i := range profiles {
 		cc.profiles[profiles[i].ID] = &profiles[i]
+	}
+	if cc.campaigns, err = st.Campaigns.List(ctx); err != nil {
+		return nil, err
 	}
 	members, err := st.ListMembers(ctx)
 	if err != nil {

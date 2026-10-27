@@ -15,6 +15,7 @@ const (
 	CallVoicemail  CallState = "voicemail"
 	CallDialing    CallState = "dialing"
 	CallMessage    CallState = "message"
+	CallSurvey     CallState = "survey"
 	CallEnded      CallState = "ended"
 	CallTransfered CallState = "transferred_out"
 )
@@ -72,6 +73,8 @@ type Call struct {
 	Summary      string      `json:"summary"`
 	Sentiment    string      `json:"sentiment"`
 	HangupBy     string      `json:"hangup_by"`
+	CSAT         int         `json:"csat"`
+	CampaignID   int64       `json:"campaign_id"`
 }
 
 // TranscriptEntry is one utterance in a call.
@@ -98,8 +101,9 @@ type CallFilter struct {
 	AgentID   int64
 	Outcome   string
 	Direction string
-	Search    string
-	Limit     int
+	Search     string
+	CampaignID int64
+	Limit      int
 	Offset    int
 }
 
