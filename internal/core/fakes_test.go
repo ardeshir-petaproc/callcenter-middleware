@@ -103,8 +103,8 @@ func (f *fakeSwitch) RecordChannel(_ context.Context, ch, name string, max int) 
 func (f *fakeSwitch) StopRecording(_ context.Context, name string) error {
 	return f.rec("stoprec %s", name)
 }
-func (f *fakeSwitch) ExternalMedia(_ context.Context, r domain.ExternalMediaRequest) error {
-	return f.rec("extmedia %s %s", r.ChannelID, r.ExternalHost)
+func (f *fakeSwitch) ExternalMedia(_ context.Context, r domain.ExternalMediaRequest) (string, error) {
+	return "10.0.0.9:10000", f.rec("extmedia %s %s", r.ChannelID, r.ExternalHost)
 }
 func (f *fakeSwitch) Snoop(_ context.Context, r domain.SnoopRequest) error {
 	return f.rec("snoop %s %s %s", r.ChannelID, r.SnoopID, r.Whisper)

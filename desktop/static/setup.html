@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Connect to server</title>
+    <link rel="stylesheet" href="ui.css" />
+  </head>
+  <body>
+    <main class="card" aria-labelledby="title">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="56" height="56">
+          <circle cx="32" cy="32" r="30" class="logo-bg" />
+          <path d="M17 36v-4a15 15 0 0 1 30 0v4" class="logo-band" />
+          <rect x="13" y="31" width="8.5" height="14" rx="3.5" class="logo-fg" />
+          <rect x="42.5" y="31" width="8.5" height="14" rx="3.5" class="logo-fg" />
+          <path d="M45 45c0 4-4 5.5-9.5 5.5" class="logo-band thin" />
+          <circle cx="34" cy="50.5" r="3" class="logo-fg" />
+        </svg>
+      </div>
+      <h1 id="title">Connect to your call center</h1>
+      <p class="lead" id="lead">Enter the address of your call center server. Your administrator can tell you what it is.</p>
+
+      <form id="form" novalidate>
+        <label for="url">Server address</label>
+        <input
+          id="url"
+          name="url"
+          type="url"
+          inputmode="url"
+          autocomplete="url"
+          spellcheck="false"
+          placeholder="http://pbx.example.com:8080"
+          required
+          autofocus
+        />
+        <p class="hint">Include the port if it is not 80/443, e.g. <code>:8080</code>.</p>
+
+        <div id="status" class="status" role="status" aria-live="polite" hidden></div>
+
+        <div class="actions">
+          <button type="button" id="cancel" class="btn ghost" hidden>Cancel</button>
+          <span class="spacer"></span>
+          <button type="button" id="test" class="btn secondary">Test connection</button>
+          <button type="submit" id="connect" class="btn primary">Connect</button>
+        </div>
+      </form>
+      <footer class="foot" id="foot"></footer>
+    </main>
+    <script src="setup.js"></script>
+  </body>
+</html>

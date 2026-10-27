@@ -42,11 +42,14 @@ func (c *Core) startAI(call *liveCall, profileID int64) {
 		return
 	}
 	ctx, cancel := c.opCtx()
-	err = c.Switch.ExternalMedia(ctx, domain.ExternalMediaRequest{ChannelID: mediaChan, ExternalHost: host, Format: "ulaw"})
+	remote, err := c.Switch.ExternalMedia(ctx, domain.ExternalMediaRequest{ChannelID: mediaChan, ExternalHost: host, Format: "ulaw"})
 	cancel()
 	if err != nil {
 		c.aiFallback(call, "external media: "+err.Error())
 		return
+	}
+	if remote != "" {
+		c.AI.SetRemote(call.ID, remote)
 	}
 	call.State = domain.CallAI
 	call.aiStart = c.now()

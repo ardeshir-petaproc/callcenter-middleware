@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Server unreachable</title>
+    <link rel="stylesheet" href="ui.css" />
+  </head>
+  <body>
+    <main class="card offline">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="56" height="56">
+          <circle cx="32" cy="32" r="30" class="logo-bg" />
+          <path d="M17 36v-4a15 15 0 0 1 30 0v4" class="logo-band" />
+          <rect x="13" y="31" width="8.5" height="14" rx="3.5" class="logo-fg" />
+          <rect x="42.5" y="31" width="8.5" height="14" rx="3.5" class="logo-fg" />
+        </svg>
+      </div>
+      <h1>Can’t reach the call center server</h1>
+      <p class="lead">The panel could not be loaded. Check your network connection or VPN.</p>
+      <p class="detail" id="target"></p>
+      <p class="detail" id="error"></p>
+      <div class="actions">
+        <button type="button" id="retry" class="btn primary">Retry now</button>
+      </div>
+      <footer class="foot" id="countdown"></footer>
+      <footer class="foot">To use a different server, choose <strong>File → Change Server…</strong> or the tray menu.</footer>
+    </main>
+    <script src="offline.js"></script>
+  </body>
+</html>

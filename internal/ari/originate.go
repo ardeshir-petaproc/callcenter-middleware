@@ -2,7 +2,9 @@ package ari
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -40,7 +42,7 @@ func (c *Client) Originate(ctx context.Context, req domain.OriginateRequest) err
 }
 
 // ExternalMedia creates an RTP channel that streams audio to ExternalHost.
-func (c *Client) ExternalMedia(ctx context.Context, req domain.ExternalMediaRequest) error {
+func (c *Client) ExternalMedia(ctx context.Context, req domain.ExternalMediaRequest) (string, error) {
 	q := url.Values{}
 	q.Set("app", c.app)
 	q.Set("external_host", req.ExternalHost)
@@ -55,7 +57,20 @@ func (c *Client) ExternalMedia(ctx context.Context, req domain.ExternalMediaRequ
 	if req.ChannelID != "" {
 		q.Set("channelId", req.ChannelID)
 	}
-	return c.do(ctx, "external_media", "POST", "/channels/externalMedia?"+q.Encode())
+	resp, err := c.doRequest(ctx, "external_media", "POST", "/channels/externalMedia?"+q.Encode())
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	var ch struct {
+		Vars map[string]string `json:"channelvars"`
+	}
+	_ = json.NewDecoder(resp.Body).Decode(&ch)
+	addr, port := ch.Vars["UNICASTRTP_LOCAL_ADDRESS"], ch.Vars["UNICASTRTP_LOCAL_PORT"]
+	if addr == "" || port == "" {
+		return "", nil
+	}
+	return net.JoinHostPort(addr, port), nil
 }
 
 // Snoop creates a snoop channel on a target channel for monitoring.

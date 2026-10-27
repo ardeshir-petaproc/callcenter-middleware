@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"sync"
 
 	"callcenter-middleware/internal/config"
@@ -86,6 +87,19 @@ func (m *Manager) Stop(callID string) {
 	if s != nil {
 		s.stopped.Store(true)
 		s.cancel()
+	}
+}
+
+// SetRemote sets the Asterisk RTP address for a session.
+func (m *Manager) SetRemote(callID, addr string) {
+	m.mu.Lock()
+	s := m.sessions[callID]
+	m.mu.Unlock()
+	if s == nil {
+		return
+	}
+	if ua, err := net.ResolveUDPAddr("udp", addr); err == nil {
+		s.rtp.SetRemote(ua)
 	}
 }
 

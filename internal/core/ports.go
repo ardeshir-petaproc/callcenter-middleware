@@ -28,6 +28,9 @@ type AIControl interface {
 type AIManager interface {
 	Start(spec AISpec, ctl AIControl) (externalHost string, err error)
 	Stop(callID string)
+	// SetRemote tells the session where Asterisk listens for RTP so audio
+	// can flow before (or without) inbound packets.
+	SetRemote(callID, addr string)
 	Active() int
 }
 

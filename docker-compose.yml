@@ -1,0 +1,77 @@
+# Production-like stack: middleware + Asterisk + Prometheus.
+#   cp .env.example .env   # set secrets, OPENAI_API_KEY, MEDIA_ADVERTISE_HOST
+#   docker compose up -d --build
+#
+# Demo without a PBX (simulated calls):
+#   docker compose --profile demo up -d --build middleware ari-sim
+#   (and set ARI_URL/ARI_WS_URL in .env to the ari-sim service, see .env.example)
+#
+# Static addresses are used because Asterisk ExternalMedia needs an IP:port
+# to stream caller audio to the middleware's AI bridge.
+services:
+  middleware:
+    build: .
+    image: callcenter-middleware:latest
+    env_file: .env
+    environment:
+      MEDIA_BIND_HOST: 0.0.0.0
+      MEDIA_ADVERTISE_HOST: ${MEDIA_ADVERTISE_HOST:-172.28.0.10}
+    volumes:
+      - cc-data:/data
+    ports:
+      - "8080:8080"
+    networks:
+      cc:
+        ipv4_address: 172.28.0.10
+    restart: unless-stopped
+    depends_on:
+      - asterisk
+
+  asterisk:
+    image: andrius/asterisk:18
+    volumes:
+      - ./deploy/asterisk:/etc/asterisk/custom:ro
+      - asterisk-recordings:/var/spool/asterisk/recording
+    command: >
+      sh -c "cp -f /etc/asterisk/custom/*.conf /etc/asterisk/ &&
+             mkdir -p /var/spool/asterisk/recording && chown -R asterisk /var/spool/asterisk/recording 2>/dev/null;
+             exec asterisk -fvvv"
+    ports:
+      - "5060:5060/udp"
+      # SIP over WebSocket for the browser softphone. ARI shares this HTTP
+      # server: restrict access with a firewall/reverse proxy in production.
+      - "8088:8088"
+      - "8089:8089"
+      - "10000-10099:10000-10099/udp"
+    networks:
+      cc:
+        ipv4_address: 172.28.0.20
+    restart: unless-stopped
+
+  ari-sim:
+    profiles: ["demo"]
+    image: callcenter-middleware:latest
+    entrypoint: ["/usr/local/bin/ari-sim", "-listen", ":8088", "-rate", "4"]
+    networks:
+      cc:
+        ipv4_address: 172.28.0.30
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      cc: {}
+    restart: unless-stopped
+
+volumes:
+  cc-data: {}
+  asterisk-recordings: {}
+
+networks:
+  cc:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24

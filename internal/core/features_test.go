@@ -23,8 +23,9 @@ func (f *fakeAI) Start(spec core.AISpec, ctl core.AIControl) (string, error) {
 	f.started, f.ctl = append(f.started, spec), ctl
 	return "10.0.0.5:40000", nil
 }
-func (f *fakeAI) Stop(id string) { f.mu.Lock(); f.stopped = append(f.stopped, id); f.mu.Unlock() }
-func (f *fakeAI) Active() int    { return 0 }
+func (f *fakeAI) Stop(id string)           { f.mu.Lock(); f.stopped = append(f.stopped, id); f.mu.Unlock() }
+func (f *fakeAI) Active() int              { return 0 }
+func (f *fakeAI) SetRemote(string, string) {}
 
 func TestAIAgent_BridgesMediaAndHandsOffToQueue(t *testing.T) {
 	ai := &fakeAI{}

@@ -47,7 +47,8 @@ type SwitchController interface {
 	RecordBridge(ctx context.Context, bridgeID, name string) error
 	RecordChannel(ctx context.Context, channelID, name string, maxSec int) error
 	StopRecording(ctx context.Context, name string) error
-	ExternalMedia(ctx context.Context, req ExternalMediaRequest) error
+	// ExternalMedia returns the "ip:port" where Asterisk receives RTP (may be empty).
+	ExternalMedia(ctx context.Context, req ExternalMediaRequest) (string, error)
 	Snoop(ctx context.Context, req SnoopRequest) error
 	SetMute(ctx context.Context, channelID string, mute bool) error
 	ListChannels(ctx context.Context) ([]string, error)

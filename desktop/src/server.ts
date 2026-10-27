@@ -98,7 +98,7 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    return await net.fetch(url, { ...init, signal: ctrl.signal, cache: 'no-store', redirect: 'follow' });
+    return await net.fetch(url, { ...init, signal: ctrl.signal, redirect: 'follow' });
   } catch (err) {
     if (ctrl.signal.aborted) throw new Error(`Timed out after ${Math.round(timeoutMs / 1000)} s`);
     throw err;
