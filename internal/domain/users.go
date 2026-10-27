@@ -93,11 +93,11 @@ type AgentState struct {
 	PauseReason string      `json:"pause_reason,omitempty"`
 	Since       time.Time   `json:"since"`
 	CallID      string      `json:"call_id,omitempty"`
-	LastCallEnd time.Time   `json:"last_call_end"`
+	LastCallEnd time.Time   `json:"last_call_end,omitzero"`
 	CallsToday  int         `json:"calls_today"`
 	TalkSecs    int         `json:"talk_secs_today"`
 	MissedInRow int         `json:"missed_in_row"`
-	WrapupUntil time.Time   `json:"wrapup_until,omitempty"`
+	WrapupUntil time.Time   `json:"wrapup_until,omitzero"`
 	QueueIDs    []int64     `json:"queue_ids"`
 }
 

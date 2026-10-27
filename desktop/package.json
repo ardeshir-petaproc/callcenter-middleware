@@ -1,0 +1,83 @@
+{
+  "name": "callcenter-desktop",
+  "productName": "Call Center",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Native desktop client (Electron) for the call center middleware control panel",
+  "author": "Call Center Middleware <ops@example.invalid>",
+  "license": "UNLICENSED",
+  "homepage": "https://example.invalid/callcenter",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.renderer.json",
+    "check": "npm run typecheck && npm run build && node scripts/check-syntax.js",
+    "icons": "node scripts/gen-icons.js",
+    "start": "npm run build && electron .",
+    "dist": "npm run build && npm run icons && electron-builder",
+    "dist:linux": "npm run build && npm run icons && electron-builder --linux AppImage deb",
+    "dist:win": "npm run build && npm run icons && electron-builder --win nsis",
+    "dist:mac": "npm run build && npm run icons && electron-builder --mac dmg"
+  },
+  "dependencies": {
+    "ws": "8.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/ws": "8.18.1",
+    "electron": "45.0.0",
+    "electron-builder": "26.18.0",
+    "typescript": "5.9.3"
+  },
+  "build": {
+    "appId": "com.callcenter.desktop",
+    "productName": "Call Center",
+    "artifactName": "${name}-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*.js",
+      "static/**/*",
+      "!static/**/*.d.ts",
+      "package.json"
+    ],
+    "asar": true,
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icon.png",
+      "category": "Office",
+      "maintainer": "Call Center Middleware <ops@example.invalid>",
+      "synopsis": "Desktop client for the call center control panel",
+      "executableName": "callcenter-desktop"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.business",
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "The softphone in the call center panel needs your microphone to place and answer calls."
+      }
+    }
+  }
+}

@@ -1,0 +1,119 @@
+/* Design tokens: light defaults, dark via OS preference or manual toggle. */
+:root {
+  color-scheme: light;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --surface-3: #eef0f3;
+  --border: #e3e6eb;
+  --border-strong: #cdd2da;
+  --text: #111827;
+  --text-2: #4b5563;
+  --text-3: #6b7280;
+  --text-inv: #ffffff;
+
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-soft: #eef2ff;
+  --primary-text: #3730a3;
+  --focus: #6366f1;
+
+  --ok: #15803d;      --ok-soft: #dcfce7;      --ok-solid: #16a34a;
+  --warn: #a16207;    --warn-soft: #fef3c7;    --warn-solid: #d97706;
+  --danger: #b91c1c;  --danger-soft: #fee2e2;  --danger-solid: #dc2626;
+  --info: #1d4ed8;    --info-soft: #dbeafe;    --info-solid: #2563eb;
+  --violet: #6d28d9;  --violet-soft: #ede9fe;  --violet-solid: #7c3aed;
+  --orange: #c2410c;  --orange-soft: #ffedd5;  --orange-solid: #ea580c;
+  --muted: #4b5563;   --muted-soft: #eef0f3;   --muted-solid: #9ca3af;
+
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --chart-grid: #e8eaee;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, .06);
+  --shadow: 0 1px 3px rgba(16, 24, 40, .08), 0 1px 2px rgba(16, 24, 40, .04);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, .16), 0 4px 8px rgba(16, 24, 40, .06);
+  --overlay: rgba(15, 23, 42, .45);
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --sidebar-w: 236px;
+  --sidebar-w-collapsed: 64px;
+  --header-h: 56px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --surface: #151a22;
+    --surface-2: #1a202a;
+    --surface-3: #232a36;
+    --border: #2a3240;
+    --border-strong: #3a4454;
+    --text: #e8ebf0;
+    --text-2: #b4bcc8;
+    --text-3: #8b95a5;
+    --primary: #818cf8;
+    --primary-hover: #a5b4fc;
+    --primary-soft: #23264a;
+    --primary-text: #c7d2fe;
+    --focus: #818cf8;
+    --ok: #4ade80;      --ok-soft: #12301f;      --ok-solid: #22c55e;
+    --warn: #fbbf24;    --warn-soft: #3a2c0b;    --warn-solid: #f59e0b;
+    --danger: #f87171;  --danger-soft: #3d1717;  --danger-solid: #ef4444;
+    --info: #60a5fa;    --info-soft: #132a4a;    --info-solid: #3b82f6;
+    --violet: #a78bfa;  --violet-soft: #2a1f4d;  --violet-solid: #8b5cf6;
+    --orange: #fb923c;  --orange-soft: #3a210f;  --orange-solid: #f97316;
+    --muted: #b4bcc8;   --muted-soft: #232a36;   --muted-solid: #6b7280;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --chart-grid: #273040;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+    --shadow: 0 1px 3px rgba(0, 0, 0, .5);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, .6);
+    --overlay: rgba(0, 0, 0, .6);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --surface: #151a22;
+  --surface-2: #1a202a;
+  --surface-3: #232a36;
+  --border: #2a3240;
+  --border-strong: #3a4454;
+  --text: #e8ebf0;
+  --text-2: #b4bcc8;
+  --text-3: #8b95a5;
+  --primary: #818cf8;
+  --primary-hover: #a5b4fc;
+  --primary-soft: #23264a;
+  --primary-text: #c7d2fe;
+  --focus: #818cf8;
+  --ok: #4ade80;      --ok-soft: #12301f;      --ok-solid: #22c55e;
+  --warn: #fbbf24;    --warn-soft: #3a2c0b;    --warn-solid: #f59e0b;
+  --danger: #f87171;  --danger-soft: #3d1717;  --danger-solid: #ef4444;
+  --info: #60a5fa;    --info-soft: #132a4a;    --info-solid: #3b82f6;
+  --violet: #a78bfa;  --violet-soft: #2a1f4d;  --violet-solid: #8b5cf6;
+  --orange: #fb923c;  --orange-soft: #3a210f;  --orange-solid: #f97316;
+  --muted: #b4bcc8;   --muted-soft: #232a36;   --muted-solid: #6b7280;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --chart-grid: #273040;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow: 0 1px 3px rgba(0, 0, 0, .5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, .6);
+  --overlay: rgba(0, 0, 0, .6);
+}

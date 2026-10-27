@@ -130,3 +130,9 @@ func requireAffected(res sql.Result) error {
 	}
 	return nil
 }
+
+// SetID assigns id to item (used when updating from a request path).
+func (c *Collection[T]) SetID(item *T, id int64) { *c.idPtr(item) = id }
+
+// IDOf returns the id of item.
+func (c *Collection[T]) IDOf(item *T) int64 { return *c.idPtr(item) }
