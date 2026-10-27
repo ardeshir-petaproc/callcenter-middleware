@@ -117,6 +117,8 @@ unchanged (`GREETING_MEDIA`, `QUEUE_MAPPINGS`, `IVR_TIMEOUT_SEC`,
 make test          # unit + integration tests (core, store, API, AI bridge, simulator stack)
 make test-race
 make check-loc     # Go files must stay <= 180 lines
+make e2e-asterisk  # real Asterisk 18 in Docker: IVR, ACD, recording, hold, whisper,
+                   # voicemail, click-to-call, CSAT survey, AI handoff over ExternalMedia, campaigns
 cd web && npm run dev   # panel dev server on :5173, proxies /api to :8080
 ```
 
@@ -131,6 +133,7 @@ cd web && npm run dev   # panel dev server on :5173, proxies /api to :8080
 | `internal/store` | SQLite persistence and reports |
 | `internal/sim` | simulator implementation |
 | `internal/integration` | end-to-end tests against the simulator |
+| `test/asterisk-e2e` | end-to-end tests against real Asterisk (Docker) |
 | `web/` | React control panel (built into `internal/web/dist`) |
 | `desktop/` | Electron desktop app |
 | `deploy/` | Asterisk and Prometheus configuration |

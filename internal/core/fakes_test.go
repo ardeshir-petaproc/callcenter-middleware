@@ -97,7 +97,7 @@ func (f *fakeSwitch) StopRinging(_ context.Context, ch string) error     { retur
 func (f *fakeSwitch) RecordBridge(_ context.Context, id, name string) error {
 	return f.rec("recbridge %s %s", id, name)
 }
-func (f *fakeSwitch) RecordChannel(_ context.Context, ch, name string, max int) error {
+func (f *fakeSwitch) RecordChannel(_ context.Context, ch, name string, max int, beep bool) error {
 	return f.rec("recchan %s %s", ch, name)
 }
 func (f *fakeSwitch) StopRecording(_ context.Context, name string) error {

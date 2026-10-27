@@ -89,6 +89,8 @@ type recordingRef struct {
 	number  string
 	name    string
 	queueID int64
+	beep    bool
+	started time.Time
 }
 
 // CallView is the live representation of a call returned to the API.

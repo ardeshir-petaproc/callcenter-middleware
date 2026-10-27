@@ -1,4 +1,4 @@
-.PHONY: build web go test test-race run sim demo check-loc lint docker clean desktop
+.PHONY: build web go test test-race run sim demo check-loc lint docker clean desktop e2e-asterisk
 
 BINARY=bin/middleware
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
@@ -54,3 +54,7 @@ desktop:
 
 clean:
 	rm -rf bin/
+
+# Real Asterisk 18 (Docker) end-to-end scenarios with a fake OpenAI realtime server.
+e2e-asterisk:
+	cd test/asterisk-e2e && GOFLAGS=-mod=mod ./run.sh

@@ -42,9 +42,9 @@ func (c *Client) RecordBridge(ctx context.Context, bridgeID, name string) error 
 }
 
 // RecordChannel records a channel (voicemail); '#' ends the recording.
-func (c *Client) RecordChannel(ctx context.Context, channelID, name string, maxSec int) error {
-	path := fmt.Sprintf("/channels/%s/record?name=%s&format=wav&maxDurationSeconds=%d&maxSilenceSeconds=10&beep=true&terminateOn=%s&ifExists=overwrite",
-		url.PathEscape(channelID), url.QueryEscape(name), maxSec, url.QueryEscape("#"))
+func (c *Client) RecordChannel(ctx context.Context, channelID, name string, maxSec int, beep bool) error {
+	path := fmt.Sprintf("/channels/%s/record?name=%s&format=wav&maxDurationSeconds=%d&maxSilenceSeconds=10&beep=%t&terminateOn=%s&ifExists=overwrite",
+		url.PathEscape(channelID), url.QueryEscape(name), maxSec, beep, url.QueryEscape("#"))
 	return c.do(ctx, "channel_record", "POST", path)
 }
 
