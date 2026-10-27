@@ -1,7 +1,9 @@
 import { API_BASE, get, getToken } from '../api/client';
-import type { AgentState, Call, CallView, ScreenPop, Snapshot, TranscriptEntry, WsMessage } from '../api/types';
+import type { AgentState, Call, CallView, QueueAlert, ScreenPop, Snapshot, TranscriptEntry, WsMessage } from '../api/types';
+import { toast } from '../components/ui/Toast';
+import { fmtDuration } from '../lib/format';
 import {
-  applyAgent, applyCallEnded, applyCallUpdated, applyScreenPop, applySnapshot, applyTranscript, live, noteServerTime,
+  applyAgent, applyCallEnded, applyCallUpdated, applyQueueAlert, applyScreenPop, applySnapshot, applyTranscript, live, noteServerTime,
 } from './live';
 
 type Listener = (data: unknown, type: string) => void;
@@ -35,6 +37,16 @@ function handle(msg: WsMessage) {
     case 'agent.updated': applyAgent(msg.data as AgentState); break;
     case 'call.transcript': applyTranscript(msg.data as TranscriptEntry); break;
     case 'agent.screenpop': applyScreenPop(msg.data as ScreenPop); break;
+    case 'queue.alert': {
+      const a = msg.data as QueueAlert;
+      const role = live.get().meRole;
+      applyQueueAlert(a);
+      if (role === 'admin' || role === 'supervisor') {
+        if (a.level === 'alert') toast.error(`Queue alert — ${a.name}: ${a.waiting} waiting, longest ${fmtDuration(a.longest_wait_sec)}, ${a.available} available`);
+        else toast.info(`Queue ${a.name} back to normal`);
+      }
+      break;
+    }
     case 'voicemail.created': live.set((s) => ({ unheardVoicemails: s.unheardVoicemails + 1 })); break;
     default: break;
   }

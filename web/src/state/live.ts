@@ -1,4 +1,4 @@
-import type { AgentState, Call, CallView, QueueView, ScreenPop, Snapshot, TranscriptEntry } from '../api/types';
+import type { AgentState, Call, CallView, QueueAlert, QueueView, Role, ScreenPop, Snapshot, TranscriptEntry } from '../api/types';
 import { createStore, setServerOffset } from '../lib/store';
 
 export type ConnState = 'idle' | 'connecting' | 'open' | 'closed';
@@ -17,20 +17,23 @@ export interface LiveState {
   /** Last call that ended for the logged-in user and still needs wrap-up. */
   wrapup: Call | null;
   unheardVoicemails: number;
+  /** Queues currently over their alert thresholds (from `queue.alert`). */
+  queueAlerts: Record<number, QueueAlert>;
   meId: number;
+  meRole: Role | null;
 }
 
 const initial: LiveState = {
   conn: 'idle', hasSnapshot: false, calls: {}, agents: {}, queues: [], aiSessions: 0, snapshotAt: null,
-  transcripts: {}, screenpop: null, wrapup: null, unheardVoicemails: 0, meId: 0,
+  transcripts: {}, screenpop: null, wrapup: null, unheardVoicemails: 0, queueAlerts: {}, meId: 0, meRole: null,
 };
 
 export const live = createStore<LiveState>(initial);
 const dismissedWrapups = new Set<string>();
 
-export function resetLive(meId: number) {
+export function resetLive(meId: number, meRole: Role) {
   dismissedWrapups.clear();
-  live.set({ ...initial, meId });
+  live.set({ ...initial, meId, meRole });
 }
 
 export function applySnapshot(s: Snapshot) {
@@ -112,6 +115,15 @@ export function applyScreenPop(p: ScreenPop): boolean {
   if (p.user_id !== me) return false;
   live.set((st) => ({ screenpop: p, calls: { ...st.calls, [p.call.id]: p.call } }));
   return true;
+}
+
+export function applyQueueAlert(a: QueueAlert) {
+  live.set((st) => {
+    const queueAlerts = { ...st.queueAlerts };
+    if (a.level === 'alert') queueAlerts[a.queue_id] = a;
+    else delete queueAlerts[a.queue_id];
+    return { queueAlerts };
+  });
 }
 
 export function clearScreenPop() { live.set({ screenpop: null }); }

@@ -72,8 +72,9 @@ export async function api<T>(path: string, opts: Opts = {}): Promise<T> {
     try { data = JSON.parse(text); } catch { data = text; }
   }
   if (!res.ok) {
-    const msg = (data && typeof data === 'object' && 'error' in data && String((data as { error: unknown }).error))
-      || (typeof data === 'string' && data.length < 200 && data) || `${res.status} ${res.statusText}`;
+    let msg = `${res.status} ${res.statusText}`;
+    if (data && typeof data === 'object' && 'error' in data) msg = String((data as { error: unknown }).error);
+    else if (typeof data === 'string' && data.trim() && data.length < 200) msg = data.trim();
     throw new ApiError(res.status, msg);
   }
   return data as T;

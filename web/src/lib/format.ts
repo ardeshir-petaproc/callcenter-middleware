@@ -79,8 +79,14 @@ export function pctValue(n: number | undefined | null): number {
 
 export function humanize(s: string | undefined | null): string {
   if (!s) return '—';
-  const t = s.replace(/[_.-]+/g, ' ').trim();
+  const t = s.replace(/[_.-]+/g, ' ').trim().replace(/\bai\b/gi, 'AI').replace(/\bivr\b/gi, 'IVR').replace(/\b(dtmf|sla|csat)\b/gi, (m) => m.toUpperCase());
   return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+/** "★ 4.3" for an average CSAT (out of 5), or an em dash with no ratings. */
+export function fmtCsat(avg: number | undefined, count: number | undefined): string {
+  if (!count || !avg) return '—';
+  return `★ ${avg.toFixed(1)}`;
 }
 
 export function initials(name: string): string {

@@ -77,3 +77,12 @@ export function useMediaQuery(q: string): boolean {
   }, [q]);
   return m;
 }
+
+/** Editable copy of an entity; resets whenever the source (or key) changes. */
+export function useDraft<T extends object>(source: T | undefined, key: string) {
+  const [draft, setDraft] = useState<T | undefined>(source);
+  useEffect(() => { setDraft(source); }, [key, source]);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(source);
+  const set = useCallback((p: Partial<T>) => setDraft((d) => (d ? { ...d, ...p } : d)), []);
+  return { draft, set, setDraft, dirty };
+}
