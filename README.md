@@ -108,6 +108,7 @@ unchanged (`GREETING_MEDIA`, `QUEUE_MAPPINGS`, `IVR_TIMEOUT_SEC`,
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): components, call lifecycle,
   fail-open behaviour, AI bridge, security.
+- [docs/USER_GUIDE.md](docs/USER_GUIDE.md): roles and day-to-day workflows.
 - [docs/API.md](docs/API.md): REST and WebSocket API with entity types.
 - [desktop/README.md](desktop/README.md): desktop app.
 
