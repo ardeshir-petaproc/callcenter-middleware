@@ -80,6 +80,8 @@ versioned steps once each (`migrations_v2.go: versioned`):
 | 7 | `routingV7` | `routing_decisions` |
 | 8 | `conversationsV8` | `conversations` |
 
+Steps v2–v5 are defined in `migrations_v2.go`; v6–v8 have their own files (`migrations_v6.go` … `migrations_v8.go`).
+
 Add a migration: new `migrations_vN.go` with a `var xxxVN = []string{...}`
 and append `{N, xxxVN}` to `versioned`. Never edit a released step.
 `store/tenant_test.go` covers upgrading a single-tenant database.
@@ -89,7 +91,8 @@ and append `{N, xxxVN}` to `versioned`. Never edit a released step.
 | Data | Where | Protection |
 |---|---|---|
 | Knowledge originals | `DATA_DIR/kb/<tenant>/<uuid>.bin` | AES-256-GCM, key = HMAC(master, tenant) (`internal/secure`) |
-| Email passwords, email bodies | DB (`enc:` sealed strings) | same |
+| Email passwords, email bodies, webhook secrets | DB (`enc:` sealed strings) | same |
+| Knowledge extracted text (`kb_fts`), tickets, transcripts, call records | DB | **plain text** (search needs it) — protect the volume |
 | Master key | `DATA_ENCRYPTION_KEY` or generated `DATA_DIR/.data-key` (0600) | **back it up with the database** |
 | Passwords | `users.password_hash` | bcrypt |
 | Invitation tokens, inbound keys | DB | SHA-256 hashes only |

@@ -21,7 +21,8 @@ Panel: `http://<host>:8080/`. Health: `/healthz` (process), `/readyz` (DB + ARI)
 - [ ] `MEDIA_ADVERTISE_HOST` = an address Asterisk can reach (AI calls).
 - [ ] SIP trunk configured in `deploy/asterisk/pjsip.conf` (`trunk` endpoint); agent phones `1001–1010` or WebRTC.
 - [ ] `PUBLIC_URL` = the public panel URL (invitation links, Joow notifications).
-- [ ] Joow: `JOOW_MODE=http`, `JOOW_API_URL`, `JOOW_API_KEY` (see [../JOOW_INTEGRATION.md](../JOOW_INTEGRATION.md)). `JOOW_MODE=local` also enables `/dev/joow-token` — **never use local mode in production**.
+- [ ] Joow: `JOOW_MODE=http` with `JOOW_API_URL` and `JOOW_API_KEY` (startup fails if either is missing; see [../JOOW_INTEGRATION.md](../JOOW_INTEGRATION.md)). The default is `local` (development provider) — **never run production in local mode**, and never with `SEED_DEMO=true` or `JOOW_DEV_TOKENS=true`, which expose `/dev/joow-token` (sign in as any local Joow account).
+- [ ] Webhook URLs and email hosts are fetched by the server: restrict egress (L12). Use an encrypted volume for `/data` (L13).
 - [ ] `OPENAI_API_KEY` for the AI agent, summaries and transcription.
 - [ ] Egress rules: the server contacts OpenAI, Joow, and the IMAP/SMTP hosts admins configure.
 - [ ] Retention policy set per organization (Settings → Retention & export).
@@ -30,7 +31,9 @@ All variables: `.env.example` (complete list) and the README table.
 
 ## Backups and restore
 
-State = `DB_PATH` (with `-wal`/`-shm` files) + `DATA_DIR` (`kb/` blobs and `.data-key`) + Asterisk recordings spool. Consistent backup: stop the middleware (or snapshot the volume) and copy `/data` together with the key. Restore: put the files back and start the same version or newer; migrations run automatically on start. Keep the master key with (but separately protected from) the backups.
+State = `DB_PATH` (with `-wal`/`-shm` files) + `DATA_DIR` (`kb/` blobs and `.data-key`) + Asterisk recordings spool. In Docker these are the volumes `cc-data` (`/data`) and `asterisk-recordings`. Consistent backup: stop the middleware (or snapshot the volumes) and copy `/data` together with the key. Restore: put the files back and start the same version or newer; migrations run automatically on start. Keep the master key with (but separately protected from) the backups.
+
+Encrypted data is bound to the master key **and** each organization's numeric tenant id (per-tenant keys are derived from both), so knowledge files and sealed secrets can only be restored together with the same database. If encrypted data exists but neither `DATA_ENCRYPTION_KEY` nor `.data-key` is present, the middleware refuses to start instead of creating a new key.
 
 ## Upgrades
 
@@ -45,7 +48,10 @@ The bootstrap admin is a **platform admin**: Platform page (`/platform`) creates
 | Symptom | Check |
 |---|---|
 | Calls go straight to the Asterisk queue / dialplan | Middleware not connected to ARI (`/readyz`, log "Connected to Asterisk ARI"); fail-open is working as designed. |
-| A number rings the wrong organization or nobody | `/numbers` entry for that DNIS and its flow; the default organization handles unknown numbers. |
+| A number rings the wrong organization or nobody | `/numbers` entry for that DNIS and its flow; the number must match the trunk's dialed extension exactly (digits only, e.g. `+98 21…` ≠ `021…`); unknown or disabled numbers go to the default organization. |
+| Nothing rings in the demo | Agents start Offline — set them Available. The simulator only calls numbers 100 and 700 of `default`. |
+| Startup: "Encrypted data exists but no key" | Restore `DATA_DIR/.data-key` or set `DATA_ENCRYPTION_KEY` to the original value. |
+| Startup: "JOOW_MODE=http requires …" | Set `JOOW_API_URL` and `JOOW_API_KEY`, or use `JOOW_MODE=local` for development. |
 | AI calls are silent | `MEDIA_ADVERTISE_HOST` and UDP range reachable from Asterisk; `OPENAI_API_KEY`; logs "AI session". |
 | Recording download 404 | Recording deleted by retention, or the Asterisk spool directory missing/not writable (`/var/spool/asterisk/recording`). |
 | "credentials unavailable" on an email connector | Master key changed since the connector was created — restore the key or re-enter the password. |

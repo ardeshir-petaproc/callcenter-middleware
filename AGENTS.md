@@ -13,7 +13,7 @@ Non-negotiable rules (details in `docs/kg/conventions.md`):
 - Audit sensitive actions; never return or log secrets; seal secrets at rest.
 - The AI may only use approved rules and allowed, current knowledge.
 - After changing `web/`, run `cd web && npm run build` and commit `internal/web/dist`.
-- Keep docs in sync: API docs, `docs/kg/*.md`, and `docs/kg/graph.json` (`go test ./docs/kg` fails on drift).
+- Keep docs in sync: API docs, `docs/kg/*.md`, and `docs/kg/graph.json`. `go test ./docs/kg` catches missing paths/links and packages without a node; prose accuracy is your job.
 
 Verify before you finish:
 

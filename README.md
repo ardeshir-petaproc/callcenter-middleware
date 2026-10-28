@@ -124,7 +124,8 @@ its default. The most important:
 | `DATA_DIR` | `data` | encrypted knowledge files and the generated key file |
 | `DATA_ENCRYPTION_KEY` | generated into `DATA_DIR/.data-key` | master key for files and secrets at rest |
 | `PUBLIC_URL` | `http://localhost:8080` | used in invitation links |
-| `JOOW_MODE`, `JOOW_API_URL`, `JOOW_API_KEY` | `local` | Joow integration ([docs/JOOW_INTEGRATION.md](docs/JOOW_INTEGRATION.md)) |
+| `JOOW_MODE`, `JOOW_API_URL`, `JOOW_API_KEY` | `local` | Joow integration ([docs/JOOW_INTEGRATION.md](docs/JOOW_INTEGRATION.md)); use `http` in production |
+| `JOOW_DEV_TOKENS` | `false` | local mode only: dev sign-in tokens (implied by `SEED_DEMO`) |
 | `CORS_ORIGINS` | — | extra allowed origins |
 
 When no IVR flow is configured, the original env-driven menu still works

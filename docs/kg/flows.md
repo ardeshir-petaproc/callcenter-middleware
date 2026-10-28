@@ -5,9 +5,9 @@ anchors (search for them).
 
 ## F1. Inbound call → IVR → queue → agent
 
-1. Asterisk dialplan `[from-external]` runs `Stasis(callcenter-app)`; `ari.Stream` emits `EventCallStarted`.
-2. `core.onStasisStart` (`inbound.go`): new `liveCall`, **tenant resolved from the dialed number** (`cache.tenantFor` via `/numbers`), contact lookup (VIP → priority), flow chosen by DNIS (`cache.flowFor`).
-3. `ivr.go` plays the greeting and handles DTMF; actions are executed by `actions.go: execute` (`queue`, `agent`, `ai`, `voicemail`, `external`, `flow`, `dialplan`, `hangup`).
+1. Asterisk dialplan `[from-external]` runs `Stasis(callcenter-app)`; the ARI stream (`ari/ws_stream.go`) emits `EventCallStarted`; the dialed number (DNIS) is the channel's dialplan extension (`ari/normalize.go`).
+2. `core.Run` → `handleEvent` → `onStasisStart` → `startInbound` (`inbound.go`): new `liveCall`; **tenant resolved from the dialed number** (`cache.tenantFor`: exact digits-only match against enabled `/numbers`; unknown/disabled → tenant 1); contact lookup (VIP → priority); flow chosen by `cache.flowFor` (the number's flow, else a flow with that DNIS, else the catch-all flow; a tenant without flows goes to its first queue).
+3. Business hours: outside the flow's schedule the after-hours action runs. Otherwise the flow's direct action or the IVR menu (`ivr.go`, DTMF). Actions are executed by `actions.go: execute` (`queue`, `agent`, `ai`, `voicemail`, `callback`, `external`, `flow`, `dialplan`, `hangup`); a queue in `asterisk` mode is handed to the Asterisk dialplan.
 4. `acd.go: enqueue` → `departmentGate` (closed / over capacity → department fallback) → optional **recording notice** (`announcing`, agents not rung until it ends) → join media + MOH → `dispatch`.
 5. `acd_select.go: selectAgents` picks agents by strategy (ringall, linear, longest_idle, round_robin, fewest_calls, random; penalties; skills). `ring` originates the agent leg.
 6. `answer.go: onAgentAnswered` bridges caller + agent, starts recording if the queue records, marks the agent busy.
@@ -20,8 +20,8 @@ Every state change publishes `call.updated` (tenant-tagged) → WebSocket client
 1. Action `ai` → `ai_glue.go: startAI` creates an ExternalMedia channel; `ai.Manager.Start` opens an RTP port and an OpenAI Realtime WebSocket (tenant-scoped context).
 2. `session.go: BuildSession` composes instructions + tools for the AI profile (tools enabled per profile).
 3. When the caller needs a person the model calls **`route_call`** (`tool_calls.go`) → `Directory.Route` → `routing.Engine.Decide`:
-   topic (AI-given or keyword match) → approved rules scored → target resolved with live agent state and department hours → fallback / escalation → decision **saved** (`routing_decisions`) with steps.
-4. After the assistant finishes speaking (`afterPlayout`), `core.AIRoute` stops AI and executes the chosen `agent`/`queue` action with the AI summary on the call (screen-pop shows it). No decision → AI profile's handoff queue.
+   topic (AI-given or keyword match) → only **approved** rules scored (priority, then score) → target resolved with live agent state and department hours → rule fallback → job-profile escalation contact → department queue → if no rule applied, the topic's department → decision **saved** (`routing_decisions`, also `ai_route` in the call timeline). A decision that errors is not logged.
+4. After the assistant finishes speaking (`afterPlayout`), `core.AIRoute` stops AI and executes the decided action (agent, queue, or a fallback such as voicemail / outside number) with the AI summary on the call (screen-pop shows it). No decision → the AI profile's handoff queue. `/routing/simulate` runs the same `Decide` without logging (drafts cannot be simulated).
 5. Other tools: `search_knowledge` (only active, unexpired, AI-enabled, in-scope sources), `create_ticket`, `ticket_status` / `update_ticket` (only the caller's own tickets), callbacks, messages, contact lookup, hours, `transfer_to_queue`, `end_call`. Every tool call is written to the audit log.
 
 ## F3. Warm transfer / conference
@@ -40,9 +40,9 @@ Every state change publishes `call.updated` (tenant-tagged) → WebSocket client
 ## F5. Email intake
 
 Connector created with explicit consent (`POST /email-connectors`, password sealed). Poller (`mail.Service.Run`, every minute; per-connector interval) or `POST /sync` → `IMAP.Fetch` (read-only select of one folder, UID > last, since date) → `Parse` (plain text preferred, HTML → text, quoted history stripped, legacy charsets) → `Matches` (sender/subject filters) → `SaveEmail` (sealed body, dedup) →
-- mode `ticket`: `[T-n]` in subject or In-Reply-To/References → comment on existing ticket (reopens), else new ticket;
+- mode `ticket`: `[T-n]` in subject or In-Reply-To/References → comment on that ticket **only if the sender is the ticket's requester and it is not closed** (a resolved/waiting ticket goes back to in progress); otherwise a new ticket;
 - mode `kb`: draft knowledge source (needs review before the AI can use it).
-Disconnect deletes credentials; `?purge=1` also deletes imported mail and knowledge.
+A failed import is forgotten and the folder position is not advanced, so the next sync retries it. Disconnect deletes credentials; `?purge=1` also deletes imported mail and knowledge.
 
 ## F6. Chat intake (Joow conversations)
 

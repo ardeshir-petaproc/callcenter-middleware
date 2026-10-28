@@ -7,7 +7,7 @@ go to Joow. All Joow access goes through one interface,
 
 | `JOOW_MODE` | Provider | Use |
 |---|---|---|
-| `local` (default) | `joow.Local` — accounts in the `joow_accounts` table, HMAC dev tokens `jdev.<account>.<sig>` | development, demos, tests (`POST /api/v1/dev/joow-token {account_id}` mints a token) |
+| `local` (default) | `joow.Local` — accounts in the `joow_accounts` table, HMAC dev tokens `jdev.<account>.<sig>` | development, demos, tests (`POST /api/v1/dev/joow-token {account_id}` mints a token when `SEED_DEMO=true` or `JOOW_DEV_TOKENS=true`) |
 | `http` | `joow.HTTP` — the real Joow API at `JOOW_API_URL` with `JOOW_API_KEY` | production |
 
 ## What the middleware needs from Joow (HTTP contract)
@@ -99,6 +99,9 @@ Options for bringing Joow calls in, in order of preference:
    media stays on SIP — possible today with `Notify`.
 
 ## Configuration
+
+`JOOW_MODE` must be `local` or `http`; `http` without `JOOW_API_URL` and
+`JOOW_API_KEY` refuses to start.
 
 ```
 JOOW_MODE=http

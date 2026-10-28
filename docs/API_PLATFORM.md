@@ -37,7 +37,7 @@ returns `{all: string[], mine: string[]}`; the login response carries
 | POST | `/auth/switch` | `{tenant_id}` | new session in that organization |
 | GET | `/auth/invite/{token}` | public | `{organization, name, email, role, expires_at, joow_account_required}` — invitation links are `PUBLIC_URL/invite/<token>` |
 | POST | `/auth/accept-invite` | `{token, joow_token?}` or `{token, username, password, display_name}` | session |
-| POST | `/dev/joow-token` | `{account_id}` (local Joow mode only) | `{token}` — simulates Joow sign-in |
+| POST | `/dev/joow-token` | `{account_id}` (only with `JOOW_MODE=local` and `SEED_DEMO=true` or `JOOW_DEV_TOKENS=true`; 404 otherwise) | `{token}` — simulates Joow sign-in; never enable in production |
 
 ### Organization structure (`org.manage` to write; any employee may read)
 

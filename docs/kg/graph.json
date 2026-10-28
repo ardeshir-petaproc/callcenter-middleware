@@ -22,7 +22,7 @@
    "id": "doc-kg",
    "type": "doc",
    "title": "KG entry point",
-   "summary": "Documentation page.",
+   "summary": "Start-here index: what the system is, reading order, five-minute start, verification.",
    "status": "done",
    "paths": [
     "docs/kg/README.md"
@@ -34,7 +34,7 @@
    "id": "doc-status",
    "type": "doc",
    "title": "Status and limitations",
-   "summary": "Documentation page.",
+   "summary": "Done vs not done, limitations L1-L16, fixes from the handover review, next steps.",
    "status": "done",
    "paths": [
     "docs/kg/status.md"
@@ -46,7 +46,7 @@
    "id": "doc-components",
    "type": "doc",
    "title": "Components",
-   "summary": "Documentation page.",
+   "summary": "Every package/app, responsibilities, key files, invariants, dependency picture.",
    "status": "done",
    "paths": [
     "docs/kg/components.md"
@@ -58,7 +58,7 @@
    "id": "doc-flows",
    "type": "doc",
    "title": "Runtime flows",
-   "summary": "Documentation page.",
+   "summary": "Runtime flows F1-F9 end to end with function anchors.",
    "status": "done",
    "paths": [
     "docs/kg/flows.md"
@@ -70,7 +70,7 @@
    "id": "doc-data",
    "type": "doc",
    "title": "Data model",
-   "summary": "Documentation page.",
+   "summary": "Tables, document kinds, migrations v1-v8, tenancy rule, encryption at rest.",
    "status": "done",
    "paths": [
     "docs/kg/data-model.md"
@@ -82,7 +82,7 @@
    "id": "doc-conventions",
    "type": "doc",
    "title": "Conventions and recipes",
-   "summary": "Documentation page.",
+   "summary": "Rules of the code base, recipes for common changes, testing map.",
    "status": "done",
    "paths": [
     "docs/kg/conventions.md"
@@ -94,7 +94,7 @@
    "id": "doc-operations",
    "type": "doc",
    "title": "Operations runbook",
-   "summary": "Documentation page.",
+   "summary": "Run modes, production checklist, backups/restore, upgrades, troubleshooting.",
    "status": "done",
    "paths": [
     "docs/kg/operations.md"
@@ -106,7 +106,7 @@
    "id": "doc-decisions",
    "type": "doc",
    "title": "Decision log",
-   "summary": "Documentation page.",
+   "summary": "Decisions taken (A1-A17) with reasons; open decisions D1-D10.",
    "status": "done",
    "paths": [
     "docs/kg/decisions.md"
@@ -118,7 +118,7 @@
    "id": "doc-glossary",
    "type": "doc",
    "title": "Glossary",
-   "summary": "Documentation page.",
+   "summary": "Domain and telephony terms.",
    "status": "done",
    "paths": [
     "docs/kg/glossary.md"
@@ -130,7 +130,7 @@
    "id": "doc-readme",
    "type": "doc",
    "title": "README",
-   "summary": "Documentation page.",
+   "summary": "Product overview, quick start, configuration table, repository map.",
    "status": "done",
    "paths": [
     "README.md"
@@ -142,7 +142,7 @@
    "id": "doc-architecture",
    "type": "doc",
    "title": "Architecture",
-   "summary": "Documentation page.",
+   "summary": "Call core, AI bridge, persistence, multi-tenancy, platform services, security.",
    "status": "done",
    "paths": [
     "docs/ARCHITECTURE.md"
@@ -154,7 +154,7 @@
    "id": "doc-api",
    "type": "doc",
    "title": "REST/WS API (core)",
-   "summary": "Documentation page.",
+   "summary": "Core REST and WebSocket API (calls, live state, configuration, reports).",
    "status": "done",
    "paths": [
     "docs/API.md"
@@ -166,7 +166,7 @@
    "id": "doc-api-platform",
    "type": "doc",
    "title": "Platform API",
-   "summary": "Documentation page.",
+   "summary": "Platform API: organizations, permissions, tickets, KB, email, chat, routing, QA, retention, export.",
    "status": "done",
    "paths": [
     "docs/API_PLATFORM.md"
@@ -178,7 +178,7 @@
    "id": "doc-user-guide",
    "type": "doc",
    "title": "User guide",
-   "summary": "Documentation page.",
+   "summary": "Roles and day-to-day workflows for agents, supervisors, admins.",
    "status": "done",
    "paths": [
     "docs/USER_GUIDE.md"
@@ -190,7 +190,7 @@
    "id": "doc-prd",
    "type": "doc",
    "title": "PRD mapping and open decisions",
-   "summary": "Documentation page.",
+   "summary": "PRD v0.2 requirement-by-requirement status and proposals for open decisions.",
    "status": "done",
    "paths": [
     "docs/PRD_MAPPING.md"
@@ -202,7 +202,7 @@
    "id": "doc-joow",
    "type": "doc",
    "title": "Joow integration",
-   "summary": "Documentation page.",
+   "summary": "Joow API contract, sign-in flows, mini-app checklist, call integration options.",
    "status": "done",
    "paths": [
     "docs/JOOW_INTEGRATION.md"
@@ -214,7 +214,7 @@
    "id": "doc-desktop",
    "type": "doc",
    "title": "Desktop app",
-   "summary": "Documentation page.",
+   "summary": "Electron desktop app usage and build.",
    "status": "done",
    "paths": [
     "desktop/README.md"
@@ -714,7 +714,7 @@
    "id": "feat-acd",
    "type": "feature",
    "title": "Native ACD, IVR and call handling",
-   "summary": "See flows and API docs.",
+   "summary": "IVR flows per number, native ACD (6 strategies, penalties, skills, VIP, overflow, wrap-up), voicemail, callbacks, campaigns, CSAT survey.",
    "status": "done",
    "paths": [
     "internal/core/acd.go",
@@ -732,7 +732,7 @@
    "id": "feat-transfer",
    "type": "feature",
    "title": "Blind/warm transfer, conference, return to previous agent",
-   "summary": "See flows and API docs.",
+   "summary": "Blind transfer, consult (warm) transfer, conference, cancel, return to the transferring agent on failure.",
    "status": "done",
    "paths": [
     "internal/core/consult.go",
@@ -751,7 +751,7 @@
    "id": "feat-supervisor",
    "type": "feature",
    "title": "Supervisor monitoring and wallboard",
-   "summary": "See flows and API docs.",
+   "summary": "Live view, spy/whisper/barge via snoop, queue alerts, wallboard.",
    "status": "done",
    "paths": [
     "internal/core/monitor.go"
@@ -766,7 +766,7 @@
    "id": "feat-ai-agent",
    "type": "feature",
    "title": "AI voice agent and tools",
-   "summary": "See flows and API docs.",
+   "summary": "OpenAI Realtime voice agent with tools: route_call, search_knowledge, tickets, callbacks, contact lookup, hours; every tool call audited.",
    "status": "done",
    "paths": [
     "internal/ai/tool_calls.go",
@@ -785,7 +785,7 @@
    "id": "feat-routing",
    "type": "feature",
    "title": "Explainable routing with approval",
-   "summary": "See flows and API docs.",
+   "summary": "Topics and rules (draft until approved), AI-drafted rules from job profiles, availability/escalation resolution, decision log, simulator.",
    "status": "done",
    "paths": [
     "internal/routing/engine.go",
@@ -804,7 +804,7 @@
    "id": "feat-tenancy",
    "type": "feature",
    "title": "Multi-tenancy and permissions",
-   "summary": "See flows and API docs.",
+   "summary": "Server-side tenant isolation (fail-closed scope), permission-based RBAC, custom roles, platform admin.",
    "status": "done",
    "paths": [
     "internal/store/tenant.go",
@@ -825,7 +825,7 @@
    "id": "feat-org",
    "type": "feature",
    "title": "Departments, job profiles, numbers, roles, revisions",
-   "summary": "See flows and API docs.",
+   "summary": "Departments with hours/capacity/priority/fallback, job profiles (versioned, templates), phone numbers, revision history.",
    "status": "done",
    "paths": [
     "internal/server/h_org.go"
@@ -842,7 +842,7 @@
    "id": "feat-identity",
    "type": "feature",
    "title": "Joow sign-in, invitations, organization switch",
-   "summary": "See flows and API docs.",
+   "summary": "Joow token sign-in with organization picker and switch, invitations, add from Joow directory.",
    "status": "done",
    "paths": [
     "internal/server/h_identity.go",
@@ -862,7 +862,7 @@
    "id": "feat-tickets",
    "type": "feature",
    "title": "Ticketing with SLA",
-   "summary": "See flows and API docs.",
+   "summary": "Tickets from calls, email, chat, AI or manual; SLA policies, notes vs replies, history, stats, replies delivered by email/Joow.",
    "status": "done",
    "paths": [
     "internal/tickets/service.go",
@@ -880,7 +880,7 @@
    "id": "feat-kb",
    "type": "feature",
    "title": "Encrypted knowledge base",
-   "summary": "See flows and API docs.",
+   "summary": "Encrypted knowledge files and notes, extraction, Persian FTS, scope/visibility/validity, AI preview.",
    "status": "done",
    "paths": [
     "internal/kb/service.go",
@@ -899,7 +899,7 @@
    "id": "feat-email",
    "type": "feature",
    "title": "Consented email connector with replies",
-   "summary": "See flows and API docs.",
+   "summary": "Consented single-folder IMAP import into tickets (sender-checked threading) or draft knowledge; SMTP replies; revoke and purge.",
    "status": "done",
    "paths": [
     "internal/mail/sync.go",
@@ -919,7 +919,7 @@
    "id": "feat-chat",
    "type": "feature",
    "title": "Chat messages to tickets",
-   "summary": "See flows and API docs.",
+   "summary": "Key-authenticated inbound chat messages become tickets; staff replies go back to the Joow conversation.",
    "status": "done",
    "paths": [
     "internal/messages/service.go",
@@ -937,7 +937,7 @@
    "id": "feat-qa",
    "type": "feature",
    "title": "Quality scorecards and evaluations",
-   "summary": "See flows and API docs.",
+   "summary": "Scorecards with weighted/critical criteria, evaluations, agent acknowledgement, per-agent summary.",
    "status": "done",
    "paths": [
     "internal/server/h_qa.go",
@@ -955,7 +955,7 @@
    "id": "feat-compliance",
    "type": "feature",
    "title": "Recording access control, audit, retention, export",
-   "summary": "See flows and API docs.",
+   "summary": "Permission-checked and audited recording/KB access, AI action audit, retention purge, organization export.",
    "status": "done",
    "paths": [
     "internal/retention/retention.go",
@@ -975,7 +975,7 @@
    "id": "feat-notifications",
    "type": "feature",
    "title": "Joow notifications (invites, tickets, calls, approvals)",
-   "summary": "See flows and API docs.",
+   "summary": "Joow notifications: invitations, ticket assignment, incoming calls, routing rules awaiting approval.",
    "status": "done",
    "paths": [
     "internal/joow/alerts.go",
@@ -993,7 +993,7 @@
    "id": "feat-panel",
    "type": "feature",
    "title": "Control panel for all features",
-   "summary": "See flows and API docs.",
+   "summary": "React control panel covering every feature, permission-gated navigation.",
    "status": "done",
    "paths": [
     "web/src/App.tsx",
@@ -1009,7 +1009,7 @@
    "id": "flow-inbound",
    "type": "flow",
    "title": "F1 inbound call to agent",
-   "summary": "Runtime flow; see flows page.",
+   "summary": "Dialed number -> tenant -> flow/IVR -> department gate -> ACD -> agent bridge -> CDR.",
    "status": "done",
    "paths": [],
    "docs": [
@@ -1021,7 +1021,7 @@
    "id": "flow-ai",
    "type": "flow",
    "title": "F2 AI agent and routing",
-   "summary": "Runtime flow; see flows page.",
+   "summary": "AI session -> route_call -> routing engine decision (logged) -> core executes decided action.",
    "status": "done",
    "paths": [],
    "docs": [
@@ -1033,7 +1033,7 @@
    "id": "flow-consult",
    "type": "flow",
    "title": "F3 warm transfer",
-   "summary": "Runtime flow; see flows page.",
+   "summary": "Hold caller, ring consult leg, then complete / conference / cancel; failures return to the agent.",
    "status": "done",
    "paths": [],
    "docs": [
@@ -1045,7 +1045,7 @@
    "id": "flow-ticket",
    "type": "flow",
    "title": "F4 ticket lifecycle",
-   "summary": "Runtime flow; see flows page.",
+   "summary": "Create with SLA, update with history, comment (note vs reply), OnReply delivery.",
    "status": "done",
    "paths": [],
    "docs": [
@@ -1057,7 +1057,7 @@
    "id": "flow-email",
    "type": "flow",
    "title": "F5 email intake",
-   "summary": "Runtime flow; see flows page.",
+   "summary": "Poll/sync -> fetch folder -> parse -> filter -> seal and dedup -> ticket or draft KB.",
    "status": "done",
    "paths": [],
    "docs": [
@@ -1069,7 +1069,7 @@
    "id": "flow-chat",
    "type": "flow",
    "title": "F6 chat intake",
-   "summary": "Runtime flow; see flows page.",
+   "summary": "Inbound key check -> conversation lookup -> ticket comment or new ticket -> replies via Joow.",
    "status": "done",
    "paths": [],
    "docs": [
@@ -1081,7 +1081,7 @@
    "id": "flow-signin",
    "type": "flow",
    "title": "F7 sign-in and tenancy",
-   "summary": "Runtime flow; see flows page.",
+   "summary": "Password or Joow token -> employees for account -> organization picker -> session with permissions.",
    "status": "done",
    "paths": [],
    "docs": [
@@ -1093,7 +1093,7 @@
    "id": "flow-kb",
    "type": "flow",
    "title": "F8 knowledge upload and search",
-   "summary": "Runtime flow; see flows page.",
+   "summary": "Upload -> extract -> seal blob -> index chunks -> permission-filtered search.",
    "status": "done",
    "paths": [],
    "docs": [
@@ -1105,7 +1105,7 @@
    "id": "flow-retention",
    "type": "flow",
    "title": "F9 retention and export",
-   "summary": "Runtime flow; see flows page.",
+   "summary": "Hourly per-tenant purge of recordings/transcripts/email bodies; audited export ZIP.",
    "status": "done",
    "paths": [],
    "docs": [
@@ -1117,7 +1117,7 @@
    "id": "lim-joow-miniapp",
    "type": "limitation",
    "title": "L1 Joow mini-app embedding",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L1; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1129,7 +1129,7 @@
    "id": "lim-joow-rtc",
    "type": "limitation",
    "title": "L2 Joow voice calls via gateway",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L2; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1141,7 +1141,7 @@
    "id": "lim-joow-api",
    "type": "limitation",
    "title": "L3 Real Joow API contract",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L3; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1153,7 +1153,7 @@
    "id": "lim-i18n",
    "type": "limitation",
    "title": "L4 Persian UI translation",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L4; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1165,7 +1165,7 @@
    "id": "lim-single-node",
    "type": "limitation",
    "title": "L5 Single node / SQLite",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L5; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1177,7 +1177,7 @@
    "id": "lim-keys",
    "type": "limitation",
    "title": "L6 Key management and rotation",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L6; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1189,7 +1189,7 @@
    "id": "lim-kb",
    "type": "limitation",
    "title": "L7 Keyword-only retrieval, no OCR",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L7; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1201,7 +1201,7 @@
    "id": "lim-mail",
    "type": "limitation",
    "title": "L8 IMAP/SMTP passwords only",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L8; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1213,7 +1213,7 @@
    "id": "lim-routing",
    "type": "limitation",
    "title": "L9 Keyword topic classification",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L9; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1225,7 +1225,7 @@
    "id": "lim-retention",
    "type": "limitation",
    "title": "L10 Retention scope",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L10; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1237,7 +1237,7 @@
    "id": "lim-untested",
    "type": "limitation",
    "title": "L11 No load test / security review",
-   "summary": "Open item; see status page.",
+   "summary": "Open item L11; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1248,8 +1248,56 @@
   {
    "id": "lim-egress",
    "type": "limitation",
-   "title": "L12 Admin-supplied mail hosts",
-   "summary": "Open item; see status page.",
+   "title": "L12 Admin-supplied mail hosts and webhook URLs",
+   "summary": "Open item L12; details and remedy in status.md.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-plaintext",
+   "type": "limitation",
+   "title": "L13 Plain text in the database",
+   "summary": "Open item L13; details and remedy in status.md.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-numbers",
+   "type": "limitation",
+   "title": "L14 Exact phone number matching",
+   "summary": "Open item L14; details and remedy in status.md.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-threading",
+   "type": "limitation",
+   "title": "L15 Email threading details",
+   "summary": "Open item L15; details and remedy in status.md.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-unit-tests",
+   "type": "limitation",
+   "title": "L16 Unit-test gaps",
+   "summary": "Open item L16; details and remedy in status.md.",
    "status": "open",
    "paths": [],
    "docs": [
@@ -1963,6 +2011,26 @@
    "from": "pkg-server",
    "rel": "depends_on",
    "to": "pkg-auth"
+  },
+  {
+   "from": "lim-plaintext",
+   "rel": "affects",
+   "to": "pkg-store"
+  },
+  {
+   "from": "lim-numbers",
+   "rel": "affects",
+   "to": "pkg-core"
+  },
+  {
+   "from": "lim-threading",
+   "rel": "affects",
+   "to": "pkg-mail"
+  },
+  {
+   "from": "lim-unit-tests",
+   "rel": "affects",
+   "to": "pkg-integration"
   }
  ]
 }

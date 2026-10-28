@@ -49,11 +49,20 @@ make web go                                   # Node 22 + Go 1.27 (web build is 
 SEED_DEMO=true ./bin/middleware               # http://localhost:8080
 ```
 
-Logins (organization `default`): `admin`/`admin123`; supervisor
-`sara`/`agent123`; agents `alice`, `bob`, `carol`, `dave` / `agent123`.
-Organization `parsian`: `admin`/`admin123`, `reza`/`agent123`. "Sign in
-with Joow" uses the local dev provider (accounts `j-alice`, `j-bob`, …;
-`j-bob` belongs to both organizations).
+(`make demo` does the same with `DB_PATH=data/demo.db`.)
+
+Logins — the sign-in form's "Organization" field takes the slug:
+- `default`: `admin`/`admin123`; supervisor `sara`/`agent123`; agents
+  `alice`, `bob`, `carol`, `dave` / `agent123`.
+- `parsian`: `admin`/`admin123`, agents `reza` and `bob` / `agent123`.
+- "Sign in with Joow" uses the local dev provider (accounts `j-alice`,
+  `j-bob`, …; `j-bob` works for both organizations, so it shows a picker).
+
+Agents start **Offline**: set them Available (agent console or Live view)
+before calls can ring. The simulator generates calls to numbers 100 (IVR)
+and 700 (AI) of `default` only; for `parsian` (number 200) inject a call:
+`curl -XPOST localhost:8088/sim/call -d '{"dnis":"200"}'` (or start the
+simulator with `-dnis 100,200,700`).
 
 ## How to verify everything still works
 
@@ -63,10 +72,17 @@ cd web && npm run typecheck && npm run build             # panel; CI fails if in
 make e2e-asterisk                                       # real Asterisk 18 in Docker (needs a Docker daemon)
 ```
 
-Last full verification (2026-10-28): all of the above passed, including
-the real-Asterisk scenarios queue, voicemail, outbound, survey, AI,
-campaign and consult/conference; browser click-through of every panel
-area with zero console/API errors; Docker image build and boot.
+Also part of CI: `cd desktop && npm run check`. `test/asterisk-e2e` is a
+separate Go module (not covered by `./...` at the root) and is not run in
+CI. `go test ./docs/kg` checks the KG's paths, links and coverage of
+packages — not the correctness of prose; keep pages updated by hand.
+
+Last full verification (2026-10-28, in the development sandbox): all of
+the above passed, including the real-Asterisk scenarios queue, voicemail,
+outbound, survey, AI, campaign and consult/conference; browser
+click-through of every panel area with zero console/API errors; Docker
+image build and boot. CI runs on `main`, `feat/**` and pull requests
+(`.github/workflows/ci.yml`).
 
 ## Where the work happened
 

@@ -22,7 +22,8 @@ tested · 🟡 partial · ⏳ not started. Requirement-level detail:
 | Routing engine: topics, rules with approval, AI-drafted rules, availability/escalation, decision log, simulator | ✅ | `routing/engine_test.go`, `integration/routing_test.go`, `ai/directory_org_test.go` |
 | Quality: scorecards, evaluations, acknowledgement, summary | ✅ | `integration/callcenter_test.go` |
 | Compliance: audited recording/KB access, AI action audit, retention purge, organization export | ✅ | `retention/retention_test.go`, `integration/export_test.go` |
-| Control panel for all of the above, desktop app, Docker image, CI | ✅ | `npm run typecheck/build`, browser click-through, `.github/workflows/ci.yml` |
+| Control panel for all of the above, desktop app, Docker image | ✅ | `npm run typecheck/build`, browser click-through, image build + boot |
+| CI (Go vet/LOC/race tests, web build + bundle check, desktop check) | ✅ runs on `main`, `feat/**`, PRs | `.github/workflows/ci.yml` |
 
 ## Not done / limitations (honest list)
 
@@ -39,13 +40,31 @@ tested · 🟡 partial · ⏳ not started. Requirement-level detail:
 | L9 | Routing classification | Topic = AI-provided topic or keyword match; no learned classifier. One approver suffices (no two-person rule). |
 | L10 | Retention scope | Purges recordings, transcripts and email bodies; call records, tickets and audit are kept. |
 | L11 | Not performed | Load/performance testing; formal security review / pen test; accessibility audit. |
-| L12 | Admin-supplied hosts | Email connector hosts are contacted from the server (admins with `settings.manage` could probe internal hosts). Restrict egress in production. |
+| L12 | Admin-supplied hosts | Email connector hosts and webhook URLs are contacted from the server, so admins with `settings.manage` could probe internal hosts. Restrict egress in production. |
+| L13 | Plain text in the database | Only knowledge originals, mail credentials/bodies and webhook secrets are encrypted. Knowledge **extracted text** (`kb_fts`, needed for search), tickets, transcripts and call records are plain text in SQLite. Use an encrypted volume. |
+| L14 | Phone number matching | Dialed numbers match `/numbers` exactly on digits (`+98 21…` ≠ `021…`); unknown or disabled numbers go to the default organization (tenant 1). Register numbers in the format the trunk delivers. |
+| L15 | Email threading details | Outgoing reply Message-IDs are not stored; threading relies on the `[T-n]` subject tag or the customer's original Message-ID in References (both sender-checked). |
+| L16 | Unit-test gaps | `server`, `tickets`, `messages`, `ari`, `seed` have no unit tests of their own; they are covered by `internal/integration`. |
+
+## Resolved in the handover review (2026-10-28)
+
+A cold-read review by an agent with no prior context found these; all are
+fixed and tested: unauthenticated dev Joow tokens were exposed whenever
+`JOOW_MODE` was not `http` (now opt-in, local mode only; `http` without
+URL/key refuses to start); webhook secrets were stored and returned in
+plain text (now sealed, never returned); an email quoting `[T-n]` could
+write into another customer's ticket (now sender-checked; closed tickets
+start a new one); a failed email import was marked as seen (now retried);
+AI routing ignored non-agent/queue fallbacks (now executed as decided);
+a restore without the key file silently created a new key (now refuses to
+start); CI never ran on feature branches (now `feat/**` too).
 
 ## Suggested next steps (priority order)
 
+0. Confirm CI is green on the branch and open a pull request for review.
 1. Agree the Joow API contract with the Joow team (L3) → mini-app token handoff (L1) → RTC gateway (L2).
 2. Persian UI translation (L4).
-3. KMS-backed master key + rotation (L6); deploy behind TLS with egress rules (L12).
+3. KMS-backed master key + rotation (L6); deploy behind TLS with egress rules (L12) on an encrypted volume (L13).
 4. Load test (concurrent calls per Asterisk, AI sessions per node) and a security review (L11).
 5. PostgreSQL + HA plan when more than one node is needed (L5).
 6. Embeddings for knowledge retrieval and OAuth mail (L7, L8).

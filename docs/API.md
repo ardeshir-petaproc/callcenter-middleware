@@ -175,7 +175,7 @@ interface AIProfile { id: number; name: string; model: string; voice: string; la
   knowledge_base: string; enabled: boolean }
 interface Disposition { id: number; code: string; label: string; enabled: boolean }
 interface PauseReason { id: number; label: string; enabled: boolean }
-interface Webhook { id: number; url: string; events: string[]; secret: string; enabled: boolean }
+interface Webhook { id: number; url: string; events: string[]; secret: string /* write-only: sealed at rest, returned empty; omit on update to keep */; has_secret: boolean; enabled: boolean }
 interface Contact { id: number; name: string; phone: string; email: string; company: string; notes: string; tags: string[]; vip: boolean }
 type CallState = "ivr" | "ai" | "queued" | "ringing" | "connected" | "hold" | "voicemail" | "dialing" | "message" | "survey" | "ended";
 interface Call { id: string; direction: "inbound" | "outbound"; caller_number: string; caller_name: string; dnis: string;
