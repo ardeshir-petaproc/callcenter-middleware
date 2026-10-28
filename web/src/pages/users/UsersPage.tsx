@@ -1,27 +1,50 @@
-import { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { UsersRound } from 'lucide-react';
+import { useMemo, useState, type ReactNode } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link2, UserPlus, UsersRound } from 'lucide-react';
 import type { QueueMember, User } from '../../api/types';
 import { get } from '../../api/client';
 import { useCrud } from '../../lib/crud';
 import { useApi, useDraft } from '../../lib/hooks';
-import { useMe } from '../../state/auth';
-import { isAdmin } from '../../lib/roles';
+import { useCan, useMe } from '../../state/auth';
+import { PERMS } from '../../lib/perms';
 import { useStore } from '../../lib/store';
 import { live } from '../../state/live';
 import { ConfigLayout, EditorFooter } from '../../components/ConfigLayout';
-import { Card, Empty } from '../../components/ui/primitives';
+import { Card, Empty, PageHeader, Tabs } from '../../components/ui/primitives';
 import { Avatar, RoleBadge } from '../../components/ui/Badges';
 import { confirm } from '../../components/ui/Confirm';
 import { toast } from '../../components/ui/Toast';
 import { blankUser, UserForm, type UserDraft } from './UserForm';
 import { ForceStatus } from './ForceStatus';
+import { JoowAddDialog } from './JoowAddDialog';
+import { InvitationsPanel } from './InvitationsPanel';
+import { RevisionsButton } from '../../components/RevisionsButton';
+
+const TABS = [{ value: 'employees', label: 'Employees' }, { value: 'invitations', label: 'Invitations' }] as const;
+type Tab = (typeof TABS)[number]['value'];
 
 export default function UsersPage() {
+  const [params, setParams] = useSearchParams();
+  const tab: Tab = params.get('tab') === 'invitations' ? 'invitations' : 'employees';
+  const canEdit = useCan()(PERMS.usersManage);
+  const tabs = canEdit ? <Tabs<Tab> value={tab} tabs={[...TABS]} onChange={(t) => setParams(t === 'employees' ? {} : { tab: t }, { replace: true })} /> : null;
+  if (tab === 'invitations' && canEdit) {
+    return (
+      <>
+        <PageHeader title="Employees" sub="Invite people to join this organization" />
+        {tabs}
+        <InvitationsPanel canEdit={canEdit} />
+      </>
+    );
+  }
+  return <EmployeesView canEdit={canEdit} tabs={tabs} />;
+}
+
+function EmployeesView({ canEdit, tabs }: { canEdit: boolean; tabs: ReactNode }) {
   const { id } = useParams();
   const nav = useNavigate();
   const me = useMe();
-  const canEdit = isAdmin(me.role);
+  const [joowOpen, setJoowOpen] = useState(false);
   const crud = useCrud<User>('/users', 'users');
   const members = useApi((s) => get<QueueMember[]>('/members', undefined, s), []);
   const agents = useStore(live, (s) => s.agents);
@@ -32,7 +55,7 @@ export default function UsersPage() {
     const u = crud.items.find((x) => String(x.id) === id);
     if (!u) return undefined;
     const queues = (members.data ?? []).filter((m) => m.user_id === u.id).map(({ queue_id, penalty }) => ({ queue_id, penalty }));
-    return { ...u, skills: u.skills ?? [], password: '', queues };
+    return { ...u, skills: u.skills ?? [], department_ids: u.department_ids ?? [], languages: u.languages ?? [], password: '', queues };
   }, [isNew, id, crud.items, members.data]);
   const { draft, set, dirty } = useDraft<UserDraft>(source, id ?? '');
   const [busy, setBusy] = useState(false);
@@ -40,7 +63,7 @@ export default function UsersPage() {
   const save = async () => {
     if (!draft) return;
     if (!draft.username.trim()) { toast.error('Username is required'); return; }
-    if (isNew && draft.password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    if (isNew && !draft.joow_account_id && draft.password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
     setBusy(true);
     try {
       const { password, queues, created_at: _c, updated_at: _u, ...rest } = draft;
@@ -63,7 +86,8 @@ export default function UsersPage() {
 
   return (
     <ConfigLayout
-      title="Users & agents" sub="Accounts, roles, extensions and queue membership" basePath="/users"
+      title="Employees" sub="Accounts, roles, profiles, extensions and queue membership" basePath="/users" tabs={tabs}
+      headerActions={canEdit && <button className="btn" onClick={() => setJoowOpen(true)}><UserPlus />Add from Joow</button>}
       items={crud.items} loading={crud.loading} error={crud.error} onRetry={crud.reload}
       selected={id} canCreate={canEdit} newLabel="New user" emptyIcon={<UsersRound />}
       search={(u) => `${u.username} ${u.display_name} ${u.extension}`}
@@ -74,6 +98,8 @@ export default function UsersPage() {
             <div className="strong ellipsis" style={u.enabled ? undefined : { textDecoration: 'line-through' }}>{u.display_name || u.username}</div>
             <div className="small muted ellipsis">@{u.username}{u.extension ? ` · ${u.extension}` : ''}</div>
           </div>
+          {u.joow_account_id && <span title="Signs in with Joow" className="muted"><Link2 size={14} /></span>}
+          {u.status && u.status !== 'active' && <span className={`badge ${u.status === 'invited' ? 'warn' : ''}`}>{u.status}</span>}
           {u.role !== 'agent' && <RoleBadge role={u.role} />}
         </>
       )}
@@ -85,10 +111,12 @@ export default function UsersPage() {
             {!isNew && <ForceStatus userId={draft.id} agent={agents[draft.id]} />}
             <Card title={isNew ? 'New user' : draft.display_name || draft.username} flush>
               <div className="card-body"><UserForm u={draft} set={set} disabled={!canEdit} isNew={isNew} /></div>
-              <EditorFooter onSave={save} onDelete={remove} busy={busy} canEdit={canEdit} dirty={dirty} isNew={isNew} />
+              <EditorFooter onSave={save} onDelete={remove} busy={busy} canEdit={canEdit} dirty={dirty} isNew={isNew}
+                extra={!isNew && <RevisionsButton entity="user" id={draft.id} />} />
             </Card>
           </>
         )}
+      <JoowAddDialog open={joowOpen} onClose={() => setJoowOpen(false)} onCreated={(u) => { crud.reload(); nav(`/users/${u.id}`); }} />
     </ConfigLayout>
   );
 }

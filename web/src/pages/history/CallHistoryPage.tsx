@@ -7,8 +7,8 @@ import { useApi, useDebounced } from '../../lib/hooks';
 import { dayEndIso, dayStartIso, fmtDateTime, fmtDuration } from '../../lib/format';
 import { callerLabel, callerSub } from '../../lib/calls';
 import { useQueueNames, useUserNames } from '../../state/lookups';
-import { useMe } from '../../state/auth';
-import { isSupPlus } from '../../lib/roles';
+import { useCan } from '../../state/auth';
+import { PERMS } from '../../lib/perms';
 import { Card, Empty, ErrorBox, PageHeader, Pager, SkeletonRows } from '../../components/ui/primitives';
 import { CsatBadge, OutcomeBadge, SentimentBadge } from '../../components/ui/Badges';
 import { CallFilters, FILTER_KEYS, type Filters } from './CallFilters';
@@ -16,7 +16,8 @@ import { CallFilters, FILTER_KEYS, type Filters } from './CallFilters';
 const LIMIT = 25;
 
 export default function CallHistoryPage() {
-  const me = useMe();
+  const can = useCan();
+  const all = can(PERMS.callsAll);
   const nav = useNavigate();
   const [params, setParams] = useSearchParams();
   const filters = useMemo(() => Object.fromEntries(FILTER_KEYS.map((k) => [k, params.get(k) ?? ''])) as unknown as Filters, [params]);
@@ -50,11 +51,11 @@ export default function CallHistoryPage() {
   const items = data?.items ?? [];
   return (
     <>
-      <PageHeader title="Call history" sub={isSupPlus(me.role) ? 'All calls' : 'Your calls'} actions={
-        isSupPlus(me.role) && <a className="btn" href={authUrl('/reports/export.csv', query)} download><Download />Export CSV</a>
+      <PageHeader title="Call history" sub={all ? 'All calls' : 'Your calls'} actions={
+        can(PERMS.reportsView) && <a className="btn" href={authUrl('/reports/export.csv', query)} download><Download />Export CSV</a>
       } />
       <Card flush>
-        <CallFilters value={filters} onChange={update} showAgent={isSupPlus(me.role)} />
+        <CallFilters value={filters} onChange={update} showAgent={all} />
         {error ? <div style={{ padding: 16 }}><ErrorBox error={error} onRetry={reload} /></div>
           : loading && !data ? <SkeletonRows rows={8} />
           : items.length === 0 ? <Empty title="No calls found" icon={<History />}>Try widening the date range or clearing filters.</Empty>

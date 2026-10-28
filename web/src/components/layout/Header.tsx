@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Moon, Sun, RefreshCw } from 'lucide-react';
 import { titleFor } from './nav';
 import { UserMenu } from './UserMenu';
+import { useAuth } from '../../state/auth';
 import { useStore, useNow } from '../../lib/store';
 import { live } from '../../state/live';
 import { reconnectLive } from '../../state/ws';
@@ -43,6 +44,12 @@ function MyStatusPill() {
   );
 }
 
+function OrgName() {
+  const { tenant } = useAuth();
+  if (!tenant) return null;
+  return <span className="chip hide-sm" title="Current organization" dir="auto">{tenant.name}</span>;
+}
+
 export function Header({ onMenu }: { onMenu: () => void }) {
   const loc = useLocation();
   useTheme();
@@ -51,6 +58,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
     <header className="header">
       <button className="btn ghost icon mobile-only" onClick={onMenu} aria-label="Open navigation"><Menu /></button>
       <div className="title ellipsis grow">{titleFor(loc.pathname)}</div>
+      <OrgName />
       <ConnIndicator />
       <MyStatusPill />
       <button className="btn ghost icon" onClick={cycleTheme} aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'} title="Toggle theme">

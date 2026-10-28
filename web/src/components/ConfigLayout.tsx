@@ -19,6 +19,8 @@ interface Props<T extends { id: number }> {
   children: ReactNode;
   headerActions?: ReactNode;
   emptyIcon?: ReactNode;
+  /** Rendered between the page header and the list (e.g. section tabs). */
+  tabs?: ReactNode;
 }
 
 /** Master/detail layout for configuration entities: searchable list on the left, editor on the right. */
@@ -35,6 +37,7 @@ export function ConfigLayout<T extends { id: number }>(p: Props<T>) {
           {p.canCreate && <button className="btn primary" onClick={() => nav(`${p.basePath}/new`)}><Plus />{p.newLabel ?? 'New'}</button>}
         </>
       } />
+      {p.tabs}
       <div className="split">
         <div className="card sticky-list">
           {p.items.length > 6 && (
@@ -64,16 +67,17 @@ export function ConfigLayout<T extends { id: number }>(p: Props<T>) {
   );
 }
 
-export function EditorFooter({ onSave, onDelete, busy, canEdit, dirty, isNew }: {
+export function EditorFooter({ onSave, onDelete, busy, canEdit, dirty, isNew, extra, saveLabel }: {
   onSave: () => void; onDelete?: () => void; busy: boolean; canEdit: boolean; dirty: boolean; isNew: boolean;
+  /** Extra controls on the left, e.g. a revision history button. */ extra?: ReactNode; saveLabel?: string;
 }) {
-  if (!canEdit) return <div className="card-foot"><span className="small muted">Read-only — admin access is required to edit.</span></div>;
+  if (!canEdit) return <div className="card-foot" style={{ justifyContent: 'space-between' }}><div>{extra}</div><span className="small muted">Read-only — you do not have permission to edit this.</span></div>;
   return (
     <div className="card-foot" style={{ justifyContent: 'space-between' }}>
-      <div>{!isNew && onDelete && <button type="button" className="btn ghost" style={{ color: 'var(--danger)' }} onClick={onDelete}>Delete</button>}</div>
+      <div className="row">{!isNew && onDelete && <button type="button" className="btn ghost" style={{ color: 'var(--danger)' }} onClick={onDelete}>Delete</button>}{extra}</div>
       <div className="row">
         {dirty && <span className="small muted">Unsaved changes</span>}
-        <button type="button" className="btn primary" disabled={busy || (!dirty && !isNew)} onClick={onSave}>{isNew ? 'Create' : 'Save changes'}</button>
+        <button type="button" className="btn primary" disabled={busy || (!dirty && !isNew)} onClick={onSave}>{saveLabel ?? (isNew ? 'Create' : 'Save changes')}</button>
       </div>
     </div>
   );

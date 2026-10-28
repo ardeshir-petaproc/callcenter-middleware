@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { KeyRound, LogOut, Monitor, Tv } from 'lucide-react';
+import { Building2, KeyRound, LogOut, Monitor, Tv } from 'lucide-react';
 import { useAuth, useMe } from '../../state/auth';
 import { Avatar, RoleBadge } from '../ui/Badges';
 import { Dialog } from '../ui/Dialog';
 import { Field } from '../ui/primitives';
 import { toast } from '../ui/Toast';
 import { post } from '../../api/client';
-import { isSupPlus } from '../../lib/roles';
+import { PERMS } from '../../lib/perms';
 import { setTheme, useTheme } from '../../lib/theme';
+import { OrgSwitcher } from './OrgSwitcher';
 
 export function UserMenu() {
   const me = useMe();
-  const { logout } = useAuth();
+  const { logout, can, tenant } = useAuth();
   const [open, setOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState(false);
   const [theme] = useTheme();
@@ -37,8 +38,10 @@ export function UserMenu() {
           <div className="menu-head">
             <div className="strong">{me.display_name || me.username}</div>
             <div className="row small muted" style={{ marginTop: 4 }}>@{me.username} <RoleBadge role={me.role} /></div>
+            {tenant && <div className="row small muted" style={{ marginTop: 4 }}><Building2 size={13} /><span dir="auto">{tenant.name}</span></div>}
           </div>
-          {isSupPlus(me.role) && (
+          <OrgSwitcher onDone={() => setOpen(false)} />
+          {can(PERMS.callsAll) && (
             <Link to="/wallboard" role="menuitem" onClick={() => setOpen(false)}><Tv />Wallboard mode</Link>
           )}
           <button role="menuitem" onClick={() => { setOpen(false); setPwOpen(true); }}><KeyRound />Change password</button>
@@ -71,9 +74,9 @@ function PasswordDialog({ open, onClose }: { open: boolean; onClose: () => void 
   return (
     <Dialog open={open} onClose={onClose} title="Change password" size="narrow"
       footer={<><button className="btn" onClick={onClose}>Cancel</button>
-        <button className="btn primary" disabled={busy || !cur || next.length < 6 || next !== confirm} onClick={submit}>Update password</button></>}>
+        <button className="btn primary" disabled={busy || !cur || next.length < 8 || next !== confirm} onClick={submit}>Update password</button></>}>
       <Field label="Current password"><input className="input" type="password" autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} /></Field>
-      <Field label="New password" hint="At least 6 characters"><input className="input" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /></Field>
+      <Field label="New password" hint="At least 8 characters"><input className="input" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /></Field>
       <Field label="Confirm new password" hint={mismatch ? 'Passwords do not match' : undefined}>
         <input className="input" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
       </Field>

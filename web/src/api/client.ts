@@ -90,3 +90,40 @@ export function errMsg(e: unknown): string {
   if (e instanceof Error) return e.message;
   return String(e);
 }
+
+/** Fetches an authenticated file (bearer header) and saves it through the browser. */
+export async function downloadFile(path: string, fallbackName: string): Promise<void> {
+  const res = await fetch(API_BASE + path, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!res.ok) {
+    let msg = `${res.status} ${res.statusText}`;
+    try { const j = await res.json(); if (j?.error) msg = String(j.error); } catch { /* not JSON */ }
+    throw new ApiError(res.status, msg);
+  }
+  const name = /filename="?([^";]+)"?/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+/** Multipart upload (FormData) with bearer auth and the usual error handling. */
+export async function upload<T>(path: string, form: FormData, method = 'POST'): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(API_BASE + path, { method, body: form, headers: token ? { Authorization: `Bearer ${token}`, Accept: 'application/json' } : {} });
+  } catch {
+    throw new ApiError(0, 'Network error — is the server reachable?');
+  }
+  const text = await res.text();
+  let data: unknown = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  if (!res.ok) {
+    const msg = data && typeof data === 'object' && 'error' in data ? String((data as { error: unknown }).error) : `${res.status} ${res.statusText}`;
+    throw new ApiError(res.status, msg);
+  }
+  return data as T;
+}

@@ -6,8 +6,8 @@ import { toast } from '../ui/Toast';
 import { confirm } from '../ui/Confirm';
 import { TransferDialog } from './TransferDialog';
 import { Popover } from '../ui/Popover';
-import { useMe } from '../../state/auth';
-import { isSupPlus } from '../../lib/roles';
+import { useCan } from '../../state/auth';
+import { PERMS } from '../../lib/perms';
 
 interface Props {
   call: CallView;
@@ -19,7 +19,7 @@ interface Props {
 const ANSWERED = new Set(['connected', 'hold']);
 
 export function CallActions({ call, compact, onTranscript, monitor = true }: Props) {
-  const me = useMe();
+  const can = useCan();
   const [transfer, setTransfer] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const id = encodeURIComponent(call.id);
@@ -52,7 +52,7 @@ export function CallActions({ call, compact, onTranscript, monitor = true }: Pro
         <Circle style={{ color: 'var(--danger-solid)' }} />{label('Record')}
       </button>
       <button className={cls} title="Transfer" aria-label="Transfer" onClick={() => setTransfer(true)}><PhoneForwarded />{label('Transfer')}</button>
-      {monitor && isSupPlus(me.role) && <MonitorMenu callId={call.id} compact={compact} disabled={!answered} onRun={run} />}
+      {monitor && can(PERMS.callsMonitor) && <MonitorMenu callId={call.id} compact={compact} disabled={!answered} onRun={run} />}
       <button className={`${cls} danger`} disabled={busy === 'hangup'} title="Hang up" aria-label="Hang up" onClick={hangup}><PhoneOff />{label('Hang up')}</button>
       {transfer && <TransferDialog callId={call.id} open={transfer} onClose={() => setTransfer(false)} />}
     </div>

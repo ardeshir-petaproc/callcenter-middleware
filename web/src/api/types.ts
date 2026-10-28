@@ -1,9 +1,16 @@
 // Entity shapes mirroring docs/API.md exactly.
 export type Role = 'admin' | 'supervisor' | 'agent';
 
-export interface User {
+export type UserStatus = 'active' | 'invited' | 'disabled';
+/** Organizational profile of an employee (also an input of routing). */
+export interface Profile {
+  title?: string; department_ids?: number[]; manager_id?: number; languages?: string[];
+  schedule_id?: number; job_profile_id?: number; phone?: string;
+}
+export interface User extends Profile {
   id: number; username: string; display_name: string; email: string; role: Role;
   extension: string; endpoint: string; skills: string[]; enabled: boolean; created_at: string; updated_at: string;
+  tenant_id?: number; joow_account_id?: string; custom_role_id?: number; platform_admin?: boolean; status?: UserStatus;
 }
 export type UserInput = Partial<User> & { password?: string; queues?: { queue_id: number; penalty: number }[] };
 
@@ -17,11 +24,12 @@ export interface AgentState {
 export type ActionType = '' | 'queue' | 'ai' | 'voicemail' | 'callback' | 'hangup' | 'flow' | 'agent' | 'external' | 'dialplan';
 export interface Action { type: ActionType; target?: string; media?: string }
 
-export type QueueStrategy = 'ringall' | 'longest_idle' | 'round_robin' | 'fewest_calls' | 'random';
+export type QueueStrategy = 'ringall' | 'longest_idle' | 'round_robin' | 'fewest_calls' | 'random' | 'linear';
 export interface Queue {
   id: number; name: string; description: string; mode: 'native' | 'asterisk'; extension: string;
   strategy: QueueStrategy; priority: number; ring_timeout_sec: number; max_wait_sec: number; wrapup_sec: number;
   sla_sec: number; moh_class: string; join_media: string; required_skills: string[]; record: boolean;
+  /** Media played before queueing when recording (consent notice). */ record_notice?: string; department_id?: number;
   allow_callback: boolean; leave_when_empty: boolean; survey: boolean;
   /** 0 = off */ alert_waiting: number; /** 0 = off */ alert_wait_sec: number; overflow: Action; enabled: boolean;
 }
@@ -51,6 +59,8 @@ export interface AIProfile {
   id: number; name: string; model: string; voice: string; language: string; instructions: string;
   greeting: string; temperature: number; tools: string[]; handoff_queue_id: number; max_duration_sec: number;
   knowledge_base: string; enabled: boolean;
+  /** Knowledge scope the agent may search (empty = all AI-enabled sources). */
+  kb_department_ids?: number[]; kb_categories?: string[];
 }
 export interface Disposition { id: number; code: string; label: string; enabled: boolean }
 export interface PauseReason { id: number; label: string; enabled: boolean }
@@ -67,7 +77,11 @@ export interface Call {
   /** 0 = not rated, else 1-5 */
   csat: number; campaign_id: number;
 }
-export interface CallView extends Call { ringing_agents: number[]; waiting_sec: number; duration_sec: number; monitors: number }
+export type ConsultState = 'ringing' | 'talking' | 'conference';
+export interface CallView extends Call {
+  ringing_agents: number[]; waiting_sec: number; duration_sec: number; monitors: number;
+  /** Warm transfer in progress. */ consult?: ConsultState; consult_agent_id?: number;
+}
 export interface QueueView {
   id: number; name: string; waiting: number; longest_wait_sec: number; available: number;
   busy: number; paused: number; logged_in: number; members: number;
@@ -96,8 +110,9 @@ export interface Bucket { key: string; total: number; answered: number; abandone
 export interface LabelCount { label: string; count: number }
 
 export interface Snapshot { calls: CallView[]; agents: AgentState[]; queues: QueueView[]; ai_sessions: number; alerts?: QueueAlert[]; at: string }
-export interface LoginResponse { token: string; expires_at: string; user: User }
-export interface MeResponse { user: User; agent: AgentState | null }
+export interface Tenant { id: number; slug: string; name: string; status: 'active' | 'suspended'; plan: string; created_at: string }
+export interface LoginResponse { token: string; expires_at: string; user: User; tenant?: Tenant; permissions?: string[] }
+export interface MeResponse { user: User; agent: AgentState | null; tenant?: Tenant; permissions?: string[] }
 export interface CallDetail { call: Call; live: CallView | null; transcript: TranscriptEntry[]; events: CallEvent[]; contact: Contact | null }
 export interface Paged<T> { items: T[]; total: number }
 export interface AIStatus { enabled: boolean; model: string; voice: string; voices: string[]; tools: string[] }
@@ -113,4 +128,4 @@ export interface WsMessage { type: string; data: unknown; at: string }
 export const OUTCOMES = ['answered', 'abandoned', 'voicemail', 'callback_requested', 'ai_resolved', 'sent_to_dialplan',
   'failed', 'no_answer', 'ivr_hangup', 'transferred_external'] as const;
 export const EVENT_TYPES = ['call.updated', 'call.ended', 'agent.updated', 'queue.updated', 'call.transcript',
-  'agent.screenpop', 'callback.created', 'voicemail.created', 'config.changed', 'queue.alert'] as const;
+  'agent.screenpop', 'callback.created', 'voicemail.created', 'config.changed', 'queue.alert', 'ticket.updated'] as const;

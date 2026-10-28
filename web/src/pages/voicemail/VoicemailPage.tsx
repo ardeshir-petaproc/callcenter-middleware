@@ -7,15 +7,15 @@ import { useApi } from '../../lib/hooks';
 import { onLive } from '../../state/ws';
 import { live } from '../../state/live';
 import { useQueueNames } from '../../state/lookups';
-import { useMe } from '../../state/auth';
-import { isSupPlus } from '../../lib/roles';
+import { useCan } from '../../state/auth';
+import { PERMS } from '../../lib/perms';
 import { fmtDateTime, fmtDuration, fmtRelative } from '../../lib/format';
 import { Card, Empty, ErrorBox, PageHeader, Segmented, SkeletonRows } from '../../components/ui/primitives';
 import { confirm } from '../../components/ui/Confirm';
 import { toast } from '../../components/ui/Toast';
 
 export default function VoicemailPage() {
-  const me = useMe();
+  const can = useCan();
   const { data, loading, error, reload, setData } = useApi((s) => get<Voicemail[]>('/voicemails', undefined, s), []);
   const [filter, setFilter] = useState<'unheard' | 'all'>('unheard');
   const queueName = useQueueNames();
@@ -67,7 +67,7 @@ export default function VoicemailPage() {
                   <div className="btn-group">
                     <button className="btn sm" onClick={() => callBack(v)}><PhoneOutgoing />Callback</button>
                     <button className="btn sm" onClick={() => mark(v, !v.heard)}><Check />{v.heard ? 'Mark unheard' : 'Mark heard'}</button>
-                    {isSupPlus(me.role) && <button className="btn sm icon" aria-label="Delete" onClick={() => remove(v)}><Trash2 /></button>}
+                    {can(PERMS.callsControl) && <button className="btn sm icon" aria-label="Delete" onClick={() => remove(v)}><Trash2 /></button>}
                   </div>
                 </div>
               ))}

@@ -1,6 +1,8 @@
 import { useEffect, useMemo } from 'react';
 import { get } from '../api/client';
 import type { AIProfile, Campaign, Disposition, IVRFlow, PauseReason, Queue, Schedule, User } from '../api/types';
+import type { CustomRole, Department, JobProfile } from '../api/types_org';
+import type { Topic } from '../api/types_routing';
 import { createStore, useStore } from '../lib/store';
 import { onLive } from './ws';
 import { live } from './live';
@@ -15,15 +17,23 @@ interface Lookups {
   dispositions: Disposition[];
   pauseReasons: PauseReason[];
   campaigns: Campaign[];
+  departments: Department[];
+  jobProfiles: JobProfile[];
+  customRoles: CustomRole[];
+  topics: Topic[];
 }
 type Key = keyof Lookups;
 
 const paths: Record<Key, string> = {
   queues: '/queues', users: '/users', aiProfiles: '/ai/profiles', flows: '/flows',
   schedules: '/schedules', dispositions: '/dispositions', pauseReasons: '/pause-reasons', campaigns: '/campaigns',
+  departments: '/departments', jobProfiles: '/job-profiles', customRoles: '/roles', topics: '/routing/topics',
 };
 
-const empty: Lookups = { queues: [], users: [], aiProfiles: [], flows: [], schedules: [], dispositions: [], pauseReasons: [], campaigns: [] };
+const empty: Lookups = {
+  queues: [], users: [], aiProfiles: [], flows: [], schedules: [], dispositions: [], pauseReasons: [], campaigns: [],
+  departments: [], jobProfiles: [], customRoles: [], topics: [],
+};
 const store = createStore<Lookups>(empty);
 const loaded = new Set<Key>();
 const inflight = new Map<Key, Promise<void>>();
@@ -72,4 +82,12 @@ export function useUserNames(): (id: number | undefined) => string {
     for (const u of users) m.set(u.id, u.display_name || u.username);
     return (id) => (!id ? '—' : m.get(id) ?? `User #${id}`);
   }, [users, agents]);
+}
+
+export function useDepartmentNames(): (id: number | undefined) => string {
+  const depts = useLookup('departments');
+  return useMemo(() => {
+    const m = new Map(depts.map((d) => [d.id, d.name]));
+    return (id) => (!id ? '—' : m.get(id) ?? `Department #${id}`);
+  }, [depts]);
 }

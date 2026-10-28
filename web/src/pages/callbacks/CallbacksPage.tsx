@@ -6,8 +6,8 @@ import { del, get, post } from '../../api/client';
 import { useApi } from '../../lib/hooks';
 import { onLive } from '../../state/ws';
 import { useQueueNames, useUserNames } from '../../state/lookups';
-import { useMe } from '../../state/auth';
-import { isSupPlus } from '../../lib/roles';
+import { useCan } from '../../state/auth';
+import { PERMS } from '../../lib/perms';
 import { fmtDateTime, fmtRelative, humanize } from '../../lib/format';
 import { Card, Empty, ErrorBox, PageHeader, Segmented, SkeletonRows } from '../../components/ui/primitives';
 import { confirm } from '../../components/ui/Confirm';
@@ -18,7 +18,7 @@ const tone: Record<CallbackStatus, string> = { pending: 'warn', in_progress: 'in
 type Filter = CallbackStatus | 'all';
 
 export default function CallbacksPage() {
-  const me = useMe();
+  const can = useCan();
   const [status, setStatus] = useState<Filter>('pending');
   const { data, loading, error, reload, setData } = useApi((s) => get<Callback[]>('/callbacks', { status: status === 'all' ? undefined : status }, s), [status]);
   const [edit, setEdit] = useState<Callback | null | 'new'>(null);
@@ -69,7 +69,7 @@ export default function CallbacksPage() {
                           <div className="btn-group" style={{ flexWrap: 'nowrap' }}>
                             {(c.status === 'pending' || c.status === 'failed') && <button className="btn sm success" onClick={() => dial(c)}><PhoneOutgoing />Dial</button>}
                             <button className="btn sm icon" aria-label="Edit" onClick={() => setEdit(c)}><Pencil /></button>
-                            {isSupPlus(me.role) && <button className="btn sm icon" aria-label="Delete" onClick={() => remove(c)}><Trash2 /></button>}
+                            {can(PERMS.callsControl) && <button className="btn sm icon" aria-label="Delete" onClick={() => remove(c)}><Trash2 /></button>}
                           </div>
                         </td>
                       </tr>

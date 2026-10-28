@@ -1,8 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import { PanelLeftClose, PanelLeftOpen, Phone } from 'lucide-react';
 import { NAV } from './nav';
-import { hasRole } from '../../lib/roles';
-import { useMe } from '../../state/auth';
+import { hasAccess } from '../../lib/access';
+import { useAuth, useMe } from '../../state/auth';
 import { useStore } from '../../lib/store';
 import { live } from '../../state/live';
 
@@ -10,6 +10,7 @@ interface Props { collapsed: boolean; onToggle: () => void; onNavigate: () => vo
 
 export function Sidebar({ collapsed, onToggle, onNavigate }: Props) {
   const me = useMe();
+  const { can } = useAuth();
   const unheard = useStore(live, (s) => s.unheardVoicemails);
   return (
     <aside className="sidebar" aria-label="Main navigation">
@@ -19,7 +20,7 @@ export function Sidebar({ collapsed, onToggle, onNavigate }: Props) {
       </div>
       <nav className="nav">
         {NAV.map((section) => {
-          const items = section.items.filter((i) => hasRole(me.role, i.min));
+          const items = section.items.filter((i) => hasAccess(i, me, can));
           if (!items.length) return null;
           return (
             <div key={section.title} className="col" style={{ gap: 1 }}>
