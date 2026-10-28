@@ -25,8 +25,9 @@ code base talks to Joow directly.
 
 Notification kinds sent today: `invitation`, `ticket_assigned` and
 `incoming_call` (sent when an agent's phone starts ringing, with the caller
-and a link to the agent console). Planned: `qa_evaluation`,
-`routing_rule_pending` (approver inbox).
+and a link to the agent console) and `routing_rule_pending` (to everyone
+who may approve routing rules when drafts are submitted or generated).
+Planned: `qa_evaluation`.
 
 ## Sign-in flows
 

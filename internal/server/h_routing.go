@@ -112,6 +112,7 @@ func (s *Server) generateRules(w http.ResponseWriter, r *http.Request) error {
 		s.revision(r, s.d.Store.Rules, "create", rules[i].ID)
 	}
 	s.audit(r, "routing.generate", "job_profile", job.ID, method)
+	s.notifyApprovers(r, len(rules), "rules drafted from job profile "+job.Title)
 	writeJSON(w, http.StatusOK, map[string]any{"method": method, "rules": rules})
 	return nil
 }

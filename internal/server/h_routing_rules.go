@@ -80,6 +80,7 @@ func (s *Server) saveRule(w http.ResponseWriter, r *http.Request) error {
 		action = "update"
 	}
 	s.audit(r, "routing_rule."+action, "routing_rule", rule.ID, rule.Name)
+	s.notifyApprovers(r, 1, "rule "+rule.Name)
 	s.revision(r, s.d.Store.Rules, action, rule.ID)
 	writeJSON(w, http.StatusOK, rule)
 	return nil
