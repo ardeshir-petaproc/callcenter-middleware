@@ -15,5 +15,8 @@ type AIProfile struct {
 	HandoffQueueID int64    `json:"handoff_queue_id"`
 	MaxDurationSec int      `json:"max_duration_sec"`
 	KnowledgeBase  string   `json:"knowledge_base"`
-	Enabled        bool     `json:"enabled"`
+	// Knowledge base scope the agent may search (empty = all AI-enabled sources).
+	KBDepartmentIDs []int64  `json:"kb_department_ids"`
+	KBCategories    []string `json:"kb_categories"`
+	Enabled         bool     `json:"enabled"`
 }

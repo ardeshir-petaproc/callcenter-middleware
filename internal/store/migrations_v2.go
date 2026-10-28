@@ -18,6 +18,7 @@ var versioned = []struct {
 	{2, multiTenantV2},
 	{3, joowV3},
 	{4, ticketsV4},
+	{5, knowledgeV5},
 }
 
 func (s *Store) migrateVersions(ctx context.Context) error {
@@ -145,4 +146,9 @@ var ticketsV4 = []string{
 		type TEXT NOT NULL, from_value TEXT NOT NULL DEFAULT '', to_value TEXT NOT NULL DEFAULT '',
 		actor_id INTEGER NOT NULL DEFAULT 0, actor_name TEXT NOT NULL DEFAULT '', at INTEGER NOT NULL)`,
 	`CREATE INDEX IF NOT EXISTS idx_ticket_events ON ticket_events(ticket_id)`,
+}
+
+var knowledgeV5 = []string{
+	`CREATE VIRTUAL TABLE IF NOT EXISTS kb_fts USING fts5(content, source_id UNINDEXED, tenant_id UNINDEXED,
+		chunk UNINDEXED, tokenize = 'unicode61 remove_diacritics 2')`,
 }

@@ -17,6 +17,7 @@ import (
 	"callcenter-middleware/internal/domain"
 	"callcenter-middleware/internal/events"
 	"callcenter-middleware/internal/joow"
+	"callcenter-middleware/internal/kb"
 	"callcenter-middleware/internal/store"
 	"callcenter-middleware/internal/tickets"
 
@@ -41,6 +42,7 @@ type Deps struct {
 	StaticFS http.FileSystem
 	Joow     joow.Provider
 	Tickets  *tickets.Service
+	KB       *kb.Service
 	// DevJoowTokens exposes POST /dev/joow-token to mint local Joow tokens.
 	DevJoowTokens bool
 }

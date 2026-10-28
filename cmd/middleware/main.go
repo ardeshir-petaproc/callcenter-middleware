@@ -75,7 +75,7 @@ func main() {
 	httpServer := server.NewServer(cfg.HTTPPort, server.Deps{
 		Config: cfg, Store: st, Core: callCore, Hub: hub, Issuer: auth.NewIssuer(cfg.JWTSecret, cfg.TokenTTL),
 		Stream: stream, OpenAI: openai, Fetcher: ariClient, Started: time.Now(),
-		StaticFS: server.StaticFS(web.Assets()), Joow: idp, Tickets: &tickets.Service{Store: st, Pub: hub, Joow: idp}, DevJoowTokens: cfg.JoowMode != "http",
+		StaticFS: server.StaticFS(web.Assets()), Joow: idp, Tickets: &tickets.Service{Store: st, Pub: hub, Joow: idp}, KB: knowledge(cfg, st), DevJoowTokens: cfg.JoowMode != "http",
 	})
 	go func() {
 		if err := httpServer.Start(); err != nil {

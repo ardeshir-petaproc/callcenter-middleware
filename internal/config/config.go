@@ -23,6 +23,7 @@ type Config struct {
 	QueueMappings map[string]string
 
 	DBPath        string
+	DataDir       string // encrypted knowledge files and keys
 	PublicURL     string
 	JoowMode      string // "local" (development) or "http"
 	JoowAPIURL    string
@@ -81,6 +82,7 @@ func LoadFromEnv() *Config {
 		QueueMappings: parseQueueMappings(getEnv("QUEUE_MAPPINGS", "1=600,2=601,0=600")),
 
 		DBPath:        getEnv("DB_PATH", "data/callcenter.db"),
+		DataDir:       getEnv("DATA_DIR", "data"),
 		PublicURL:     getEnv("PUBLIC_URL", "http://localhost:8080"),
 		JoowMode:      getEnv("JOOW_MODE", "local"),
 		JoowAPIURL:    getEnv("JOOW_API_URL", ""),
