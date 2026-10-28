@@ -22,6 +22,26 @@ func (c *Core) AITransfer(callID, queue, reason, summary string) {
 	})
 }
 
+// AIRoute implements AIControl: the routing engine chose a person or queue.
+func (c *Core) AIRoute(callID string, target domain.Action, reason, summary string) {
+	c.post(func() {
+		call := c.calls[callID]
+		if call == nil || call.State != domain.CallAI {
+			return
+		}
+		if summary != "" {
+			call.Summary = "AI handoff: " + summary
+		}
+		c.timeline(call, "ai_route", reason)
+		c.stopAI(call)
+		if target.Type != domain.ActionAgent && target.Type != domain.ActionQueue {
+			c.aiHandoffQueue(call, "")
+			return
+		}
+		c.execute(call, target)
+	})
+}
+
 // AIEndCall implements AIControl: the AI resolved the call.
 func (c *Core) AIEndCall(callID, summary string) {
 	c.post(func() {

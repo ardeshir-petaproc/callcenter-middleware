@@ -19,6 +19,9 @@ type AISpec struct {
 // AIControl lets AI sessions act on their call.
 type AIControl interface {
 	AITransfer(callID, queue, reason, summary string)
+	// AIRoute hands the caller to the target chosen by the routing engine
+	// (an empty action means the profile's default handoff).
+	AIRoute(callID string, target domain.Action, reason, summary string)
 	AIEndCall(callID, summary string)
 	AICallback(callID, number, notes string)
 	AITranscript(callID, speaker, text string)

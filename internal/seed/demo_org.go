@@ -76,7 +76,7 @@ func demoOrg(ctx context.Context, st *store.Store, queues []*domain.Queue, users
 			return err
 		}
 	}
-	return nil
+	return demoRouting(ctx, st, depts, jobs, users[4])
 }
 
 // DemoSecondTenant creates a second organization so tenant isolation can be

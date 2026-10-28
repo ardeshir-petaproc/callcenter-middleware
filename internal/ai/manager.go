@@ -53,7 +53,7 @@ func (m *Manager) Start(spec core.AISpec, ctl core.AIControl) (string, error) {
 	}
 	ctx, cancel := context.WithCancel(store.ForTenant(context.Background(), spec.TenantID))
 	s := &Session{spec: spec, ctl: ctl, cfg: m.cfg, dir: m.dir, rtp: rtp, cancel: cancel,
-		queues: m.dir.QueueNames(ctx)}
+		queues: m.dir.QueueNames(ctx), topics: m.dir.TopicNames(ctx)}
 	m.mu.Lock()
 	m.sessions[spec.CallID] = s
 	m.mu.Unlock()

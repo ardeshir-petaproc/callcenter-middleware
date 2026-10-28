@@ -24,7 +24,8 @@ func demoConfig(ctx context.Context, st *store.Store, queues []*domain.Queue) er
 		KnowledgeBase: "Opening hours: Monday to Friday 9:00-17:00.\nPlans: Basic $10/month, Pro $25/month, " +
 			"Enterprise on request.\nRefunds are possible within 30 days.",
 		Tools: []string{domain.ToolTransferToQueue, domain.ToolEndCall, domain.ToolCreateCallback,
-			domain.ToolLookupContact, domain.ToolTakeMessage, domain.ToolCheckHours},
+			domain.ToolLookupContact, domain.ToolTakeMessage, domain.ToolCheckHours, domain.ToolRouteCall,
+			domain.ToolSearchKnowledge, domain.ToolCreateTicket},
 	}
 	if err := st.AIProfiles.Create(ctx, ai); err != nil {
 		return err

@@ -42,6 +42,7 @@ type Session struct {
 	dir     *Directory
 	rtp     *RTPEndpoint
 	queues  []string
+	topics  []string
 	conn    *websocket.Conn
 	writeMu sync.Mutex
 	cancel  context.CancelFunc
@@ -79,7 +80,7 @@ func (s *Session) run(ctx context.Context) error {
 	s.conn = conn
 	defer conn.Close(websocket.StatusNormalClosure, "call ended")
 
-	sc := SessionContext{CallerNumber: s.spec.CallerNumber, CallerName: s.spec.CallerName, Queues: s.queues, Phone: true}
+	sc := SessionContext{CallerNumber: s.spec.CallerNumber, CallerName: s.spec.CallerName, Queues: s.queues, Topics: s.topics, Phone: true}
 	if err := s.send(ctx, map[string]any{"type": "session.update",
 		"session": BuildSession(s.cfg, s.spec.Profile, sc)}); err != nil {
 		return err

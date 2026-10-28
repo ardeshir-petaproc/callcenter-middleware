@@ -22,6 +22,12 @@ type toolArgs struct {
 	Message        string `json:"message"`
 	CallbackNumber string `json:"callback_number"`
 	Name           string `json:"name"`
+	Topic          string `json:"topic"`
+	Request        string `json:"request"`
+	Query          string `json:"query"`
+	Subject        string `json:"subject"`
+	Description    string `json:"description"`
+	Priority       string `json:"priority"`
 }
 
 // handleTool executes a function call requested by the model.
@@ -64,6 +70,16 @@ func (s *Session) handleTool(ctx context.Context, callID, name, rawArgs string) 
 			phone = s.spec.CallerNumber
 		}
 		result = s.dir.LookupContact(ctx, phone)
+	case domain.ToolRouteCall:
+		s.ending.Store(true)
+		respond = false
+		dec := s.dir.Route(ctx, s.spec, a.Topic, a.Request+"\n"+a.Summary)
+		result = map[string]any{"ok": true, "target": dec.TargetName}
+		s.afterPlayout(ctx, func() { s.ctl.AIRoute(id, dec.Action, dec.Reason, a.Summary) })
+	case domain.ToolSearchKnowledge:
+		result = s.dir.SearchKnowledge(ctx, s.spec.Profile, a.Query)
+	case domain.ToolCreateTicket:
+		result = s.dir.CreateTicket(ctx, s.spec, a.Subject, a.Description, a.Priority, a.Topic)
 	case domain.ToolCheckHours:
 		result = s.dir.BusinessHours(ctx)
 	default:

@@ -19,6 +19,7 @@ import (
 	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/metrics"
 	"callcenter-middleware/internal/notify"
+	"callcenter-middleware/internal/routing"
 	"callcenter-middleware/internal/seed"
 	"callcenter-middleware/internal/server"
 	"callcenter-middleware/internal/store"
@@ -48,12 +49,16 @@ func main() {
 	openai := ai.NewOpenAI(cfg)
 	analyzer := &ai.Analyzer{Store: st, OpenAI: openai, Fetcher: ariClient, Pub: hub}
 
+	svc := newServices(cfg, st, hub, idp)
+	dir := &ai.Directory{Store: st, KB: svc.kb, Tickets: svc.tickets}
 	callCore := core.New(core.Deps{
 		Config: cfg, Switch: ariClient, Store: st, Publisher: hub, Metrics: promMetrics,
 		Notifier: notify.NewWebhookNotifier(cfg.WebhookURL),
-		AI:       ai.NewManager(cfg, &ai.Directory{Store: st}), Analyzer: analyzer,
+		AI:       ai.NewManager(cfg, dir), Analyzer: analyzer,
 	})
 
+	router := &routing.Engine{Store: st, Live: callCore}
+	dir.Router = router
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	eventChan := make(chan domain.TelephonyEvent, 512)
@@ -70,13 +75,12 @@ func main() {
 		}
 	}()
 	startBackground(ctx, st, hub, analyzer)
-	svc := newServices(cfg, st, hub, idp)
 	go svc.mail.Run(ctx, time.Minute)
 
 	httpServer := server.NewServer(cfg.HTTPPort, server.Deps{
 		Config: cfg, Store: st, Core: callCore, Hub: hub, Issuer: auth.NewIssuer(cfg.JWTSecret, cfg.TokenTTL),
 		Stream: stream, OpenAI: openai, Fetcher: ariClient, Started: time.Now(),
-		StaticFS: server.StaticFS(web.Assets()), Joow: idp, Tickets: svc.tickets, KB: svc.kb, Mail: svc.mail, DevJoowTokens: cfg.JoowMode != "http",
+		StaticFS: server.StaticFS(web.Assets()), Joow: idp, Tickets: svc.tickets, KB: svc.kb, Mail: svc.mail, Router: router, DevJoowTokens: cfg.JoowMode != "http",
 	})
 	go func() {
 		if err := httpServer.Start(); err != nil {

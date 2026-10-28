@@ -26,10 +26,11 @@ type ctlRecorder struct {
 	ended       chan string
 }
 
-func (c *ctlRecorder) AITransfer(callID, queue, reason, summary string) {}
-func (c *ctlRecorder) AIEndCall(callID, summary string)                 { c.ended <- summary }
-func (c *ctlRecorder) AICallback(callID, number, notes string)          {}
-func (c *ctlRecorder) AIFailed(callID string, err error)                {}
+func (c *ctlRecorder) AITransfer(callID, queue, reason, summary string)                    {}
+func (c *ctlRecorder) AIRoute(callID string, target domain.Action, reason, summary string) {}
+func (c *ctlRecorder) AIEndCall(callID, summary string)                                    { c.ended <- summary }
+func (c *ctlRecorder) AICallback(callID, number, notes string)                             {}
+func (c *ctlRecorder) AIFailed(callID string, err error)                                   {}
 func (c *ctlRecorder) AITranscript(callID, speaker, text string) {
 	c.mu.Lock()
 	c.transcripts = append(c.transcripts, speaker+":"+text)

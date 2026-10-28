@@ -13,6 +13,7 @@ type SessionContext struct {
 	CallerNumber string
 	CallerName   string
 	Queues       []string
+	Topics       []string
 	Phone        bool
 }
 
@@ -49,7 +50,7 @@ func BuildSession(cfg *config.Config, p domain.AIProfile, sc SessionContext) map
 		"output_modalities": []string{"audio"},
 		"audio":             map[string]any{"input": input, "output": output},
 	}
-	if tools := ToolDefinitions(p.Tools, sc.Queues); len(tools) > 0 {
+	if tools := ToolDefinitions(p.Tools, sc.Queues, sc.Topics); len(tools) > 0 {
 		session["tools"] = tools
 		session["tool_choice"] = "auto"
 	}
@@ -76,6 +77,18 @@ func Instructions(p domain.AIProfile, sc SessionContext) string {
 			fmt.Fprintf(&b, " (%s)", sc.CallerName)
 		}
 		b.WriteString(".\n")
+	}
+	if has(p.Tools, domain.ToolRouteCall) {
+		b.WriteString("When the caller needs a person, tell them briefly that you are connecting them, then call ")
+		b.WriteString("route_call with their request and a summary; the organization's rules choose the right employee. ")
+		b.WriteString("Prefer route_call over transfer_to_queue.\n")
+	}
+	if has(p.Tools, domain.ToolSearchKnowledge) {
+		b.WriteString("Before answering questions about policies, prices, products or procedures, call search_knowledge. ")
+		b.WriteString("Answer only from what it returns; if it returns nothing relevant, say you will connect them to someone who knows.\n")
+	}
+	if has(p.Tools, domain.ToolCreateTicket) {
+		b.WriteString("If the request needs follow-up work, call create_ticket and tell the caller their ticket number.\n")
 	}
 	if has(p.Tools, domain.ToolTransferToQueue) {
 		b.WriteString("If the caller asks for a human, is upset, or you cannot resolve the request, ")

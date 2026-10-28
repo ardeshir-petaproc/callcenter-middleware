@@ -5,12 +5,18 @@ import (
 	"time"
 
 	"callcenter-middleware/internal/core"
+	"callcenter-middleware/internal/kb"
+	"callcenter-middleware/internal/routing"
 	"callcenter-middleware/internal/store"
+	"callcenter-middleware/internal/tickets"
 )
 
 // Directory answers tool lookups from the store.
 type Directory struct {
-	Store *store.Store
+	Store   *store.Store
+	Router  *routing.Engine  // optional: route_call
+	KB      *kb.Service      // optional: search_knowledge
+	Tickets *tickets.Service // optional: create_ticket
 }
 
 // QueueNames lists enabled queues the AI may transfer to.

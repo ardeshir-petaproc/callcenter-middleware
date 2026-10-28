@@ -15,7 +15,7 @@ func obj(props map[string]any, required ...string) map[string]any {
 func str(desc string) map[string]any { return map[string]any{"type": "string", "description": desc} }
 
 // ToolDefinitions returns the Realtime function tools enabled for a profile.
-func ToolDefinitions(enabled []string, queues []string) []map[string]any {
+func ToolDefinitions(enabled []string, queues, topics []string) []map[string]any {
 	var out []map[string]any
 	add := func(name, desc string, params map[string]any) {
 		if has(enabled, name) {
@@ -48,6 +48,24 @@ func ToolDefinitions(enabled []string, queues []string) []map[string]any {
 		"callback_number": str("Number to reach the caller."),
 		"name":            str("Caller's name."),
 	}, "message"))
+	topicParam := str("The kind of request, from the organization's topics.")
+	if len(topics) > 0 {
+		topicParam["enum"] = topics
+	}
+	add(domain.ToolRouteCall, "Connect the caller to the right employee or team. The organization's routing rules, "+
+		"job descriptions and live availability decide who; you only describe the request.", obj(map[string]any{
+		"topic":   topicParam,
+		"request": str("What the caller needs, in their own words."),
+		"summary": str("One or two sentence summary for the employee who takes the call."),
+	}, "request", "summary"))
+	add(domain.ToolSearchKnowledge, "Search the organization's approved knowledge base before answering a factual question.",
+		obj(map[string]any{"query": str("What to look up.")}, "query"))
+	add(domain.ToolCreateTicket, "Open a support ticket so the team follows up on the caller's request.", obj(map[string]any{
+		"subject":     str("Short title of the request."),
+		"description": str("Details the team needs, including what was already tried."),
+		"priority":    map[string]any{"type": "string", "enum": []string{"low", "normal", "high", "urgent"}},
+		"topic":       str("The kind of request."),
+	}, "subject", "description"))
 	add(domain.ToolCheckHours, "Check whether the call center is currently open.", obj(map[string]any{}))
 	return out
 }
@@ -55,5 +73,6 @@ func ToolDefinitions(enabled []string, queues []string) []map[string]any {
 // AllTools lists every tool name, for UI defaults.
 var AllTools = []string{
 	domain.ToolTransferToQueue, domain.ToolEndCall, domain.ToolCreateCallback,
-	domain.ToolLookupContact, domain.ToolTakeMessage, domain.ToolCheckHours,
+	domain.ToolLookupContact, domain.ToolTakeMessage, domain.ToolCheckHours, domain.ToolRouteCall,
+	domain.ToolSearchKnowledge, domain.ToolCreateTicket,
 }
