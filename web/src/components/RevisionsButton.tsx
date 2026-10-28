@@ -9,11 +9,19 @@ import { fmtDateTime, humanize } from '../lib/format';
 import { Drawer } from './ui/Dialog';
 import { Empty, ErrorBox, SkeletonRows } from './ui/primitives';
 
+const REVISION_PERMS: Record<RevisionEntity, string[]> = {
+  department: [PERMS.orgManage], job_profile: [PERMS.orgManage], user: [PERMS.usersManage],
+  custom_role: [PERMS.usersManage], phone_number: [PERMS.flowsManage],
+  topic: [PERMS.routingManage, PERMS.routingApprove], routing_rule: [PERMS.routingManage, PERMS.routingApprove],
+  qa_scorecard: [PERMS.qaEvaluate],
+};
+
 /** "History" button opening a drawer with the change history of one configuration object. */
 export function RevisionsButton({ entity, id, label = 'History' }: { entity: RevisionEntity; id: number; label?: string }) {
   const [open, setOpen] = useState(false);
-  // The server only exposes revision history to org.manage.
-  const allowed = useCan()(PERMS.orgManage);
+  // The server shows history to org.manage and to whoever manages the object.
+  const can = useCan();
+  const allowed = can(PERMS.orgManage) || REVISION_PERMS[entity].some((p) => can(p));
   if (!id || !allowed) return null;
   return (
     <>

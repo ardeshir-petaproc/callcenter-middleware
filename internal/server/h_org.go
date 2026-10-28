@@ -13,7 +13,6 @@ import (
 )
 
 func (s *Server) orgRoutes(r chi.Router) {
-	org := requirePerm(domain.PermOrgManage)
 	mountCRUD(r, "/departments", s, s.d.Store.Departments, crudOpts[domain.Department]{entity: "department",
 		check: s.checkDepartment, reload: true, writePerm: domain.PermOrgManage, history: true})
 	mountCRUD(r, "/job-profiles", s, s.d.Store.JobProfiles, crudOpts[domain.JobProfile]{entity: "job_profile",
@@ -22,7 +21,7 @@ func (s *Server) orgRoutes(r chi.Router) {
 		check: s.checkNumber, reload: true, writePerm: domain.PermFlowsManage, history: true})
 	mountCRUD(r, "/roles", s, s.d.Store.Roles, crudOpts[domain.CustomRole]{entity: "custom_role",
 		prepare: prepareRole, writePerm: domain.PermUsersManage, history: true})
-	r.With(org).Get("/revisions", handler(s.listRevisions).ServeHTTP)
+	r.Get("/revisions", handler(s.listRevisions).ServeHTTP)
 	r.Get("/job-profile-templates", handler(s.jobTemplates).ServeHTTP)
 	s.inviteRoutes(r)
 }
@@ -136,7 +135,25 @@ func prepareRole(c *domain.CustomRole) error {
 	return nil
 }
 
+// revisionPerms: who may read the history of each kind of object (the
+// people who manage it).
+var revisionPerms = map[string][]domain.Permission{
+	"department": {domain.PermOrgManage}, "job_profile": {domain.PermOrgManage},
+	"user": {domain.PermUsersManage}, "custom_role": {domain.PermUsersManage},
+	"phone_number": {domain.PermFlowsManage},
+	"topic":        {domain.PermRoutingManage, domain.PermRoutingApprove},
+	"routing_rule": {domain.PermRoutingManage, domain.PermRoutingApprove},
+	"qa_scorecard": {domain.PermQAEvaluate},
+}
+
 func (s *Server) listRevisions(w http.ResponseWriter, r *http.Request) error {
+	allowed := can(r, domain.PermOrgManage)
+	for _, p := range revisionPerms[r.URL.Query().Get("entity")] {
+		allowed = allowed || can(r, p)
+	}
+	if !allowed {
+		return errForbidden
+	}
 	revs, err := s.d.Store.Revisions(r.Context(), r.URL.Query().Get("entity"), qInt64(r, "entity_id"))
 	if err != nil {
 		return err

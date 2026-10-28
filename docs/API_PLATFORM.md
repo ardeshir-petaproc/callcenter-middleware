@@ -35,7 +35,7 @@ returns `{all: string[], mine: string[]}`; the login response carries
 | POST | `/auth/joow` | `{token: <Joow token>, tenant_id?}` | session as above, or `{choose_tenant: true, tenants: [{id, slug, name, user_id, role}], account}` when the Joow account works for several organizations |
 | GET | `/auth/tenants` | | organizations the signed-in Joow account belongs to |
 | POST | `/auth/switch` | `{tenant_id}` | new session in that organization |
-| GET | `/auth/invite/{token}` | public | `{organization, name, email, role, expires_at, joow_account_id}` |
+| GET | `/auth/invite/{token}` | public | `{organization, name, email, role, expires_at, joow_account_required}` — invitation links are `PUBLIC_URL/invite/<token>` |
 | POST | `/auth/accept-invite` | `{token, joow_token?}` or `{token, username, password, display_name}` | session |
 | POST | `/dev/joow-token` | `{account_id}` (local Joow mode only) | `{token}` — simulates Joow sign-in |
 
@@ -52,18 +52,22 @@ returns `{all: string[], mine: string[]}`; the login response carries
 and Persian). `GET /revisions?entity=<kind>&entity_id=<id>` returns the
 change history `[{action, data (JSON snapshot), changed_by_name, at}]` for
 departments, job profiles, numbers, roles, users, topics, routing rules,
-scorecards.
+scorecards. It is readable by whoever manages that kind of object
+(e.g. `users.manage` for users, `routing.manage`/`routing.approve` for
+rules, `qa.evaluate` for scorecards) and by `org.manage`.
 
 ### Employees
 
 `User` gains `joow_account_id`, `custom_role_id`, `status`
-(`active|invited|disabled`) and `profile: {title, department_ids[],
-manager_id, languages[], schedule_id, job_profile_id, phone}`.
+(`active|invited|disabled`) and the profile fields, at the top level of the
+user object: `title, department_ids[], manager_id, languages[],
+schedule_id, job_profile_id, phone`. Passwords need at least 8 characters
+(Joow-linked employees need none).
 
 | Method | Path | Body | Response |
 |---|---|---|---|
 | GET | `/joow/accounts?q=` | | `[{id, name, email, phone}]` — Joow directory search |
-| POST | `/users/from-joow` | `{joow_account_id, role, custom_role_id?, profile?, extension?}` | `User` (no password: signs in with Joow) |
+| POST | `/users/from-joow` | `{joow_account_id, role, custom_role_id?, extension?, title?, department_ids?, …profile fields}` | `User` (no password: signs in with Joow) |
 | GET | `/invitations` | | `Invitation[]` |
 | POST | `/invitations` | `{name, email?, phone?, joow_account_id?, role, custom_role_id?, department_ids[]}` | `{invitation, link, token}` |
 | POST | `/invitations/{id}/revoke` | | `Invitation` |

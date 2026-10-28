@@ -10,12 +10,23 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-var publicSettings = map[string]bool{"company_name": true, "record_outbound": true, "wallboard_message": true}
+var publicSettings = map[string]bool{"company_name": true, "record_outbound": true, "wallboard_message": true,
+	"recordings.agent_playback": true}
+
+// internalSettings are managed by dedicated endpoints and never exposed.
+var internalSettings = []string{"inbound.", "retention."}
 
 func (s *Server) getSettings(w http.ResponseWriter, r *http.Request) error {
 	all, err := s.d.Store.AllSettings(r.Context())
 	if err != nil {
 		return err
+	}
+	for k := range all {
+		for _, prefix := range internalSettings {
+			if strings.HasPrefix(k, prefix) {
+				delete(all, k)
+			}
+		}
 	}
 	writeJSON(w, http.StatusOK, all)
 	return nil

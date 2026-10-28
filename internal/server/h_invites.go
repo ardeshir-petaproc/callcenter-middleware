@@ -73,7 +73,7 @@ func (s *Server) createInvite(w http.ResponseWriter, r *http.Request) error {
 	if err := s.d.Store.Invitations.Create(r.Context(), &inv); err != nil {
 		return err
 	}
-	link := strings.TrimRight(s.d.Config.PublicURL, "/") + "/accept-invite?token=" + token
+	link := strings.TrimRight(s.d.Config.PublicURL, "/") + "/invite/" + token
 	if inv.JoowAccountID != "" && s.d.Joow != nil {
 		_ = s.d.Joow.Notify(r.Context(), inv.JoowAccountID, joow.Notification{Kind: "invitation",
 			Title: "Invitation to " + principalOf(r).tenant.Name, Body: "You were invited to join the customer service team.",
@@ -134,6 +134,6 @@ func (s *Server) peekInvite(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"organization": t.Name, "name": inv.Name, "email": inv.Email,
-		"role": inv.Role, "joow_account_required": inv.JoowAccountID != ""})
+		"role": inv.Role, "joow_account_required": inv.JoowAccountID != "", "expires_at": inv.ExpiresAt})
 	return nil
 }

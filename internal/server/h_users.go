@@ -48,12 +48,12 @@ func (s *Server) prepareUser(r *http.Request, req *userReq, creating bool) error
 		return bad("role must be admin, supervisor or agent")
 	}
 	// Joow-linked employees sign in with Joow and need no local password.
-	if creating && req.JoowAccountID == "" && len(req.Password) < 6 {
-		return bad("password must be at least 6 characters")
+	if creating && req.JoowAccountID == "" && len(req.Password) < 8 {
+		return bad("password must be at least 8 characters")
 	}
 	if req.Password != "" {
-		if len(req.Password) < 6 {
-			return bad("password must be at least 6 characters")
+		if len(req.Password) < 8 {
+			return bad("password must be at least 8 characters")
 		}
 		h, err := auth.HashPassword(req.Password)
 		if err != nil {
