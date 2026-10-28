@@ -13,6 +13,7 @@ web:
 go:
 	CGO_ENABLED=0 go build -trimpath -ldflags "$(LDFLAGS)" -o $(BINARY) ./cmd/middleware
 	CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o bin/ari-sim ./cmd/ari-sim
+	CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o bin/mail-sim ./cmd/mail-sim
 
 test:
 	go test ./...
