@@ -103,6 +103,39 @@ callbacks, voicemails, agent status events, settings and the audit log have
 dedicated tables. Reports are SQL aggregates over `calls` plus a replay of
 `agent_events` for time-in-status.
 
+### Multi-tenancy
+
+Every row and document carries a `tenant_id`. Store access requires a
+context scope: `store.ForTenant(ctx, id)` for requests (the tenant comes
+from the signed-in user) or `store.System(ctx)` for platform jobs; a context
+without a scope fails closed (`ErrNoTenant`). Creating, updating or
+deleting another tenant's object behaves as "not found". The call core
+keeps per-tenant caches (flows by dialed number, queues, departments) and
+tags every live call, agent and event with its tenant; the WebSocket and
+webhooks only deliver a tenant's own events. Dialed numbers (`/numbers`)
+decide which organization an inbound call belongs to.
+
+Schema changes are versioned migrations (`schema_version`): v2
+multi-tenancy, v3 Joow accounts, v4 tickets, v5 knowledge full-text index,
+v6 imported emails, v7 routing decisions.
+
+### Platform services
+
+| Package | Responsibility |
+|---|---|
+| `internal/joow` | Joow identity, directory and notifications (HTTP or local provider) |
+| `internal/tickets` | ticket workflow, SLA deadlines, history, notifications |
+| `internal/secure` | AES-256-GCM with per-tenant keys derived (HMAC) from the master key |
+| `internal/kb` | text extraction, chunking, FTS5 indexing, permission-aware search |
+| `internal/mail` | IMAP connector: scoped fetch, parsing, threading, ticket / knowledge import |
+| `internal/routing` | topic classification, rule scoring, target resolution with availability and escalation, rule drafting |
+| `internal/retention` | hourly per-tenant purge of recordings, transcripts and email bodies |
+
+Routing decisions for AI calls flow as: AI tool `route_call` → routing
+engine (topics, approved rules, live agent state from the core, department
+hours) → decision logged with steps → `core.AIRoute` hands the caller to the
+chosen agent or queue with the AI's summary.
+
 ## Realtime & integrations
 
 The event hub fans out `call.*`, `agent.*`, `callback.created`,
@@ -113,9 +146,16 @@ Prometheus metrics are exposed on `/metrics`.
 
 ## Security
 
-- Bearer JWT (HS256) with roles admin / supervisor / agent; agents only see
-  and control their own calls. Passwords use bcrypt. All admin changes go to
-  the audit log.
+- Bearer JWT (HS256). Authorization is permission-based: built-in roles
+  admin / supervisor / agent map to permission sets, custom roles grant
+  explicit permissions; the user, its role and its organization's status are
+  re-checked on every request. Agents only see and control their own calls.
+  Passwords use bcrypt. All changes go to the audit log; configuration keeps
+  revision history.
+- Organizations are isolated server-side (see Multi-tenancy). Knowledge
+  files, email credentials and email bodies are encrypted at rest with
+  per-tenant keys; recording playback/download, knowledge downloads and
+  retention purges are audited.
 - ARI and the media port range must not be exposed to the internet.
 - The Electron app keeps the remote panel sandboxed with context isolation
   and grants only the microphone to the configured server origin.

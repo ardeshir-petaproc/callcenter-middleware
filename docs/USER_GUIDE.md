@@ -80,6 +80,67 @@
   `X-Callcenter-Signature`), company name, outbound recording, the audit log
   and system status.
 
+## Organizations and people
+
+- **Signing in.** Choose your organization (or use *Sign in with Joow*; if
+  your Joow account works for several organizations you pick one and can
+  switch later from the user menu).
+- **Departments** have business hours, a capacity (concurrent calls), a
+  priority and a fallback (e.g. voicemail) used when closed or full.
+- **Job profiles** describe a role: responsibilities, request types it
+  handles, authority limits and when to escalate (and to whom). Start from a
+  template. Every save creates a new version.
+- **Employees** are linked to Joow accounts. Add them from the Joow
+  directory, or send an invitation link (they accept with Joow or create a
+  password). Give them departments, a job profile, languages and a manager.
+- **Custom roles** grant exactly the permissions you tick.
+
+## Routing rules
+
+Topics describe what callers ask for (with keywords in every language you
+use). Rules send a topic or keywords to an employee, anyone holding a job
+profile, a queue or a department, with an optional fallback. Rules start as
+**drafts**; someone with the *approve routing* permission activates them,
+and any later edit sends them back for approval. *Generate from job profile*
+drafts rules from a job description. Use the **simulator** to see where a
+request would go right now and why; the decision log shows the reason for
+every AI-routed call.
+
+## Tickets
+
+Tickets come from calls (*Create ticket* on a call), email, the AI
+assistant or are created by hand. Internal notes are never shown to the
+customer; the first public reply counts as the first response for SLA.
+Overdue tickets are flagged; SLA targets are set per priority.
+
+## Knowledge and email
+
+Upload documents or write notes, choose who may see them (everyone, or
+restricted to roles), which departments they belong to, whether the AI may
+use them and until when they are valid. Expired or draft knowledge is never
+used by the AI. Email connectors import one folder of a mailbox you
+explicitly consent to share, optionally only from certain senders; new
+conversations become tickets and replies are added to them, or messages
+become draft knowledge for review. You can withdraw the AI's access or
+disconnect and purge a mailbox at any time.
+
+## Transfers and conferences
+
+*Consult* calls a colleague or a number while the caller hears music. Then
+*Complete transfer* hands the caller over, *Conference* joins all three,
+*Cancel* returns to the caller. If the colleague does not answer, the caller
+comes back to you automatically; if you hang up after the colleague
+answered, they keep the caller. A blind transfer to a colleague who does not
+answer also comes back to you.
+
+## Quality and retention
+
+Reviewers score calls with scorecards (weighted criteria; a *critical*
+criterion scored 0 fails the evaluation). Agents see final evaluations and
+acknowledge them. Recording playback and downloads are permission-controlled
+and logged. Retention settings delete recordings, transcripts and email
+bodies after the number of days you choose.
+
 ## Media prompts
 
 Prompts are Asterisk media URIs (for example `sound:custom/ivr-welcome`).

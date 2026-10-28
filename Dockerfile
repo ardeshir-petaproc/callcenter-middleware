@@ -26,7 +26,7 @@ RUN adduser -D -u 10001 cc && mkdir -p /data && chown cc /data
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/middleware /out/ari-sim /usr/local/bin/
 USER cc
-ENV DB_PATH=/data/callcenter.db HTTP_PORT=8080
+ENV DB_PATH=/data/callcenter.db DATA_DIR=/data HTTP_PORT=8080
 VOLUME ["/data"]
 EXPOSE 8080 40000-40199/udp
 HEALTHCHECK --interval=15s --timeout=3s CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1
