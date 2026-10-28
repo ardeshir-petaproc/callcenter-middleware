@@ -14,6 +14,7 @@ func (s *Server) retentionRoutes(r chi.Router) {
 	r.With(settings).Get("/retention", handler(s.getRetention).ServeHTTP)
 	r.With(settings).Put("/retention", handler(s.putRetention).ServeHTTP)
 	r.With(settings).Post("/retention/run", handler(s.runRetention).ServeHTTP)
+	r.With(settings, requirePerm(domain.PermAuditView)).Get("/export/organization.zip", handler(s.exportOrganization).ServeHTTP)
 }
 
 func (s *Server) getRetention(w http.ResponseWriter, r *http.Request) error {

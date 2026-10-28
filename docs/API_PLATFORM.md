@@ -207,6 +207,11 @@ criterion scored 0), `passed` (≥ `pass_score`).
 | GET / PUT | `/retention` | `{recording_days, transcript_days, email_days}` (0 = keep) |
 | POST | `/retention/run` | apply now → `{recordings, transcripts, emails, failed}` |
 
+`GET /export/organization.zip` (`settings.manage` + `audit.view`) downloads
+the organization's data: configuration documents (secrets removed), users,
+calls, tickets with comments and history, and the audit log. Audited as
+`organization.export`.
+
 The policy also runs hourly. Purges are audited (`retention.purge`).
 Setting `recordings.agent_playback` (`"1"` default, `"0"` to disable) controls
 whether agents may play their own calls' recordings.

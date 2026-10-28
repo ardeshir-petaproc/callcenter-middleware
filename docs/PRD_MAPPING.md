@@ -101,7 +101,9 @@ Tenant isolation server-side ✅ · RBAC least privilege ✅ · TLS in transit
 (terminate at the reverse proxy; see deploy docs) ✅ · encryption at rest
 for files, mail credentials and bodies ✅ (database file encryption is
 decision D4) · audit of AI operations ✅ (routing decisions, AI tickets,
-KB access) · revoke external sources ✅ · retention / export policies ✅.
+KB access) · revoke external sources ✅ · retention / export policies ✅
+(retention purge, permission-gated recording export, audited organization
+export `GET /export/organization.zip`).
 
 ## 9. Roadmap phases
 
