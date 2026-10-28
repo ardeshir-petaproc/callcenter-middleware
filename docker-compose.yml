@@ -3,7 +3,7 @@
 #   docker compose up -d --build
 #
 # Demo without a PBX (simulated calls):
-#   docker compose --profile demo up -d --build middleware ari-sim
+#   docker compose --profile demo up -d --build middleware ari-sim mail-sim
 #   (and set ARI_URL/ARI_WS_URL in .env to the ari-sim service, see .env.example)
 #
 # Static addresses are used because Asterisk ExternalMedia needs an IP:port
@@ -55,6 +55,18 @@ services:
     networks:
       cc:
         ipv4_address: 172.28.0.30
+
+  # Local mailbox for trying the email connector: IMAP 172.28.0.31:1143
+  # (username / password, security "none"), SMTP :1025, POST :1080/deliver.
+  mail-sim:
+    profiles: ["demo"]
+    image: callcenter-middleware:latest
+    entrypoint: ["/usr/local/bin/mail-sim"]
+    ports:
+      - "1080:1080"
+    networks:
+      cc:
+        ipv4_address: 172.28.0.31
 
   prometheus:
     image: prom/prometheus:v3.5.0

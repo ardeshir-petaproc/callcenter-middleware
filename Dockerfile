@@ -18,13 +18,14 @@ COPY . .
 COPY --from=web /src/internal/web/dist ./internal/web/dist
 ARG VERSION=dev
 RUN go build -trimpath -ldflags "-s -w -X callcenter-middleware/internal/server.Version=${VERSION}" -o /out/middleware ./cmd/middleware \
- && go build -trimpath -ldflags "-s -w" -o /out/ari-sim ./cmd/ari-sim
+ && go build -trimpath -ldflags "-s -w" -o /out/ari-sim ./cmd/ari-sim \
+ && go build -trimpath -ldflags "-s -w" -o /out/mail-sim ./cmd/mail-sim
 
 # 3. Minimal runtime image.
 FROM alpine:3.22
 RUN adduser -D -u 10001 cc && mkdir -p /data && chown cc /data
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=build /out/middleware /out/ari-sim /usr/local/bin/
+COPY --from=build /out/middleware /out/ari-sim /out/mail-sim /usr/local/bin/
 USER cc
 ENV DB_PATH=/data/callcenter.db DATA_DIR=/data HTTP_PORT=8080
 VOLUME ["/data"]
