@@ -41,6 +41,8 @@ type Store struct {
 	Mailboxes    *Collection[domain.EmailConnector]
 	Topics       *Collection[domain.Topic]
 	Rules        *Collection[domain.RoutingRule]
+	Scorecards   *Collection[domain.QAScorecard]
+	Evaluations  *Collection[domain.QAEvaluation]
 }
 
 // Open opens (and migrates) the database at path. Use ":memory:" for tests.
@@ -88,6 +90,8 @@ func Open(path string) (*Store, error) {
 	s.Mailboxes = newCollection(db, "email_connector", func(x *domain.EmailConnector) (*int64, *int64) { return &x.ID, &x.TenantID })
 	s.Topics = newCollection(db, "topic", func(x *domain.Topic) (*int64, *int64) { return &x.ID, &x.TenantID })
 	s.Rules = newCollection(db, "routing_rule", func(x *domain.RoutingRule) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Scorecards = newCollection(db, "qa_scorecard", func(x *domain.QAScorecard) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Evaluations = newCollection(db, "qa_evaluation", func(x *domain.QAEvaluation) (*int64, *int64) { return &x.ID, &x.TenantID })
 	return s, nil
 }
 

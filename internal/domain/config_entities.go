@@ -31,6 +31,7 @@ const (
 	StrategyRoundRobin  = "round_robin"
 	StrategyFewestCalls = "fewest_calls"
 	StrategyRandom      = "random"
+	StrategyLinear      = "linear" // sequential ring in member order
 )
 
 // Queue modes: native routes agents through the middleware ACD, asterisk
@@ -58,6 +59,7 @@ type Queue struct {
 	JoinMedia      string   `json:"join_media"`
 	RequiredSkills []string `json:"required_skills"`
 	Record         bool     `json:"record"`
+	RecordNotice   string   `json:"record_notice"` // played before queueing when recording (consent notice)
 	AllowCallback  bool     `json:"allow_callback"`
 	LeaveWhenEmpty bool     `json:"leave_when_empty"`
 	Survey         bool     `json:"survey"`

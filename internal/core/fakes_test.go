@@ -113,3 +113,15 @@ func (f *fakeSwitch) ListChannels(_ context.Context) ([]string, error) { return 
 func (f *fakeSwitch) SetMute(_ context.Context, ch string, m bool) error {
 	return f.rec("mute %s %v", ch, m)
 }
+
+// lastPlayID returns the playback id of the most recent media played.
+func (f *fakeSwitch) lastPlayID() string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	for i := len(f.ops) - 1; i >= 0; i-- {
+		if p := strings.Fields(f.ops[i]); len(p) == 4 && p[0] == "play" {
+			return p[3]
+		}
+	}
+	return ""
+}

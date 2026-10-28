@@ -51,6 +51,7 @@ func (s *Sim) routes(mux *http.ServeMux) {
 	ari("POST /ari/bridges/{id}/record", s.recordBridge)
 	ari("POST /ari/recordings/live/{name}/stop", s.stopRecording)
 	mux.HandleFunc("GET /ari/recordings/stored/{name}/file", s.recordingFile)
+	mux.HandleFunc("DELETE /ari/recordings/stored/{name}", s.deleteRecording)
 
 	mux.HandleFunc("POST /sim/call", s.handleSimCall)
 	mux.HandleFunc("GET /sim/state", func(w http.ResponseWriter, r *http.Request) {

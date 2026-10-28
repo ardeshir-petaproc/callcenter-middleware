@@ -100,3 +100,8 @@ func orDefault(v, def string) string {
 	}
 	return v
 }
+
+// DeleteRecording removes a stored recording file (retention policy).
+func (c *Client) DeleteRecording(ctx context.Context, name string) error {
+	return c.do(ctx, "recording_delete", "DELETE", "/recordings/stored/"+url.PathEscape(name))
+}

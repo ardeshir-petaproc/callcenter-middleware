@@ -5,10 +5,12 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"callcenter-middleware/internal/domain"
 )
 
 // proxyRecording streams a stored Asterisk recording to the browser.
-func (s *Server) proxyRecording(w http.ResponseWriter, r *http.Request, name string) error {
+func (s *Server) proxyRecording(w http.ResponseWriter, r *http.Request, name string, attachment bool) error {
 	if name == "" {
 		return errStatus(http.StatusNotFound, "no recording")
 	}
@@ -28,7 +30,11 @@ func (s *Server) proxyRecording(w http.ResponseWriter, r *http.Request, name str
 		ct = "audio/wav"
 	}
 	w.Header().Set("Content-Type", ct)
-	w.Header().Set("Content-Disposition", fmt.Sprintf("inline; filename=%q", name+".wav"))
+	disposition := "inline"
+	if attachment {
+		disposition = "attachment"
+	}
+	w.Header().Set("Content-Disposition", fmt.Sprintf("%s; filename=%q", disposition, name+".wav"))
 	if cl := resp.Header.Get("Content-Length"); cl != "" {
 		w.Header().Set("Content-Length", cl)
 	}
@@ -36,12 +42,28 @@ func (s *Server) proxyRecording(w http.ResponseWriter, r *http.Request, name str
 	return err
 }
 
+// callRecording plays (recordings.play, or an agent's own call when the
+// organization allows it) or downloads (?download=1, recordings.export) a
+// call recording. Every access is audited.
 func (s *Server) callRecording(w http.ResponseWriter, r *http.Request) error {
 	call, err := s.loadCall(r)
 	if err != nil {
 		return err
 	}
-	return s.proxyRecording(w, r, call.Recording)
+	download := r.URL.Query().Get("download") == "1"
+	own := call.AgentID == claimsOf(r).UserID && s.d.Store.GetSetting(r.Context(), "recordings.agent_playback", "1") == "1"
+	switch {
+	case download && !can(r, domain.PermRecordingsExport):
+		return errForbidden
+	case !download && !can(r, domain.PermRecordingsPlay) && !own:
+		return errForbidden
+	}
+	action := "recording.play"
+	if download {
+		action = "recording.download"
+	}
+	s.audit(r, action, "call", call.ID, call.Recording)
+	return s.proxyRecording(w, r, call.Recording, download)
 }
 
 func (s *Server) voicemailAudio(w http.ResponseWriter, r *http.Request) error {
@@ -53,5 +75,6 @@ func (s *Server) voicemailAudio(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return s.proxyRecording(w, r, vm.Recording)
+	s.audit(r, "voicemail.play", "voicemail", vm.ID, vm.Recording)
+	return s.proxyRecording(w, r, vm.Recording, false)
 }

@@ -46,7 +46,12 @@ func (c *Core) Transfer(callID string, target domain.Action) error {
 			return ErrInvalidState
 		}
 		c.timeline(call, "transfer", string(target.Type)+":"+target.Target)
+		prev := call.AgentID
 		c.detachForTransfer(call)
+		call.returnTo = 0
+		if target.Type == domain.ActionAgent && prev != 0 && target.Target != itoa(prev) {
+			call.returnTo = prev
+		}
 		c.execute(call, target)
 		return nil
 	})

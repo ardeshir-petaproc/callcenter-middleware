@@ -14,7 +14,7 @@ func (s *Store) ListMembers(ctx context.Context) ([]domain.QueueMember, error) {
 	}
 	cond, args := sc.filter("tenant_id")
 	rows, err := s.db.QueryContext(ctx, `SELECT tenant_id, queue_id, user_id, penalty FROM queue_members
-		WHERE 1=1`+cond+` ORDER BY queue_id, penalty, user_id`, args...)
+		WHERE 1=1`+cond+` ORDER BY queue_id, penalty, rowid`, args...)
 	if err != nil {
 		return nil, err
 	}

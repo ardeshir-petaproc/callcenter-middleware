@@ -117,6 +117,10 @@ func (c *Core) onLegGone(l *leg, cause int) {
 			return
 		}
 		if l.chanID == call.agentChan && !call.transferring {
+			if call.consultChan != "" {
+				c.agentLeftConsult(call)
+				return
+			}
 			if call.queue != nil && call.queue.Survey && call.callerChan != "" {
 				c.startSurvey(call)
 				return
@@ -135,6 +139,8 @@ func (c *Core) onLegGone(l *leg, cause int) {
 		c.finish(call, "customer")
 	case roleExternal:
 		c.onExternalGone(call, l)
+	case roleConsult:
+		c.onConsultGone(call, l)
 	case roleMedia:
 		if call.State == domain.CallAI && !call.ended {
 			c.aiFallback(call, "media channel lost")

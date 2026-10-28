@@ -19,6 +19,7 @@ import (
 	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/kb"
 	"callcenter-middleware/internal/mail"
+	"callcenter-middleware/internal/retention"
 	"callcenter-middleware/internal/routing"
 	"callcenter-middleware/internal/store"
 	"callcenter-middleware/internal/tickets"
@@ -32,21 +33,22 @@ var Version = "dev"
 
 // Deps are the collaborators used by HTTP handlers.
 type Deps struct {
-	Config   *config.Config
-	Store    *store.Store
-	Core     *core.Core
-	Hub      *events.Hub
-	Issuer   *auth.Issuer
-	Stream   domain.EventSource
-	OpenAI   *ai.OpenAI
-	Fetcher  ai.RecordingFetcher
-	Started  time.Time
-	StaticFS http.FileSystem
-	Joow     joow.Provider
-	Tickets  *tickets.Service
-	KB       *kb.Service
-	Mail     *mail.Service
-	Router   *routing.Engine
+	Config    *config.Config
+	Store     *store.Store
+	Core      *core.Core
+	Hub       *events.Hub
+	Issuer    *auth.Issuer
+	Stream    domain.EventSource
+	OpenAI    *ai.OpenAI
+	Fetcher   ai.RecordingFetcher
+	Started   time.Time
+	StaticFS  http.FileSystem
+	Joow      joow.Provider
+	Tickets   *tickets.Service
+	KB        *kb.Service
+	Mail      *mail.Service
+	Router    *routing.Engine
+	Retention *retention.Service
 	// DevJoowTokens exposes POST /dev/joow-token to mint local Joow tokens.
 	DevJoowTokens bool
 }

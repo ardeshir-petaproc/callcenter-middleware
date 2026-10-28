@@ -16,6 +16,7 @@ const (
 	roleOutAgent   = "outagent"
 	roleOutCust    = "outcust"
 	roleExternal   = "external"
+	roleConsult    = "consult" // warm-transfer / conference target
 )
 
 // leg is one Asterisk channel participating in a call.
@@ -62,6 +63,10 @@ type liveCall struct {
 	surveyUntil  time.Time
 	talkEnd      time.Time
 	transferring bool
+	consultChan  string // warm-transfer target leg while the caller is on hold
+	conference   bool   // caller, agent and consult target are all bridged
+	returnTo     int64  // agent to return to if a blind transfer to an agent fails
+	announcing   bool   // recording notice playing; agents are not rung yet
 	ended        bool
 }
 
@@ -101,6 +106,8 @@ type CallView struct {
 	WaitingSec    int     `json:"waiting_sec"`
 	DurationSec   int     `json:"duration_sec"`
 	Monitors      int     `json:"monitors"`
+	Consult       string  `json:"consult,omitempty"` // ringing, talking or conference
+	ConsultAgent  int64   `json:"consult_agent_id,omitempty"`
 }
 
 // QueueView is the live status of one queue.

@@ -71,6 +71,12 @@ func (c *Core) view(call *liveCall) CallView {
 			v.Monitors++
 		}
 	}
+	if l := c.legs[call.consultChan]; l != nil {
+		v.Consult, v.ConsultAgent = "ringing", l.agentID
+		if l.answered {
+			v.Consult = map[bool]string{true: "conference", false: "talking"}[call.conference]
+		}
+	}
 	return v
 }
 

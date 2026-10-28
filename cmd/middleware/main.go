@@ -19,6 +19,7 @@ import (
 	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/metrics"
 	"callcenter-middleware/internal/notify"
+	"callcenter-middleware/internal/retention"
 	"callcenter-middleware/internal/routing"
 	"callcenter-middleware/internal/seed"
 	"callcenter-middleware/internal/server"
@@ -76,11 +77,13 @@ func main() {
 	}()
 	startBackground(ctx, st, hub, analyzer)
 	go svc.mail.Run(ctx, time.Minute)
+	retain := &retention.Service{Store: st, Deleter: ariClient}
+	go retain.Run(ctx, time.Hour)
 
 	httpServer := server.NewServer(cfg.HTTPPort, server.Deps{
 		Config: cfg, Store: st, Core: callCore, Hub: hub, Issuer: auth.NewIssuer(cfg.JWTSecret, cfg.TokenTTL),
 		Stream: stream, OpenAI: openai, Fetcher: ariClient, Started: time.Now(),
-		StaticFS: server.StaticFS(web.Assets()), Joow: idp, Tickets: svc.tickets, KB: svc.kb, Mail: svc.mail, Router: router, DevJoowTokens: cfg.JoowMode != "http",
+		StaticFS: server.StaticFS(web.Assets()), Joow: idp, Tickets: svc.tickets, KB: svc.kb, Mail: svc.mail, Router: router, Retention: retain, DevJoowTokens: cfg.JoowMode != "http",
 	})
 	go func() {
 		if err := httpServer.Start(); err != nil {

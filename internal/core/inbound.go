@@ -130,5 +130,7 @@ func (c *Core) onLegAnswered(l *leg) {
 		c.onOutboundAgentAnswered(l)
 	case roleOutCust, roleExternal:
 		c.onRemotePartyAnswered(l)
+	case roleConsult:
+		c.onConsultAnswered(l)
 	}
 }

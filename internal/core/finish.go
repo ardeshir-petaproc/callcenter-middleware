@@ -24,6 +24,9 @@ func (c *Core) finish(call *liveCall, by string) {
 			continue
 		}
 		delete(c.legs, chanID)
+		if l.role == roleConsult {
+			c.releaseConsultAgent(call, l)
+		}
 		if l.role == roleCaller && released {
 			continue
 		}

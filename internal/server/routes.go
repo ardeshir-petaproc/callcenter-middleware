@@ -44,6 +44,8 @@ func (s *Server) registerRoutes(r chi.Router) {
 				s.kbRoutes(r)
 				s.emailRoutes(r)
 				s.routingRoutes(r)
+				s.qaRoutes(r)
+				s.retentionRoutes(r)
 			})
 		})
 	})
@@ -73,6 +75,7 @@ func (s *Server) callRoutes(r chi.Router) {
 	r.Post("/calls/{id}/hangup", handler(s.callHangup).ServeHTTP)
 	r.Post("/calls/{id}/transfer", handler(s.callTransfer).ServeHTTP)
 	r.Post("/calls/{id}/hold", handler(s.callHold).ServeHTTP)
+	s.consultRoutes(r)
 	r.Post("/calls/{id}/record", handler(s.callRecord).ServeHTTP)
 	r.With(requirePerm(domain.PermCallsMonitor)).Post("/calls/{id}/monitor", handler(s.callMonitor).ServeHTTP)
 }

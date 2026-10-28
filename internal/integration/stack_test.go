@@ -21,6 +21,7 @@ import (
 	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/kb"
 	"callcenter-middleware/internal/mail"
+	"callcenter-middleware/internal/retention"
 	"callcenter-middleware/internal/routing"
 	"callcenter-middleware/internal/secure"
 	"callcenter-middleware/internal/seed"
@@ -85,7 +86,7 @@ func newStack(t *testing.T, speed float64) *stack {
 		Issuer: auth.NewIssuer("test", time.Hour), Stream: stream, Fetcher: client, Started: time.Now(),
 		Joow: idp, DevJoowTokens: true, Tickets: tk, KB: kbs,
 		Mail:   &mail.Service{Store: st, Box: box, Tickets: tk, KB: kbs, Mailbox: mail.IMAP{Timeout: 5 * time.Second}},
-		Router: &routing.Engine{Store: st, Live: c}})
+		Router: &routing.Engine{Store: st, Live: c}, Retention: &retention.Service{Store: st, Deleter: client}})
 	api := httptest.NewServer(srv.Handler())
 	t.Cleanup(api.Close)
 	waitFor(t, 5*time.Second, "ARI connected", stream.IsConnected)

@@ -16,11 +16,15 @@ type candidate struct {
 // the queue strategy. Lower penalty members are always preferred.
 func (c *Core) selectAgents(call *liveCall) []*agentRT {
 	if call.targetAgent != 0 {
-		if call.tried[call.targetAgent] {
-			call.targetAgent = 0 // directed ring failed: fall back to the queue
-		} else if a := c.agents[call.targetAgent]; a != nil && c.ringable(a) {
+		a := c.agents[call.targetAgent]
+		switch {
+		case !call.tried[call.targetAgent] && a != nil && c.ringable(a):
 			return []*agentRT{a}
-		} else {
+		case c.returnToPrevious(call):
+			return c.selectAgents(call)
+		case call.tried[call.targetAgent]:
+			call.targetAgent = 0 // directed ring failed: fall back to the queue
+		default:
 			return nil
 		}
 	}
@@ -75,6 +79,7 @@ func (c *Core) selectAgents(call *liveCall) []*agentRT {
 		}
 		c.rr[q.ID] = int(pick.UserID)
 		return []*agentRT{pick}
+	case domain.StrategyLinear: // members in configured order, one at a time
 	default: // longest_idle
 		sort.SliceStable(tier, func(i, j int) bool { return tier[i].idleSince.Before(tier[j].idleSince) })
 	}

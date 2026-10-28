@@ -107,3 +107,19 @@ func toneWAV(seconds int) []byte {
 	}
 	return b.Bytes()
 }
+
+func (s *Sim) deleteRecording(w http.ResponseWriter, r *http.Request) {
+	if !s.authorized(r) {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	s.mu.Lock()
+	_, ok := s.stored[r.PathValue("name")]
+	delete(s.stored, r.PathValue("name"))
+	s.mu.Unlock()
+	if !ok {
+		http.Error(w, `{"message":"Recording not found"}`, http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}

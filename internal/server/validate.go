@@ -29,7 +29,7 @@ func prepareQueue(q *domain.Queue) error {
 	case "":
 		q.Strategy = domain.StrategyLongestIdle
 	case domain.StrategyRingAll, domain.StrategyLongestIdle, domain.StrategyRoundRobin,
-		domain.StrategyFewestCalls, domain.StrategyRandom:
+		domain.StrategyFewestCalls, domain.StrategyRandom, domain.StrategyLinear:
 	default:
 		return bad("unknown strategy")
 	}

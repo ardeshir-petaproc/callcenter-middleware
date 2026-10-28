@@ -33,7 +33,15 @@ func (c *Core) enqueue(call *liveCall, q *domain.Queue) {
 		c.overflow(call)
 		return
 	}
-	c.play(call, q.JoinMedia, func() { c.startMOH(call) })
+	join := func() { c.play(call, q.JoinMedia, func() { c.startMOH(call) }) }
+	if q.Record && q.RecordNotice != "" {
+		// Agents are rung only after the caller has heard the whole notice.
+		call.announcing = true
+		c.timeline(call, "recording_notice", q.RecordNotice)
+		c.play(call, q.RecordNotice, func() { call.announcing = false; join(); c.dispatch() })
+	} else {
+		join()
+	}
 	c.dispatch()
 }
 
@@ -103,7 +111,7 @@ func (c *Core) waitingCalls() []*liveCall {
 // dispatch offers waiting calls to available agents.
 func (c *Core) dispatch() {
 	for _, call := range c.waitingCalls() {
-		if len(call.ringing) > 0 {
+		if len(call.ringing) > 0 || call.announcing {
 			continue
 		}
 		agents := c.selectAgents(call)
