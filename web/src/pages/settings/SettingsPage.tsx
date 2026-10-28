@@ -7,12 +7,13 @@ import { GeneralTab } from './GeneralTab';
 import { AuditTab, SystemTab } from './SystemTab';
 import { SlaTab } from './SlaTab';
 import { EmailTab } from './EmailTab';
+import { InboundKeyCard } from './InboundKeyCard';
 import { RetentionTab } from './RetentionTab';
 
 type Tab = 'general' | 'dispositions' | 'pause' | 'sla' | 'email' | 'retention' | 'webhooks' | 'system' | 'audit';
 const TABS: { value: Tab; label: string }[] = [
   { value: 'general', label: 'General' }, { value: 'dispositions', label: 'Dispositions' }, { value: 'pause', label: 'Pause reasons' },
-  { value: 'sla', label: 'Ticket SLAs' }, { value: 'email', label: 'Email connectors' }, { value: 'retention', label: 'Retention & export' },
+  { value: 'sla', label: 'Ticket SLAs' }, { value: 'email', label: 'Email & messages' }, { value: 'retention', label: 'Retention & export' },
   { value: 'webhooks', label: 'Webhooks' }, { value: 'system', label: 'System' }, { value: 'audit', label: 'Audit log' },
 ];
 
@@ -34,7 +35,7 @@ export default function SettingsPage() {
           cols={[{ key: 'label', label: 'Label', placeholder: 'e.g. Lunch' }]} blank={{ label: '', enabled: true }} describe={(p) => p.label} />
       )}
       {tab === 'sla' && <SlaTab />}
-      {tab === 'email' && <EmailTab />}
+      {tab === 'email' && <div className="stack"><EmailTab /><InboundKeyCard /></div>}
       {tab === 'retention' && <RetentionTab />}
       {tab === 'webhooks' && <WebhooksTab />}
       {tab === 'system' && <SystemTab />}

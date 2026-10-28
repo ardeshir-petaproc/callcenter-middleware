@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react';
-import { Circle, Ear, Headphones, Megaphone, Pause, PhoneForwarded, PhoneOff, Play, MessageSquareText } from 'lucide-react';
+import { Circle, Ear, Headphones, Megaphone, Pause, PhoneForwarded, PhoneOff, Play, MessageSquareText, Users } from 'lucide-react';
 import type { CallView } from '../../api/types';
 import { post } from '../../api/client';
 import { toast } from '../ui/Toast';
 import { confirm } from '../ui/Confirm';
 import { TransferDialog } from './TransferDialog';
+import { ConsultDialog } from './ConsultDialog';
+import { ConsultControls } from './ConsultControls';
 import { Popover } from '../ui/Popover';
 import { useCan } from '../../state/auth';
 import { PERMS } from '../../lib/perms';
@@ -21,6 +23,7 @@ const ANSWERED = new Set(['connected', 'hold']);
 export function CallActions({ call, compact, onTranscript, monitor = true }: Props) {
   const can = useCan();
   const [transfer, setTransfer] = useState(false);
+  const [consult, setConsult] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const id = encodeURIComponent(call.id);
   const cls = compact ? 'btn sm icon' : 'btn';
@@ -51,10 +54,16 @@ export function CallActions({ call, compact, onTranscript, monitor = true }: Pro
         onClick={() => run('record', () => post(`/calls/${id}/record`), 'Recording started')}>
         <Circle style={{ color: 'var(--danger-solid)' }} />{label('Record')}
       </button>
-      <button className={cls} title="Transfer" aria-label="Transfer" onClick={() => setTransfer(true)}><PhoneForwarded />{label('Transfer')}</button>
+      {call.consult ? <ConsultControls call={call} compact={compact} busy={busy} run={run} /> : (
+        <>
+          <button className={cls} title="Transfer" aria-label="Transfer" onClick={() => setTransfer(true)}><PhoneForwarded />{label('Transfer')}</button>
+          <button className={cls} disabled={!answered} title="Consult (warm transfer)" aria-label="Consult" onClick={() => setConsult(true)}><Users />{label('Consult')}</button>
+        </>
+      )}
       {monitor && can(PERMS.callsMonitor) && <MonitorMenu callId={call.id} compact={compact} disabled={!answered} onRun={run} />}
       <button className={`${cls} danger`} disabled={busy === 'hangup'} title="Hang up" aria-label="Hang up" onClick={hangup}><PhoneOff />{label('Hang up')}</button>
       {transfer && <TransferDialog callId={call.id} open={transfer} onClose={() => setTransfer(false)} />}
+      {consult && <ConsultDialog callId={call.id} agentId={call.agent_id} open={consult} onClose={() => setConsult(false)} />}
     </div>
   );
 }

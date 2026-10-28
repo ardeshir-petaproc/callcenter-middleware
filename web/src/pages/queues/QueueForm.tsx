@@ -2,6 +2,7 @@ import type { Queue } from '../../api/types';
 import { Field, Toggle } from '../../components/ui/primitives';
 import { TagInput } from '../../components/ui/TagInput';
 import { ActionEditor } from '../../components/ActionEditor';
+import { useLookup } from '../../state/lookups';
 
 const STRATEGIES: { value: Queue['strategy']; label: string; hint: string }[] = [
   { value: 'longest_idle', label: 'Longest idle', hint: 'Agent idle the longest gets the call' },
@@ -9,12 +10,13 @@ const STRATEGIES: { value: Queue['strategy']; label: string; hint: string }[] = 
   { value: 'round_robin', label: 'Round robin', hint: 'Rotate through agents in order' },
   { value: 'fewest_calls', label: 'Fewest calls', hint: 'Agent with fewest calls today' },
   { value: 'random', label: 'Random', hint: 'Pick a random available agent' },
+  { value: 'linear', label: 'Sequential (in member order)', hint: 'Ring members one at a time, always in member order' },
 ];
 
 export const blankQueue: Omit<Queue, 'id'> & { id: number } = {
   id: 0, name: '', description: '', mode: 'native', extension: '', strategy: 'longest_idle', priority: 0,
   ring_timeout_sec: 20, max_wait_sec: 300, wrapup_sec: 15, sla_sec: 20, moh_class: 'default', join_media: '',
-  required_skills: [], record: false, allow_callback: true, leave_when_empty: false, survey: false, alert_waiting: 0, alert_wait_sec: 0, overflow: { type: 'voicemail' }, enabled: true,
+  required_skills: [], record: false, record_notice: '', allow_callback: true, leave_when_empty: false, survey: false, alert_waiting: 0, alert_wait_sec: 0, overflow: { type: 'voicemail' }, enabled: true,
 };
 
 interface Props { q: Queue; set: (p: Partial<Queue>) => void; disabled: boolean }
@@ -28,6 +30,7 @@ function Num({ label, value, onChange, disabled, hint, min = 0 }: { label: strin
 }
 
 export function QueueForm({ q, set, disabled }: Props) {
+  const depts = useLookup('departments');
   const strategy = STRATEGIES.find((s) => s.value === q.strategy);
   return (
     <>
@@ -48,6 +51,12 @@ export function QueueForm({ q, set, disabled }: Props) {
             </select>
           </Field>
           <Num label="Priority" hint="Higher is served first" value={q.priority} disabled={disabled} onChange={(n) => set({ priority: n })} />
+          <Field label="Department" hint="Routing to a department uses its queue">
+            <select className="select" value={q.department_id || ''} disabled={disabled} onChange={(e) => set({ department_id: Number(e.target.value) || 0 })}>
+              <option value="">None</option>
+              {depts.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+          </Field>
         </div>
       </div>
       <div className="form-section">
@@ -64,6 +73,9 @@ export function QueueForm({ q, set, disabled }: Props) {
         <div className="form-grid">
           <Field label="Music on hold class"><input className="input" value={q.moh_class} disabled={disabled} onChange={(e) => set({ moh_class: e.target.value })} /></Field>
           <Field label="Join announcement" hint="e.g. sound:custom/please-hold"><input className="input" value={q.join_media} disabled={disabled} onChange={(e) => set({ join_media: e.target.value })} /></Field>
+          <Field label="Recording notice" hint={q.record ? 'Played before agents are rung, e.g. sound:custom/call-recorded' : 'Used when “Record calls” is on'}>
+            <input className="input" value={q.record_notice ?? ''} disabled={disabled} onChange={(e) => set({ record_notice: e.target.value })} />
+          </Field>
           <div className="field span-all">
             <span className="field-label">Required skills</span>
             <TagInput value={q.required_skills ?? []} onChange={(v) => set({ required_skills: v })} disabled={disabled} placeholder="e.g. spanish, billing" />

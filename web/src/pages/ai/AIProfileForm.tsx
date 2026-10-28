@@ -1,12 +1,19 @@
 import type { AIProfile, AIStatus } from '../../api/types';
 import { Field, Toggle } from '../../components/ui/primitives';
 import { ChipSelect } from '../../components/ui/TagInput';
+import { KnowledgeScope } from './KnowledgeScope';
 import { useLookup } from '../../state/lookups';
 import { humanize } from '../../lib/format';
 
 export const blankProfile: AIProfile = {
   id: 0, name: '', model: '', voice: '', language: 'en', instructions: '', greeting: '', temperature: 0.8,
-  tools: [], handoff_queue_id: 0, max_duration_sec: 600, knowledge_base: '', enabled: true,
+  tools: [], handoff_queue_id: 0, max_duration_sec: 600, knowledge_base: '', enabled: true, kb_department_ids: [], kb_categories: [],
+};
+
+const TOOL_LABELS: Record<string, string> = {
+  transfer_to_queue: 'Transfer to queue', end_call: 'End call', create_callback: 'Create callback', lookup_contact: 'Look up contact',
+  take_message: 'Take a message', check_business_hours: 'Check business hours', route_call: 'Route call (routing rules)',
+  search_knowledge: 'Search knowledge base', create_ticket: 'Create ticket', ticket_status: 'Ticket status', update_ticket: 'Update ticket',
 };
 
 interface Props { p: AIProfile; set: (x: Partial<AIProfile>) => void; disabled: boolean; status?: AIStatus }
@@ -44,14 +51,15 @@ export function AIProfileForm({ p, set, disabled, status }: Props) {
         <Field label="Instructions" hint="System prompt: persona, goals, tone and rules">
           <textarea className="textarea" style={{ minHeight: 160 }} value={p.instructions} disabled={disabled} onChange={(e) => set({ instructions: e.target.value })} />
         </Field>
-        <Field label="Knowledge base" hint="Facts the agent can rely on: hours, prices, policies, FAQs">
+        <Field label="Inline knowledge" hint="Short facts always in the prompt: hours, prices, policies. Larger documents belong in the knowledge base.">
           <textarea className="textarea" style={{ minHeight: 140 }} value={p.knowledge_base} disabled={disabled} onChange={(e) => set({ knowledge_base: e.target.value })} />
         </Field>
       </div>
+      <KnowledgeScope p={p} set={set} disabled={disabled} />
       <div className="form-section">
         <h3>Tools & hand-off</h3>
         {tools.length ? (
-          <ChipSelect options={tools.map((t) => ({ value: t, label: humanize(t) }))} value={p.tools ?? []} onChange={(v) => set({ tools: v })} disabled={disabled} />
+          <ChipSelect options={tools.map((t) => ({ value: t, label: TOOL_LABELS[t] ?? humanize(t) }))} value={p.tools ?? []} onChange={(v) => set({ tools: v })} disabled={disabled} />
         ) : <span className="small muted">No tools reported by the server.</span>}
         <div className="form-grid">
           <Field label="Hand-off queue" hint="Where the agent transfers when a human is needed">

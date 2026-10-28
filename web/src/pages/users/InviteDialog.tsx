@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Copy, MailPlus } from 'lucide-react';
+import { MailPlus } from 'lucide-react';
+import { CopyField } from '../../components/ui/CopyField';
 import { post } from '../../api/client';
 import type { Role } from '../../api/types';
 import type { Invitation, InviteCreated } from '../../api/types_org';
@@ -30,9 +31,6 @@ export function InviteDialog({ open, onClose, onCreated }: { open: boolean; onCl
       onCreated(res.invitation);
     } catch (e) { toast.error(e); } finally { setBusy(false); }
   };
-  const copy = async () => {
-    try { await navigator.clipboard.writeText(link); toast.success('Link copied'); } catch { toast.error('Copy failed — select the link and copy it manually'); }
-  };
 
   return (
     <Dialog open={open} onClose={close} title={created ? 'Invitation created' : 'Invite someone'}
@@ -41,7 +39,7 @@ export function InviteDialog({ open, onClose, onCreated }: { open: boolean; onCl
       {created ? (
         <>
           <p>Share this link with <strong dir="auto">{created.invitation.name || created.invitation.email || 'the invitee'}</strong>. It is shown only once and expires in 7 days.{created.invitation.joow_account_id ? ' Joow also notified them in-app.' : ''}</p>
-          <div className="row"><input className="input mono grow" readOnly value={link} onFocus={(e) => e.target.select()} aria-label="Invitation link" /><button className="btn" onClick={copy}><Copy />Copy</button></div>
+          <CopyField value={link} label="Invitation link" />
         </>
       ) : (
         <div className="form-grid">

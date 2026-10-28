@@ -5,14 +5,14 @@ import { get } from '../../api/client';
 import type { Paged } from '../../api/types';
 import type { Ticket } from '../../api/types_work';
 import { useApi, useDebounced } from '../../lib/hooks';
-import { fmtDateTime, humanize } from '../../lib/format';
+import { fmtDateTime } from '../../lib/format';
 import { PERMS } from '../../lib/perms';
 import { useCan } from '../../state/auth';
 import { onLive } from '../../state/ws';
 import { useDepartmentNames, useUserNames } from '../../state/lookups';
 import { Card, Empty, ErrorBox, PageHeader, Pager, SkeletonRows } from '../../components/ui/primitives';
 import { TicketFilters, TICKET_FILTER_KEYS, type TicketFilterValues } from './TicketFilters';
-import { PriorityBadge, SlaBadge, TicketStatusBadge } from './ticketUi';
+import { PriorityBadge, SlaBadge, SourceLabel, TicketStatusBadge } from './ticketUi';
 import { NewTicketDialog } from './NewTicketDialog';
 
 const LIMIT = 25;
@@ -68,7 +68,7 @@ export default function TicketsPage() {
                     <tr key={t.id} className="clickable" onClick={() => nav(`/tickets/${t.id}`)}>
                       <td style={{ maxWidth: 380 }}>
                         <div className="strong ellipsis" dir="auto">{t.subject}</div>
-                        <div className="sub"><span className="mono">{t.number}</span> · {humanize(t.source)}{t.requester_name || t.requester_phone ? <> · <span dir="auto">{t.requester_name || t.requester_phone}</span></> : null}</div>
+                        <div className="sub"><span className="mono">{t.number}</span> · <SourceLabel source={t.source} />{t.requester_name || t.requester_phone ? <> · <span dir="auto">{t.requester_name || t.requester_phone}</span></> : null}</div>
                       </td>
                       <td><TicketStatusBadge status={t.status} /></td>
                       <td><PriorityBadge priority={t.priority} /></td>

@@ -17,7 +17,7 @@ export function RevisionsButton({ entity, id, label = 'History' }: { entity: Rev
   if (!id || !allowed) return null;
   return (
     <>
-      <button type="button" className="btn ghost" onClick={() => setOpen(true)}><History />{label}</button>
+      <button type="button" className={label ? 'btn ghost' : 'btn ghost sm icon'} title="Revision history" aria-label="Revision history" onClick={() => setOpen(true)}><History />{label}</button>
       <Drawer open={open} onClose={() => setOpen(false)} title="Revision history">
         {open && <RevisionList entity={entity} id={id} />}
       </Drawer>

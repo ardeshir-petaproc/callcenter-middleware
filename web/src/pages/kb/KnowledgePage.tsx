@@ -22,6 +22,7 @@ export default function KnowledgePage() {
   const viewId = Number(params.get('source')) || 0;
   const list = useApi((s) => get<KnowledgeSource[]>('/kb/sources', { q: dq, category }, s), [dq, category]);
   const cats = useApi((s) => get<KBCategory[]>('/kb/categories', undefined, s), []);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [edit, setEdit] = useState<{ mode: 'file' | 'text'; source: KnowledgeSource | null } | null>(null);
   const setParam = (k: string, v: string) => { const n = new URLSearchParams(params); if (v) n.set(k, v); else n.delete(k); setParams(n, { replace: true }); };
   const reloadAll = () => { list.reload(); cats.reload(); };
@@ -72,10 +73,10 @@ export default function KnowledgePage() {
             </div>
           )}
       </Card>
-      <KBViewDrawer id={viewId} canManage={canManage} onClose={() => setParam('source', '')}
+      <KBViewDrawer id={viewId} refreshKey={refreshKey} canManage={canManage} onClose={() => setParam('source', '')}
         onEdit={(s) => setEdit({ mode: s.kind === 'text' ? 'text' : 'file', source: s })} onDeleted={() => { setParam('source', ''); reloadAll(); }} />
       <KBSourceDialog open={!!edit} mode={edit?.mode ?? 'file'} source={edit?.source ?? null} categories={(cats.data ?? []).map((c) => c.category).filter(Boolean)}
-        onClose={() => setEdit(null)} onSaved={(s) => { reloadAll(); setParam('source', String(s.id)); }} />
+        onClose={() => setEdit(null)} onSaved={(s) => { reloadAll(); setRefreshKey((k) => k + 1); setParam('source', String(s.id)); }} />
     </>
   );
 }

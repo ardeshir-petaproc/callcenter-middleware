@@ -1,4 +1,4 @@
-import { AlarmClock } from 'lucide-react';
+import { AlarmClock, Bot, Mail, MessageCircle, PenLine, Phone, type LucideIcon } from 'lucide-react';
 import type { Ticket, TicketPriority, TicketStatus } from '../../api/types_work';
 import { fmtDateTime, fmtRelative, humanize } from '../../lib/format';
 import { useNow } from '../../lib/store';
@@ -42,4 +42,15 @@ export function SlaBadge({ ticket, overdue }: { ticket: Ticket; overdue?: boolea
       <AlarmClock size={12} />{late ? `${due.label} overdue` : `${due.label} ${fmtRelative(due.at, now)}`}
     </span>
   );
+}
+
+const SOURCES: Record<string, { label: string; icon: LucideIcon }> = {
+  call: { label: 'Call', icon: Phone }, email: { label: 'Email', icon: Mail }, message: { label: 'Chat message', icon: MessageCircle },
+  manual: { label: 'Manual', icon: PenLine }, ai: { label: 'AI agent', icon: Bot },
+};
+
+/** Where a ticket came from (call, email, chat message, manual, AI) with an icon. */
+export function SourceLabel({ source }: { source: string }) {
+  const s = SOURCES[source] ?? { label: humanize(source), icon: PenLine };
+  return <span className="source-label" title={`Source: ${s.label}`}><s.icon size={12} />{s.label}</span>;
 }

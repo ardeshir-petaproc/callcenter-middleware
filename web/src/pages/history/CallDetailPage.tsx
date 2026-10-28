@@ -1,6 +1,6 @@
 import { Fragment, useEffect, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Bot, Clock3, MessageSquare, Mic } from 'lucide-react';
+import { ArrowLeft, Bot, Clock3, Download, MessageSquare, Mic } from 'lucide-react';
 import type { CallDetail } from '../../api/types';
 import { authUrl, get } from '../../api/client';
 import { useApi } from '../../lib/hooks';
@@ -14,6 +14,9 @@ import { CallStateBadge, CsatBadge, OutcomeBadge, SentimentBadge } from '../../c
 import { TranscriptView } from '../../components/calls/TranscriptView';
 import { CallActions } from '../../components/calls/CallActions';
 import { CallEditForm } from './CallEditForm';
+import { CallQuality, CallRouting, CallTickets, CreateTicketButton } from './CallWorkPanels';
+import { PERMS } from '../../lib/perms';
+import { useCan } from '../../state/auth';
 
 const EMPTY: never[] = [];
 
@@ -28,6 +31,7 @@ export default function CallDetailPage() {
   const flows = useLookup('flows');
   const profiles = useLookup('aiProfiles');
   const campaigns = useLookup('campaigns');
+  const can = useCan();
 
   useEffect(() => { if (data?.transcript && liveCall) seedTranscript(id, data.transcript); }, [data, liveCall, id]);
   // Reload the final CDR once a live call ends (summary / sentiment arrive later).
@@ -58,7 +62,7 @@ export default function CallDetailPage() {
       <PageHeader
         title={<span className="row wrap">{callerLabel(c)} {liveCall ? <CallStateBadge state={liveCall.state} /> : <OutcomeBadge outcome={c.outcome} />}<SentimentBadge sentiment={c.sentiment} /><CsatBadge csat={c.csat} /></span>}
         sub={`${humanize(c.direction)} call · ${fmtDateTime(c.started_at)}${data.contact ? ` · ${data.contact.name}` : ''}`}
-        actions={liveCall && <CallActions call={liveCall} compact />}
+        actions={<>{liveCall && <CallActions call={liveCall} compact />}<CreateTicketButton callId={c.id} /></>}
       />
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <div className="stack">
@@ -70,11 +74,15 @@ export default function CallDetailPage() {
               <p className="pre">{c.summary || 'No summary available.'}</p>
             </Card>
           )}
-          <Card title="Recording" icon={<Mic />}>
+          <Card title="Recording" icon={<Mic />} actions={c.recording && can(PERMS.recordingsExport) && (
+            <a className="btn sm" href={authUrl(`/calls/${encodeURIComponent(c.id)}/recording`, { download: 1 })} download><Download />Download</a>
+          )}>
             {c.recording ? <audio controls preload="none" src={authUrl(`/calls/${encodeURIComponent(c.id)}/recording`)} />
               : <div className="small muted">This call was not recorded.</div>}
           </Card>
           <CallEditForm call={data.call} onSaved={(call) => setData((d) => (d ? { ...d, call } : d))} />
+          <CallTickets callId={c.id} />
+          <CallQuality call={data.call} />
         </div>
         <div className="stack">
           <Card title="Transcript" icon={<MessageSquare />}>
@@ -92,6 +100,7 @@ export default function CallDetailPage() {
               </ul>
             ) : <Empty title="No events recorded" />}
           </Card>
+          <CallRouting callId={c.id} />
         </div>
       </div>
     </>

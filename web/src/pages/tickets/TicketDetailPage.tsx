@@ -4,11 +4,11 @@ import { ArrowLeft, FileText } from 'lucide-react';
 import { get, patch } from '../../api/client';
 import type { Ticket, TicketDetail } from '../../api/types_work';
 import { useApi } from '../../lib/hooks';
-import { fmtDateTime, humanize } from '../../lib/format';
+import { fmtDateTime } from '../../lib/format';
 import { onLive } from '../../state/ws';
 import { Card, ErrorBox, PageHeader, SkeletonRows } from '../../components/ui/primitives';
 import { toast } from '../../components/ui/Toast';
-import { PriorityBadge, SlaBadge, TicketStatusBadge } from './ticketUi';
+import { PriorityBadge, SlaBadge, SourceLabel, TicketStatusBadge } from './ticketUi';
 import { TicketProps } from './TicketProps';
 import { TicketThread } from './TicketThread';
 import { TicketCalls, TicketHistory } from './TicketActivity';
@@ -41,7 +41,7 @@ export default function TicketDetailPage() {
       <PageHeader
         title={<span className="row wrap"><span className="mono muted">{t.number}</span><span dir="auto">{t.subject}</span></span>}
         sub={<span className="row wrap"><TicketStatusBadge status={t.status} /><PriorityBadge priority={t.priority} /><SlaBadge ticket={t} overdue={data.overdue} />
-          <span>{humanize(t.source)} · opened {fmtDateTime(t.created_at)}</span></span>}
+          <SourceLabel source={t.source} /><span>opened {fmtDateTime(t.created_at)}</span></span>}
       />
       <div className="ticket-grid">
         <div className="stack">
