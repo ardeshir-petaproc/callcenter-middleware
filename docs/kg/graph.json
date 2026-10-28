@@ -1,0 +1,1968 @@
+{
+ "version": 1,
+ "updated": "2026-10-28",
+ "description": "Machine-readable knowledge graph of callcenter-middleware. Node types: system, doc, external, component, app, test-suite, feature, flow, limitation. Paths are relative to the repository root. Checked by go test ./docs/kg.",
+ "nodes": [
+  {
+   "id": "system",
+   "type": "system",
+   "title": "Call center platform for Joow",
+   "summary": "Multi-tenant call center + customer service middleware: Asterisk control, AI voice agent, routing, tickets, knowledge, email/chat intake, QA, retention.",
+   "status": "done",
+   "paths": [
+    "go.mod",
+    "README.md"
+   ],
+   "docs": [
+    "docs/kg/README.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "doc-kg",
+   "type": "doc",
+   "title": "KG entry point",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/kg/README.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-status",
+   "type": "doc",
+   "title": "Status and limitations",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/kg/status.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-components",
+   "type": "doc",
+   "title": "Components",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/kg/components.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-flows",
+   "type": "doc",
+   "title": "Runtime flows",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/kg/flows.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-data",
+   "type": "doc",
+   "title": "Data model",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/kg/data-model.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-conventions",
+   "type": "doc",
+   "title": "Conventions and recipes",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/kg/conventions.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-operations",
+   "type": "doc",
+   "title": "Operations runbook",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/kg/operations.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-decisions",
+   "type": "doc",
+   "title": "Decision log",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/kg/decisions.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-glossary",
+   "type": "doc",
+   "title": "Glossary",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/kg/glossary.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-readme",
+   "type": "doc",
+   "title": "README",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "README.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-architecture",
+   "type": "doc",
+   "title": "Architecture",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/ARCHITECTURE.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-api",
+   "type": "doc",
+   "title": "REST/WS API (core)",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/API.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-api-platform",
+   "type": "doc",
+   "title": "Platform API",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/API_PLATFORM.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-user-guide",
+   "type": "doc",
+   "title": "User guide",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/USER_GUIDE.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-prd",
+   "type": "doc",
+   "title": "PRD mapping and open decisions",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/PRD_MAPPING.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-joow",
+   "type": "doc",
+   "title": "Joow integration",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "docs/JOOW_INTEGRATION.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "doc-desktop",
+   "type": "doc",
+   "title": "Desktop app",
+   "summary": "Documentation page.",
+   "status": "done",
+   "paths": [
+    "desktop/README.md"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "ext-asterisk",
+   "type": "external",
+   "title": "Asterisk 18 (ARI)",
+   "summary": "PBX doing media, SIP/PSTN, bridges, recordings; controlled over ARI.",
+   "status": "done",
+   "paths": [
+    "deploy/asterisk"
+   ],
+   "docs": [
+    "docs/ARCHITECTURE.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "ext-openai",
+   "type": "external",
+   "title": "OpenAI (Realtime, chat, transcription)",
+   "summary": "Voice agent, post-call summaries, rule drafting, transcription.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/ARCHITECTURE.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "ext-joow",
+   "type": "external",
+   "title": "Joow platform",
+   "summary": "Identity, directory, notifications, chat; API contract proposed.",
+   "status": "partial",
+   "paths": [],
+   "docs": [
+    "docs/JOOW_INTEGRATION.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "ext-mail",
+   "type": "external",
+   "title": "IMAP/SMTP servers",
+   "summary": "Customer mailboxes connected with consent.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "cmd-middleware",
+   "type": "component",
+   "title": "Main binary wiring",
+   "summary": "Starts store, Joow provider, services, core, routing, HTTP and background jobs.",
+   "status": "done",
+   "paths": [
+    "cmd/middleware"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "cmd-ari-sim",
+   "type": "component",
+   "title": "ARI simulator command",
+   "summary": "Simulated Asterisk with generated callers.",
+   "status": "done",
+   "paths": [
+    "cmd/ari-sim"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "cmd-mail-sim",
+   "type": "component",
+   "title": "Mail simulator command",
+   "summary": "In-memory IMAP + SMTP sink for the email connector.",
+   "status": "done",
+   "paths": [
+    "cmd/mail-sim"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-core",
+   "type": "component",
+   "title": "Call core",
+   "summary": "Actor-based live call/agent/queue engine: IVR, ACD, transfers, consult, monitor, voicemail, campaigns.",
+   "status": "done",
+   "paths": [
+    "internal/core"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-ai",
+   "type": "component",
+   "title": "AI voice agent",
+   "summary": "OpenAI Realtime bridge over RTP, tools, post-call analysis.",
+   "status": "done",
+   "paths": [
+    "internal/ai"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-routing",
+   "type": "component",
+   "title": "Routing engine",
+   "summary": "Topics, approved rules, availability/escalation, decision log, rule drafting.",
+   "status": "done",
+   "paths": [
+    "internal/routing"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-server",
+   "type": "component",
+   "title": "HTTP API",
+   "summary": "REST, WebSocket, auth, permissions, audit, SPA.",
+   "status": "done",
+   "paths": [
+    "internal/server"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-store",
+   "type": "component",
+   "title": "Persistence",
+   "summary": "SQLite, tenant scoping, migrations, repositories.",
+   "status": "done",
+   "paths": [
+    "internal/store"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-tickets",
+   "type": "component",
+   "title": "Tickets",
+   "summary": "Lifecycle, SLA, history, reply hook.",
+   "status": "done",
+   "paths": [
+    "internal/tickets"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-kb",
+   "type": "component",
+   "title": "Knowledge base",
+   "summary": "Encrypted files, extraction, FTS search, access rule.",
+   "status": "done",
+   "paths": [
+    "internal/kb"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-mail",
+   "type": "component",
+   "title": "Email connector",
+   "summary": "IMAP intake, threading, KB import, SMTP replies, poller.",
+   "status": "done",
+   "paths": [
+    "internal/mail"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-messages",
+   "type": "component",
+   "title": "Chat intake",
+   "summary": "Inbound chat → tickets; replies to Joow conversations.",
+   "status": "done",
+   "paths": [
+    "internal/messages"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-retention",
+   "type": "component",
+   "title": "Retention",
+   "summary": "Per-tenant purge of recordings, transcripts, email bodies.",
+   "status": "done",
+   "paths": [
+    "internal/retention"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-joow",
+   "type": "component",
+   "title": "Joow adapter",
+   "summary": "Provider interface, HTTP and local providers, call alerts.",
+   "status": "done",
+   "paths": [
+    "internal/joow"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-secure",
+   "type": "component",
+   "title": "Encryption",
+   "summary": "AES-256-GCM with per-tenant derived keys.",
+   "status": "done",
+   "paths": [
+    "internal/secure"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-domain",
+   "type": "component",
+   "title": "Domain types",
+   "summary": "Shared entities, enums, permissions, events.",
+   "status": "done",
+   "paths": [
+    "internal/domain"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-ari",
+   "type": "component",
+   "title": "ARI client",
+   "summary": "Asterisk REST client and event stream.",
+   "status": "done",
+   "paths": [
+    "internal/ari"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-events",
+   "type": "component",
+   "title": "Event hub",
+   "summary": "In-process pub/sub for realtime events.",
+   "status": "done",
+   "paths": [
+    "internal/events"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-notify",
+   "type": "component",
+   "title": "Webhooks",
+   "summary": "Signed webhook delivery and legacy screen-pop.",
+   "status": "done",
+   "paths": [
+    "internal/notify"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-auth",
+   "type": "component",
+   "title": "Auth tokens and passwords",
+   "summary": "Issues/verifies JWT session tokens (HS256) and bcrypt password hashes.",
+   "status": "done",
+   "paths": [
+    "internal/auth"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": [
+    "internal/auth"
+   ]
+  },
+  {
+   "id": "pkg-config",
+   "type": "component",
+   "title": "Configuration",
+   "summary": "Environment variables.",
+   "status": "done",
+   "paths": [
+    "internal/config"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-metrics",
+   "type": "component",
+   "title": "Metrics",
+   "summary": "Prometheus metrics.",
+   "status": "done",
+   "paths": [
+    "internal/metrics"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-seed",
+   "type": "component",
+   "title": "Seed data",
+   "summary": "Bootstrap admin and demo organizations.",
+   "status": "done",
+   "paths": [
+    "internal/seed"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-sim",
+   "type": "component",
+   "title": "ARI simulator",
+   "summary": "Simulator implementation used by tests and demos.",
+   "status": "done",
+   "paths": [
+    "internal/sim"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-web",
+   "type": "component",
+   "title": "Embedded panel",
+   "summary": "Compiled SPA embedded with go:embed.",
+   "status": "done",
+   "paths": [
+    "internal/web"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "pkg-integration",
+   "type": "component",
+   "title": "Integration tests",
+   "summary": "End-to-end API tests against the simulator.",
+   "status": "done",
+   "paths": [
+    "internal/integration"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "app-web",
+   "type": "app",
+   "title": "Control panel (React)",
+   "summary": "Panel for every feature; built into internal/web/dist.",
+   "status": "done",
+   "paths": [
+    "web/src",
+    "web/package.json"
+   ],
+   "docs": [
+    "docs/kg/components.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "app-desktop",
+   "type": "app",
+   "title": "Desktop app (Electron)",
+   "summary": "Tray presence, native call notifications, sandboxed panel.",
+   "status": "done",
+   "paths": [
+    "desktop/src"
+   ],
+   "docs": [
+    "desktop/README.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "deploy",
+   "type": "app",
+   "title": "Deployment",
+   "summary": "Docker image, compose stack, Asterisk and Prometheus config.",
+   "status": "done",
+   "paths": [
+    "Dockerfile",
+    "docker-compose.yml",
+    "deploy",
+    ".env.example"
+   ],
+   "docs": [
+    "docs/kg/operations.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "e2e-asterisk",
+   "type": "test-suite",
+   "title": "Real-Asterisk e2e",
+   "summary": "Docker Asterisk 18 + fake OpenAI; queue, voicemail, outbound, survey, AI, campaign, consult.",
+   "status": "done",
+   "paths": [
+    "test/asterisk-e2e"
+   ],
+   "docs": [
+    "docs/kg/conventions.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "ci",
+   "type": "test-suite",
+   "title": "CI workflow",
+   "summary": "go vet, LOC check, race tests, web build + bundle check, desktop check.",
+   "status": "done",
+   "paths": [
+    ".github/workflows/ci.yml"
+   ],
+   "docs": [],
+   "tests": []
+  },
+  {
+   "id": "feat-acd",
+   "type": "feature",
+   "title": "Native ACD, IVR and call handling",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/core/acd.go",
+    "internal/core/ivr.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/core/acd_test.go"
+   ]
+  },
+  {
+   "id": "feat-transfer",
+   "type": "feature",
+   "title": "Blind/warm transfer, conference, return to previous agent",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/core/consult.go",
+    "internal/core/consult_legs.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/core/consult_test.go",
+    "internal/integration/callcenter_test.go"
+   ]
+  },
+  {
+   "id": "feat-supervisor",
+   "type": "feature",
+   "title": "Supervisor monitoring and wallboard",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/core/monitor.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "feat-ai-agent",
+   "type": "feature",
+   "title": "AI voice agent and tools",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/ai/tool_calls.go",
+    "internal/ai/tools.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/ai/realtime_test.go",
+    "internal/ai/directory_org_test.go"
+   ]
+  },
+  {
+   "id": "feat-routing",
+   "type": "feature",
+   "title": "Explainable routing with approval",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/routing/engine.go",
+    "internal/server/h_routing_rules.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/routing/engine_test.go",
+    "internal/integration/routing_test.go"
+   ]
+  },
+  {
+   "id": "feat-tenancy",
+   "type": "feature",
+   "title": "Multi-tenancy and permissions",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/store/tenant.go",
+    "internal/domain/permissions.go",
+    "internal/server/authmw.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/store/tenant_test.go",
+    "internal/integration/tenant_test.go",
+    "internal/integration/permissions_test.go"
+   ]
+  },
+  {
+   "id": "feat-org",
+   "type": "feature",
+   "title": "Departments, job profiles, numbers, roles, revisions",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/server/h_org.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/core/department_test.go"
+   ]
+  },
+  {
+   "id": "feat-identity",
+   "type": "feature",
+   "title": "Joow sign-in, invitations, organization switch",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/server/h_identity.go",
+    "internal/server/h_invites.go",
+    "internal/server/h_accept.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/joow/http_test.go",
+    "internal/integration/tenant_test.go"
+   ]
+  },
+  {
+   "id": "feat-tickets",
+   "type": "feature",
+   "title": "Ticketing with SLA",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/tickets/service.go",
+    "internal/server/h_tickets.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/integration/tickets_test.go"
+   ]
+  },
+  {
+   "id": "feat-kb",
+   "type": "feature",
+   "title": "Encrypted knowledge base",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/kb/service.go",
+    "internal/server/h_kb.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/kb/kb_test.go",
+    "internal/integration/kb_test.go"
+   ]
+  },
+  {
+   "id": "feat-email",
+   "type": "feature",
+   "title": "Consented email connector with replies",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/mail/sync.go",
+    "internal/mail/reply.go",
+    "internal/server/h_email.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/mail/parse_test.go",
+    "internal/integration/email_test.go"
+   ]
+  },
+  {
+   "id": "feat-chat",
+   "type": "feature",
+   "title": "Chat messages to tickets",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/messages/service.go",
+    "internal/server/h_inbound.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/integration/messages_test.go"
+   ]
+  },
+  {
+   "id": "feat-qa",
+   "type": "feature",
+   "title": "Quality scorecards and evaluations",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/server/h_qa.go",
+    "internal/domain/qa.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/integration/callcenter_test.go"
+   ]
+  },
+  {
+   "id": "feat-compliance",
+   "type": "feature",
+   "title": "Recording access control, audit, retention, export",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/retention/retention.go",
+    "internal/server/h_media.go",
+    "internal/server/h_export.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/retention/retention_test.go",
+    "internal/integration/export_test.go"
+   ]
+  },
+  {
+   "id": "feat-notifications",
+   "type": "feature",
+   "title": "Joow notifications (invites, tickets, calls, approvals)",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "internal/joow/alerts.go",
+    "internal/server/notify_approvers.go"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": [
+    "internal/joow/alerts_test.go"
+   ]
+  },
+  {
+   "id": "feat-panel",
+   "type": "feature",
+   "title": "Control panel for all features",
+   "summary": "See flows and API docs.",
+   "status": "done",
+   "paths": [
+    "web/src/App.tsx",
+    "web/src/components/layout/nav.ts"
+   ],
+   "docs": [
+    "docs/kg/flows.md",
+    "docs/API_PLATFORM.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "flow-inbound",
+   "type": "flow",
+   "title": "F1 inbound call to agent",
+   "summary": "Runtime flow; see flows page.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/kg/flows.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "flow-ai",
+   "type": "flow",
+   "title": "F2 AI agent and routing",
+   "summary": "Runtime flow; see flows page.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/kg/flows.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "flow-consult",
+   "type": "flow",
+   "title": "F3 warm transfer",
+   "summary": "Runtime flow; see flows page.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/kg/flows.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "flow-ticket",
+   "type": "flow",
+   "title": "F4 ticket lifecycle",
+   "summary": "Runtime flow; see flows page.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/kg/flows.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "flow-email",
+   "type": "flow",
+   "title": "F5 email intake",
+   "summary": "Runtime flow; see flows page.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/kg/flows.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "flow-chat",
+   "type": "flow",
+   "title": "F6 chat intake",
+   "summary": "Runtime flow; see flows page.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/kg/flows.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "flow-signin",
+   "type": "flow",
+   "title": "F7 sign-in and tenancy",
+   "summary": "Runtime flow; see flows page.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/kg/flows.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "flow-kb",
+   "type": "flow",
+   "title": "F8 knowledge upload and search",
+   "summary": "Runtime flow; see flows page.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/kg/flows.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "flow-retention",
+   "type": "flow",
+   "title": "F9 retention and export",
+   "summary": "Runtime flow; see flows page.",
+   "status": "done",
+   "paths": [],
+   "docs": [
+    "docs/kg/flows.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-joow-miniapp",
+   "type": "limitation",
+   "title": "L1 Joow mini-app embedding",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-joow-rtc",
+   "type": "limitation",
+   "title": "L2 Joow voice calls via gateway",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-joow-api",
+   "type": "limitation",
+   "title": "L3 Real Joow API contract",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-i18n",
+   "type": "limitation",
+   "title": "L4 Persian UI translation",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-single-node",
+   "type": "limitation",
+   "title": "L5 Single node / SQLite",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-keys",
+   "type": "limitation",
+   "title": "L6 Key management and rotation",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-kb",
+   "type": "limitation",
+   "title": "L7 Keyword-only retrieval, no OCR",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-mail",
+   "type": "limitation",
+   "title": "L8 IMAP/SMTP passwords only",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-routing",
+   "type": "limitation",
+   "title": "L9 Keyword topic classification",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-retention",
+   "type": "limitation",
+   "title": "L10 Retention scope",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-untested",
+   "type": "limitation",
+   "title": "L11 No load test / security review",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  },
+  {
+   "id": "lim-egress",
+   "type": "limitation",
+   "title": "L12 Admin-supplied mail hosts",
+   "summary": "Open item; see status page.",
+   "status": "open",
+   "paths": [],
+   "docs": [
+    "docs/kg/status.md"
+   ],
+   "tests": []
+  }
+ ],
+ "edges": [
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-kg"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-status"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-components"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-flows"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-data"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-conventions"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-operations"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-decisions"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-glossary"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-readme"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-architecture"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-api"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-api-platform"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-user-guide"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-prd"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-joow"
+  },
+  {
+   "from": "system",
+   "rel": "documented_by",
+   "to": "doc-desktop"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "cmd-middleware"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "cmd-ari-sim"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "cmd-mail-sim"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-core"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-ai"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-routing"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-server"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-store"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-tickets"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-kb"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-mail"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-messages"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-retention"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-joow"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-secure"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-domain"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-ari"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-events"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-notify"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-config"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-metrics"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-seed"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-sim"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-web"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-integration"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "app-web"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "app-desktop"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "deploy"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "e2e-asterisk"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "ci"
+  },
+  {
+   "from": "cmd-middleware",
+   "rel": "depends_on",
+   "to": "pkg-server"
+  },
+  {
+   "from": "cmd-middleware",
+   "rel": "depends_on",
+   "to": "pkg-core"
+  },
+  {
+   "from": "cmd-middleware",
+   "rel": "depends_on",
+   "to": "pkg-ai"
+  },
+  {
+   "from": "cmd-middleware",
+   "rel": "depends_on",
+   "to": "pkg-routing"
+  },
+  {
+   "from": "cmd-middleware",
+   "rel": "depends_on",
+   "to": "pkg-mail"
+  },
+  {
+   "from": "cmd-middleware",
+   "rel": "depends_on",
+   "to": "pkg-messages"
+  },
+  {
+   "from": "cmd-middleware",
+   "rel": "depends_on",
+   "to": "pkg-retention"
+  },
+  {
+   "from": "cmd-middleware",
+   "rel": "depends_on",
+   "to": "pkg-joow"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-core"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-store"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-tickets"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-kb"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-mail"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-messages"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-routing"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-retention"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-joow"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-web"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-events"
+  },
+  {
+   "from": "pkg-core",
+   "rel": "depends_on",
+   "to": "pkg-domain"
+  },
+  {
+   "from": "pkg-core",
+   "rel": "depends_on",
+   "to": "pkg-store"
+  },
+  {
+   "from": "pkg-ai",
+   "rel": "depends_on",
+   "to": "pkg-core"
+  },
+  {
+   "from": "pkg-ai",
+   "rel": "depends_on",
+   "to": "pkg-routing"
+  },
+  {
+   "from": "pkg-ai",
+   "rel": "depends_on",
+   "to": "pkg-kb"
+  },
+  {
+   "from": "pkg-ai",
+   "rel": "depends_on",
+   "to": "pkg-tickets"
+  },
+  {
+   "from": "pkg-routing",
+   "rel": "depends_on",
+   "to": "pkg-store"
+  },
+  {
+   "from": "pkg-routing",
+   "rel": "depends_on",
+   "to": "pkg-core"
+  },
+  {
+   "from": "pkg-tickets",
+   "rel": "depends_on",
+   "to": "pkg-store"
+  },
+  {
+   "from": "pkg-tickets",
+   "rel": "depends_on",
+   "to": "pkg-joow"
+  },
+  {
+   "from": "pkg-kb",
+   "rel": "depends_on",
+   "to": "pkg-store"
+  },
+  {
+   "from": "pkg-kb",
+   "rel": "depends_on",
+   "to": "pkg-secure"
+  },
+  {
+   "from": "pkg-mail",
+   "rel": "depends_on",
+   "to": "pkg-tickets"
+  },
+  {
+   "from": "pkg-mail",
+   "rel": "depends_on",
+   "to": "pkg-kb"
+  },
+  {
+   "from": "pkg-mail",
+   "rel": "depends_on",
+   "to": "pkg-secure"
+  },
+  {
+   "from": "pkg-messages",
+   "rel": "depends_on",
+   "to": "pkg-tickets"
+  },
+  {
+   "from": "pkg-messages",
+   "rel": "depends_on",
+   "to": "pkg-joow"
+  },
+  {
+   "from": "pkg-retention",
+   "rel": "depends_on",
+   "to": "pkg-store"
+  },
+  {
+   "from": "pkg-store",
+   "rel": "depends_on",
+   "to": "pkg-domain"
+  },
+  {
+   "from": "pkg-ari",
+   "rel": "depends_on",
+   "to": "pkg-domain"
+  },
+  {
+   "from": "cmd-ari-sim",
+   "rel": "depends_on",
+   "to": "pkg-sim"
+  },
+  {
+   "from": "pkg-integration",
+   "rel": "depends_on",
+   "to": "pkg-sim"
+  },
+  {
+   "from": "pkg-integration",
+   "rel": "depends_on",
+   "to": "pkg-server"
+  },
+  {
+   "from": "app-web",
+   "rel": "depends_on",
+   "to": "pkg-server"
+  },
+  {
+   "from": "app-desktop",
+   "rel": "depends_on",
+   "to": "app-web"
+  },
+  {
+   "from": "pkg-web",
+   "rel": "depends_on",
+   "to": "app-web"
+  },
+  {
+   "from": "pkg-ari",
+   "rel": "integrates",
+   "to": "ext-asterisk"
+  },
+  {
+   "from": "pkg-ai",
+   "rel": "integrates",
+   "to": "ext-openai"
+  },
+  {
+   "from": "pkg-routing",
+   "rel": "integrates",
+   "to": "ext-openai"
+  },
+  {
+   "from": "pkg-joow",
+   "rel": "integrates",
+   "to": "ext-joow"
+  },
+  {
+   "from": "pkg-mail",
+   "rel": "integrates",
+   "to": "ext-mail"
+  },
+  {
+   "from": "e2e-asterisk",
+   "rel": "integrates",
+   "to": "ext-asterisk"
+  },
+  {
+   "from": "pkg-core",
+   "rel": "implements",
+   "to": "feat-acd"
+  },
+  {
+   "from": "pkg-core",
+   "rel": "implements",
+   "to": "feat-transfer"
+  },
+  {
+   "from": "pkg-core",
+   "rel": "implements",
+   "to": "feat-supervisor"
+  },
+  {
+   "from": "pkg-ai",
+   "rel": "implements",
+   "to": "feat-ai-agent"
+  },
+  {
+   "from": "pkg-routing",
+   "rel": "implements",
+   "to": "feat-routing"
+  },
+  {
+   "from": "pkg-store",
+   "rel": "implements",
+   "to": "feat-tenancy"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "implements",
+   "to": "feat-org"
+  },
+  {
+   "from": "pkg-joow",
+   "rel": "implements",
+   "to": "feat-identity"
+  },
+  {
+   "from": "pkg-tickets",
+   "rel": "implements",
+   "to": "feat-tickets"
+  },
+  {
+   "from": "pkg-kb",
+   "rel": "implements",
+   "to": "feat-kb"
+  },
+  {
+   "from": "pkg-mail",
+   "rel": "implements",
+   "to": "feat-email"
+  },
+  {
+   "from": "pkg-messages",
+   "rel": "implements",
+   "to": "feat-chat"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "implements",
+   "to": "feat-qa"
+  },
+  {
+   "from": "pkg-retention",
+   "rel": "implements",
+   "to": "feat-compliance"
+  },
+  {
+   "from": "pkg-joow",
+   "rel": "implements",
+   "to": "feat-notifications"
+  },
+  {
+   "from": "app-web",
+   "rel": "implements",
+   "to": "feat-panel"
+  },
+  {
+   "from": "flow-inbound",
+   "rel": "exercises",
+   "to": "feat-acd"
+  },
+  {
+   "from": "flow-ai",
+   "rel": "exercises",
+   "to": "feat-ai-agent"
+  },
+  {
+   "from": "flow-ai",
+   "rel": "exercises",
+   "to": "feat-routing"
+  },
+  {
+   "from": "flow-consult",
+   "rel": "exercises",
+   "to": "feat-transfer"
+  },
+  {
+   "from": "flow-ticket",
+   "rel": "exercises",
+   "to": "feat-tickets"
+  },
+  {
+   "from": "flow-email",
+   "rel": "exercises",
+   "to": "feat-email"
+  },
+  {
+   "from": "flow-chat",
+   "rel": "exercises",
+   "to": "feat-chat"
+  },
+  {
+   "from": "flow-signin",
+   "rel": "exercises",
+   "to": "feat-identity"
+  },
+  {
+   "from": "flow-signin",
+   "rel": "exercises",
+   "to": "feat-tenancy"
+  },
+  {
+   "from": "flow-kb",
+   "rel": "exercises",
+   "to": "feat-kb"
+  },
+  {
+   "from": "flow-retention",
+   "rel": "exercises",
+   "to": "feat-compliance"
+  },
+  {
+   "from": "lim-joow-miniapp",
+   "rel": "affects",
+   "to": "ext-joow"
+  },
+  {
+   "from": "lim-joow-rtc",
+   "rel": "affects",
+   "to": "ext-joow"
+  },
+  {
+   "from": "lim-joow-rtc",
+   "rel": "affects",
+   "to": "ext-asterisk"
+  },
+  {
+   "from": "lim-joow-api",
+   "rel": "affects",
+   "to": "pkg-joow"
+  },
+  {
+   "from": "lim-i18n",
+   "rel": "affects",
+   "to": "app-web"
+  },
+  {
+   "from": "lim-single-node",
+   "rel": "affects",
+   "to": "pkg-core"
+  },
+  {
+   "from": "lim-single-node",
+   "rel": "affects",
+   "to": "pkg-store"
+  },
+  {
+   "from": "lim-keys",
+   "rel": "affects",
+   "to": "pkg-secure"
+  },
+  {
+   "from": "lim-kb",
+   "rel": "affects",
+   "to": "pkg-kb"
+  },
+  {
+   "from": "lim-mail",
+   "rel": "affects",
+   "to": "pkg-mail"
+  },
+  {
+   "from": "lim-routing",
+   "rel": "affects",
+   "to": "pkg-routing"
+  },
+  {
+   "from": "lim-retention",
+   "rel": "affects",
+   "to": "pkg-retention"
+  },
+  {
+   "from": "lim-untested",
+   "rel": "affects",
+   "to": "system"
+  },
+  {
+   "from": "lim-egress",
+   "rel": "affects",
+   "to": "pkg-mail"
+  },
+  {
+   "from": "system",
+   "rel": "contains",
+   "to": "pkg-auth"
+  },
+  {
+   "from": "pkg-server",
+   "rel": "depends_on",
+   "to": "pkg-auth"
+  }
+ ]
+}

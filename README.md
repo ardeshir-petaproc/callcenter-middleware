@@ -61,6 +61,7 @@ realtime voice agent** that callers can talk to.
 ```bash
 make web go                 # build the control panel + binaries (needs Node 22 and Go 1.27)
 ./bin/ari-sim -listen :8088 -rate 4 &          # simulated Asterisk with generated callers
+./bin/mail-sim &                                # optional: local mailbox for the email connector
 SEED_DEMO=true ./bin/middleware                 # http://localhost:8080
 ```
 
@@ -132,6 +133,9 @@ unchanged (`GREETING_MEDIA`, `QUEUE_MAPPINGS`, `IVR_TIMEOUT_SEC`,
 
 ## Documentation
 
+- **[docs/kg/README.md](docs/kg/README.md): start here** — the handover
+  knowledge graph (status, components, flows, data model, conventions,
+  operations, decisions, glossary). Agents: see [AGENTS.md](AGENTS.md).
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): components, call lifecycle,
   fail-open behaviour, AI bridge, security.
 - [docs/USER_GUIDE.md](docs/USER_GUIDE.md): roles and day-to-day workflows.
@@ -159,6 +163,7 @@ cd web && npm run dev   # panel dev server on :5173, proxies /api to :8080
 |---|---|
 | `cmd/middleware` | main binary |
 | `cmd/ari-sim` | Asterisk ARI simulator |
+| `cmd/mail-sim` | local IMAP/SMTP mailbox for the email connector |
 | `internal/core` | call core: IVR, ACD, AI glue, voicemail, transfers, monitoring, outbound |
 | `internal/ai` | OpenAI realtime bridge (RTP ⇄ WebSocket), tools, post-call analyzer |
 | `internal/ari` | ARI REST client + event stream |
