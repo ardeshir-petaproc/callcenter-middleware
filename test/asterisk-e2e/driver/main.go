@@ -149,6 +149,9 @@ func main() {
 		scenarioSurvey(admin, bob)
 	case "campaign":
 		scenarioCampaign(admin)
+	case "consult":
+		apiDo("POST", "/me/status", bob, map[string]string{"status": "offline"}, nil)
+		scenarioConsult(admin, alice, bob)
 	case "ai":
 		apiDo("POST", "/me/status", bob, map[string]string{"status": "available"}, nil)
 		apiDo("POST", "/me/status", alice, map[string]string{"status": "offline"}, nil)

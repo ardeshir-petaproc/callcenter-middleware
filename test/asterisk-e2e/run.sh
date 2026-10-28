@@ -2,7 +2,7 @@
 # End-to-end test against a real Asterisk 18 in Docker, with a fake OpenAI
 # Realtime server. Scenarios: queue (IVR, DTMF, ACD, recording, hold, whisper),
 # voicemail, outbound click-to-call, CSAT survey, AI agent handoff over
-# ExternalMedia RTP, and the campaign dialer.
+# ExternalMedia RTP, the campaign dialer, and warm transfer / conference.
 set -euo pipefail
 cd "$(dirname "$0")"
 ROOT=$(cd ../.. && pwd)
@@ -27,7 +27,7 @@ env SEED_DEMO=true DB_PATH="$WORK/e2e.db" HTTP_PORT=18080 \
   MEDIA_ADVERTISE_HOST="$GATEWAY" DEFAULT_WRAPUP_SEC=0 'OUTBOUND_DIAL_TEMPLATE=Local/{number}@test-customers' \
   "$WORK/middleware" > "$WORK/middleware.log" 2>&1 & MW_PID=$!
 sleep 3
-for s in queue voicemail outbound survey ai campaign; do
+for s in queue voicemail outbound survey ai campaign consult; do
   echo "### $s"
   "$WORK/driver" "$s"
   sleep 2

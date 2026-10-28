@@ -155,9 +155,11 @@ func (s *Server) kbCategories(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	counts := map[string]int{}
-	for _, src := range all {
-		counts[src.Category]++
+	counts, a, now := map[string]int{}, kbAccess(r), time.Now()
+	for i := range all {
+		if kb.Allowed(&all[i], a, now) {
+			counts[all[i].Category]++
+		}
 	}
 	out := []map[string]any{}
 	for c, n := range counts {
