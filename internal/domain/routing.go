@@ -17,6 +17,8 @@ const (
 	ToolRouteCall       = "route_call"
 	ToolSearchKnowledge = "search_knowledge"
 	ToolCreateTicket    = "create_ticket"
+	ToolTicketStatus    = "ticket_status"
+	ToolUpdateTicket    = "update_ticket"
 )
 
 // Topic is a kind of request callers make, with words that signal it.

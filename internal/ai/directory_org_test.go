@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"callcenter-middleware/internal/core"
@@ -60,5 +61,25 @@ func TestDirectory_OrganizationTools(t *testing.T) {
 	tk, err := st.TicketByNumber(ctx, out["ticket_number"].(string))
 	if err != nil || tk.Source != "ai" || tk.DepartmentID == 0 || len(tk.CallIDs) != 1 {
 		t.Fatalf("stored ticket: %+v %v", tk, err)
+	}
+	// Callers can only look up and update their own tickets.
+	if st := d.TicketStatus(ctx, spec, strings.TrimPrefix(tk.Number, "T-")); st["found"] != true || st["status"] != "new" {
+		t.Fatalf("status: %+v", st)
+	}
+	stranger := core.AISpec{TenantID: 1, CallID: "call-2", CallerNumber: "+15559999"}
+	if st := d.TicketStatus(ctx, stranger, tk.Number); st["found"] != false {
+		t.Fatalf("stranger must not see the ticket: %+v", st)
+	}
+	_ = st.SaveCall(ctx, &domain.Call{ID: "call-3", Direction: "inbound", State: domain.CallAI, Tags: []string{}})
+	if up := d.UpdateTicket(ctx, core.AISpec{TenantID: 1, CallID: "call-3", CallerNumber: "+1 555 0001"}, tk.Number,
+		"Photos sent by email"); up["ok"] != true {
+		t.Fatalf("update: %+v", up)
+	}
+	comments, _ := st.TicketComments(ctx, tk.ID)
+	if len(comments) != 1 || !strings.Contains(comments[0].Body, "Photos sent") {
+		t.Fatalf("comment: %+v", comments)
+	}
+	if tk, _ = st.GetTicket(ctx, tk.ID); len(tk.CallIDs) != 2 {
+		t.Fatalf("call not linked: %+v", tk.CallIDs)
 	}
 }

@@ -160,8 +160,10 @@ updated_at}`.
 target_name, reason, steps: string[], candidates: [{rule_id, rule_name,
 score, matched[], result: selected|unavailable|skipped}]}`.
 
-AI profile tools: `route_call`, `search_knowledge`, `create_ticket` (in
-addition to the earlier ones).
+AI profile tools: `route_call`, `search_knowledge`, `create_ticket`,
+`ticket_status` and `update_ticket` (in addition to the earlier ones). The
+ticket tools only work on tickets linked to the caller's number or CRM
+contact.
 
 ## Call control additions
 

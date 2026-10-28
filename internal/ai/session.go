@@ -90,6 +90,9 @@ func Instructions(p domain.AIProfile, sc SessionContext) string {
 	if has(p.Tools, domain.ToolCreateTicket) {
 		b.WriteString("If the request needs follow-up work, call create_ticket and tell the caller their ticket number.\n")
 	}
+	if has(p.Tools, domain.ToolTicketStatus) || has(p.Tools, domain.ToolUpdateTicket) {
+		b.WriteString("If the caller mentions an existing ticket, use ticket_status to check it and update_ticket to add new details.\n")
+	}
 	if has(p.Tools, domain.ToolTransferToQueue) {
 		b.WriteString("If the caller asks for a human, is upset, or you cannot resolve the request, ")
 		b.WriteString("briefly tell them you are connecting them, then call transfer_to_queue with a short summary.")

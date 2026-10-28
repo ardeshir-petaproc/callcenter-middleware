@@ -66,6 +66,12 @@ func ToolDefinitions(enabled []string, queues, topics []string) []map[string]any
 		"priority":    map[string]any{"type": "string", "enum": []string{"low", "normal", "high", "urgent"}},
 		"topic":       str("The kind of request."),
 	}, "subject", "description"))
+	add(domain.ToolTicketStatus, "Look up the status of the caller's existing ticket by its number (e.g. T-1001).",
+		obj(map[string]any{"number": str("Ticket number.")}, "number"))
+	add(domain.ToolUpdateTicket, "Add new information from the caller to their existing ticket.", obj(map[string]any{
+		"number":  str("Ticket number."),
+		"message": str("What the caller wants to add, in a sentence or two."),
+	}, "number", "message"))
 	add(domain.ToolCheckHours, "Check whether the call center is currently open.", obj(map[string]any{}))
 	return out
 }
@@ -74,5 +80,5 @@ func ToolDefinitions(enabled []string, queues, topics []string) []map[string]any
 var AllTools = []string{
 	domain.ToolTransferToQueue, domain.ToolEndCall, domain.ToolCreateCallback,
 	domain.ToolLookupContact, domain.ToolTakeMessage, domain.ToolCheckHours, domain.ToolRouteCall,
-	domain.ToolSearchKnowledge, domain.ToolCreateTicket,
+	domain.ToolSearchKnowledge, domain.ToolCreateTicket, domain.ToolTicketStatus, domain.ToolUpdateTicket,
 }

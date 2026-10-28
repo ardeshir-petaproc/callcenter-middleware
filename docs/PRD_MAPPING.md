@@ -68,7 +68,7 @@ Legend: ✅ implemented and tested · 🟡 partly / needs a Joow-side counterpar
 | Natural conversation (speech) | ✅ | OpenAI Realtime over RTP (`internal/ai`) |
 | Routing from org structure, job descriptions, skills, knowledge, live availability | ✅ | `route_call` tool → `internal/routing` engine |
 | Summary to the operator, escalation to a human | ✅ | handoff summary on the call, screen-pop |
-| Create / update tickets | ✅ (create) | `create_ticket` tool; updates from the AI are a small addition |
+| Create / update tickets | ✅ | `create_ticket`, `ticket_status`, `update_ticket` tools (caller-verified) |
 | Log the routing reason; explainable, testable rules | ✅ | decision log with steps and candidates; `/routing/simulate` |
 | Answers only from approved knowledge | ✅ | `search_knowledge` tool |
 

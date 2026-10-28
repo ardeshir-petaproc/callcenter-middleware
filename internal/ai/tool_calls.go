@@ -80,6 +80,10 @@ func (s *Session) handleTool(ctx context.Context, callID, name, rawArgs string) 
 		result = s.dir.SearchKnowledge(ctx, s.spec.Profile, a.Query)
 	case domain.ToolCreateTicket:
 		result = s.dir.CreateTicket(ctx, s.spec, a.Subject, a.Description, a.Priority, a.Topic)
+	case domain.ToolTicketStatus:
+		result = s.dir.TicketStatus(ctx, s.spec, a.Number)
+	case domain.ToolUpdateTicket:
+		result = s.dir.UpdateTicket(ctx, s.spec, a.Number, a.Message)
 	case domain.ToolCheckHours:
 		result = s.dir.BusinessHours(ctx)
 	default:

@@ -25,7 +25,7 @@ func demoConfig(ctx context.Context, st *store.Store, queues []*domain.Queue) er
 			"Enterprise on request.\nRefunds are possible within 30 days.",
 		Tools: []string{domain.ToolTransferToQueue, domain.ToolEndCall, domain.ToolCreateCallback,
 			domain.ToolLookupContact, domain.ToolTakeMessage, domain.ToolCheckHours, domain.ToolRouteCall,
-			domain.ToolSearchKnowledge, domain.ToolCreateTicket},
+			domain.ToolSearchKnowledge, domain.ToolCreateTicket, domain.ToolTicketStatus, domain.ToolUpdateTicket},
 	}
 	if err := st.AIProfiles.Create(ctx, ai); err != nil {
 		return err
