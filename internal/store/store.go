@@ -31,6 +31,11 @@ type Store struct {
 	Webhooks     *Collection[domain.Webhook]
 	Contacts     *Collection[domain.Contact]
 	Campaigns    *Collection[domain.Campaign]
+	Departments  *Collection[domain.Department]
+	JobProfiles  *Collection[domain.JobProfile]
+	Numbers      *Collection[domain.PhoneNumber]
+	Roles        *Collection[domain.CustomRole]
+	Invitations  *Collection[domain.Invitation]
 }
 
 // Open opens (and migrates) the database at path. Use ":memory:" for tests.
@@ -59,15 +64,20 @@ func Open(path string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
-	s.Queues = newCollection(db, "queue", func(x *domain.Queue) *int64 { return &x.ID })
-	s.Flows = newCollection(db, "flow", func(x *domain.IVRFlow) *int64 { return &x.ID })
-	s.Schedules = newCollection(db, "schedule", func(x *domain.Schedule) *int64 { return &x.ID })
-	s.AIProfiles = newCollection(db, "ai_profile", func(x *domain.AIProfile) *int64 { return &x.ID })
-	s.Dispositions = newCollection(db, "disposition", func(x *domain.Disposition) *int64 { return &x.ID })
-	s.PauseReasons = newCollection(db, "pause_reason", func(x *domain.PauseReason) *int64 { return &x.ID })
-	s.Webhooks = newCollection(db, "webhook", func(x *domain.Webhook) *int64 { return &x.ID })
-	s.Contacts = newCollection(db, "contact", func(x *domain.Contact) *int64 { return &x.ID })
-	s.Campaigns = newCollection(db, "campaign", func(x *domain.Campaign) *int64 { return &x.ID })
+	s.Queues = newCollection(db, "queue", func(x *domain.Queue) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Flows = newCollection(db, "flow", func(x *domain.IVRFlow) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Schedules = newCollection(db, "schedule", func(x *domain.Schedule) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.AIProfiles = newCollection(db, "ai_profile", func(x *domain.AIProfile) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Dispositions = newCollection(db, "disposition", func(x *domain.Disposition) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.PauseReasons = newCollection(db, "pause_reason", func(x *domain.PauseReason) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Webhooks = newCollection(db, "webhook", func(x *domain.Webhook) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Contacts = newCollection(db, "contact", func(x *domain.Contact) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Campaigns = newCollection(db, "campaign", func(x *domain.Campaign) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Departments = newCollection(db, "department", func(x *domain.Department) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.JobProfiles = newCollection(db, "job_profile", func(x *domain.JobProfile) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Numbers = newCollection(db, "phone_number", func(x *domain.PhoneNumber) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Roles = newCollection(db, "custom_role", func(x *domain.CustomRole) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Invitations = newCollection(db, "invitation", func(x *domain.Invitation) (*int64, *int64) { return &x.ID, &x.TenantID })
 	return s, nil
 }
 
@@ -89,7 +99,7 @@ func (s *Store) migrate(ctx context.Context) error {
 			return fmt.Errorf("column migration %q: %w", stmt, err)
 		}
 	}
-	return nil
+	return s.migrateVersions(ctx)
 }
 
 func ms(t time.Time) int64 { return t.UnixMilli() }
@@ -111,7 +121,11 @@ func fromNullMS(v sql.NullInt64) *time.Time {
 	return &t
 }
 
-// ListWebhooks satisfies notify.WebhookSource.
+// ListWebhooks satisfies notify.WebhookSource (all tenants; the dispatcher
+// matches each event to its own tenant's hooks).
 func (s *Store) ListWebhooks(ctx context.Context) ([]domain.Webhook, error) {
-	return s.Webhooks.List(ctx)
+	return s.Webhooks.List(System(ctx))
 }
+
+// DB exposes the handle for adapters that keep their own tables.
+func (s *Store) DB() *sql.DB { return s.db }

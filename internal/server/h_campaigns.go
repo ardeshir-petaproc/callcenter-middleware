@@ -7,13 +7,14 @@ import (
 
 	"callcenter-middleware/internal/core"
 	"callcenter-middleware/internal/domain"
+
 	"github.com/go-chi/chi/v5"
 )
 
 func (s *Server) campaignRoutes(r chi.Router) {
-	sup := require(domain.RoleSupervisor)
+	sup := requirePerm(domain.PermCampaignsManage)
 	mountCRUD(r, "/campaigns", s, s.d.Store.Campaigns, crudOpts[domain.Campaign]{entity: "campaign",
-		prepare: s.prepareCampaign, reload: true, writeRole: domain.RoleSupervisor,
+		check: s.prepareCampaign, reload: true, writePerm: domain.PermCampaignsManage,
 		onDelete: func(r *http.Request, id int64) { _ = s.d.Store.DeleteLeads(r.Context(), id, "") }})
 	r.Get("/campaigns/{id}/leads", handler(s.listLeads).ServeHTTP)
 	r.Get("/campaigns/{id}/stats", handler(s.campaignStats).ServeHTTP)
@@ -23,11 +24,11 @@ func (s *Server) campaignRoutes(r chi.Router) {
 	r.With(sup).Post("/campaigns/{id}/pause", handler(s.setCampaignStatus(domain.CampaignPaused)).ServeHTTP)
 }
 
-func (s *Server) prepareCampaign(c *domain.Campaign) error {
+func (s *Server) prepareCampaign(r *http.Request, c *domain.Campaign) error {
 	if c.Name = strings.TrimSpace(c.Name); c.Name == "" {
 		return bad("name is required")
 	}
-	if _, err := s.d.Store.Queues.Get(s.ctx(), c.QueueID); err != nil {
+	if _, err := s.d.Store.Queues.Get(r.Context(), c.QueueID); err != nil {
 		return bad("queue_id must reference an existing queue (its members make the calls)")
 	}
 	switch c.Status {

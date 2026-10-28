@@ -12,6 +12,11 @@ import (
 // enqueue places a caller in a native ACD queue with music on hold.
 func (c *Core) enqueue(call *liveCall, q *domain.Queue) {
 	c.stopPlayback(call)
+	if fb, why := c.departmentGate(call, q); why != "" {
+		c.timeline(call, "department_"+why, q.Name)
+		c.execute(call, fb)
+		return
+	}
 	call.queue, call.QueueID = q, q.ID
 	call.queueEnter = c.now()
 	if call.QueuedAt == nil {
@@ -143,7 +148,7 @@ func (c *Core) ring(call *liveCall, a *agentRT) {
 		return
 	}
 	c.timeline(call, "ringing", a.Username)
-	c.publish(domain.EvScreenPop, map[string]any{"user_id": a.UserID, "call": c.view(call)})
+	c.publish(call.TenantID, domain.EvScreenPop, map[string]any{"user_id": a.UserID, "call": c.view(call)})
 	if call.State == domain.CallQueued {
 		call.State = domain.CallRinging
 	}

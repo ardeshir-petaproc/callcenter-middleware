@@ -31,7 +31,7 @@ func (c *Core) syncAgents() {
 		}
 		c.agents[id] = &agentRT{
 			AgentState: domain.AgentState{
-				UserID: id, Username: u.Username, DisplayName: u.DisplayName, Extension: u.Extension,
+				UserID: id, TenantID: u.TenantID, Username: u.Username, DisplayName: u.DisplayName, Extension: u.Extension,
 				Status: domain.AgentOffline, Since: c.now().UTC(), QueueIDs: c.cache.queuesOf(id),
 			},
 			user:      *u,
@@ -54,9 +54,9 @@ func (c *Core) setAgentStatus(a *agentRT, st domain.AgentStatus, reason string) 
 		a.idleSince = c.now()
 	}
 	ctx, cancel := c.opCtx()
-	_ = c.Store.AddAgentEvent(ctx, domain.AgentEvent{UserID: a.UserID, Status: st, Reason: reason, At: a.Since})
+	_ = c.Store.AddAgentEvent(ctx, domain.AgentEvent{TenantID: a.TenantID, UserID: a.UserID, Status: st, Reason: reason, At: a.Since})
 	cancel()
-	c.publish(domain.EvAgentUpdated, a.AgentState)
+	c.publish(a.TenantID, domain.EvAgentUpdated, a.AgentState)
 }
 
 // agentCallEnded moves an agent into wrap-up after a call.
@@ -117,7 +117,7 @@ func (c *Core) SetAgentStatus(userID int64, st domain.AgentStatus, reason string
 				c.abandonRing(a)
 			} else {
 				a.pendingStatus, a.pendingReason = st, reason
-				c.publish(domain.EvAgentUpdated, a.AgentState)
+				c.publish(a.TenantID, domain.EvAgentUpdated, a.AgentState)
 				return nil
 			}
 		}

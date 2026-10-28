@@ -30,7 +30,7 @@ func (s *Server) handleReadyz(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) live(w http.ResponseWriter, r *http.Request) error {
-	writeJSON(w, http.StatusOK, s.d.Core.Snapshot())
+	writeJSON(w, http.StatusOK, s.visibleSnapshot(r))
 	return nil
 }
 
@@ -84,8 +84,9 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 		defer c()
 		return conn.Write(wctx, websocket.MessageText, raw) == nil
 	}
+	filter := newEventFilter(r)
 	snapshot := func() bool {
-		return send(domain.Event{Type: "snapshot", Data: s.d.Core.Snapshot(), At: time.Now().UTC()})
+		return send(domain.Event{Type: "snapshot", Data: s.visibleSnapshot(r), At: time.Now().UTC()})
 	}
 	if !snapshot() {
 		return
@@ -97,7 +98,10 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 		case <-ctx.Done():
 			return
 		case ev, ok := <-events:
-			if !ok || !send(ev) {
+			if !ok {
+				return
+			}
+			if filter.allow(ev) && !send(ev) {
 				return
 			}
 		case <-ticker.C:

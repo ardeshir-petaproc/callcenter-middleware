@@ -1,6 +1,7 @@
 package server
 
 import (
+	"callcenter-middleware/internal/store"
 	"io/fs"
 	"net/http"
 	"path"
@@ -46,7 +47,9 @@ func keys(m map[string]string) []string {
 }
 
 func (s *Server) listAudit(w http.ResponseWriter, r *http.Request) error {
-	entries, err := s.d.Store.ListAudit(r.Context(), qInt(r, "limit", 100), qInt(r, "offset", 0))
+	q := r.URL.Query()
+	entries, err := s.d.Store.ListAudit(r.Context(), store.AuditFilter{Entity: q.Get("entity"), EntityID: q.Get("entity_id"),
+		Action: q.Get("action"), UserID: qInt64(r, "user_id"), Limit: qInt(r, "limit", 100), Offset: qInt(r, "offset", 0)})
 	if err != nil {
 		return err
 	}

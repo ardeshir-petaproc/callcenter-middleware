@@ -36,7 +36,7 @@ func (s *Server) getUser(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (s *Server) prepareUser(req *userReq, creating bool) error {
+func (s *Server) prepareUser(r *http.Request, req *userReq, creating bool) error {
 	req.Username = strings.TrimSpace(req.Username)
 	if req.Username == "" {
 		return bad("username is required")
@@ -47,7 +47,8 @@ func (s *Server) prepareUser(req *userReq, creating bool) error {
 	if !req.Role.Valid() {
 		return bad("role must be admin, supervisor or agent")
 	}
-	if creating && len(req.Password) < 6 {
+	// Joow-linked employees sign in with Joow and need no local password.
+	if creating && req.JoowAccountID == "" && len(req.Password) < 6 {
 		return bad("password must be at least 6 characters")
 	}
 	if req.Password != "" {
@@ -66,6 +67,25 @@ func (s *Server) prepareUser(req *userReq, creating bool) error {
 	if req.Skills == nil {
 		req.Skills = []string{}
 	}
+	switch req.Status {
+	case "":
+		req.Status = domain.UserActive
+	case domain.UserActive, domain.UserInvited, domain.UserDisabled:
+	default:
+		return bad("invalid status")
+	}
+	req.PlatformAdmin = false // only set at bootstrap / by platform tooling
+	for kind, id := range map[string]int64{"user": req.ManagerID, "job_profile": req.JobProfileID,
+		"custom_role": req.CustomRoleID, "schedule": req.ScheduleID} {
+		if err := s.exists(r, kind, id); err != nil {
+			return err
+		}
+	}
+	for _, d := range req.DepartmentIDs {
+		if err := s.exists(r, "department", d); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -75,22 +95,7 @@ func (s *Server) createUser(w http.ResponseWriter, r *http.Request) error {
 	if err := decode(r, &req); err != nil {
 		return err
 	}
-	if err := s.prepareUser(&req, true); err != nil {
-		return err
-	}
-	u := req.User
-	if err := s.d.Store.CreateUser(r.Context(), &u); err != nil {
-		return err
-	}
-	if req.Queues != nil {
-		if err := s.d.Store.SetUserQueues(r.Context(), u.ID, req.Queues); err != nil {
-			return err
-		}
-	}
-	s.audit(r, "create", "user", u.ID, u.Username)
-	s.configChanged(r, "user")
-	writeJSON(w, http.StatusCreated, u)
-	return nil
+	return s.saveNewUser(w, r, &req)
 }
 
 func (s *Server) updateUser(w http.ResponseWriter, r *http.Request) error {
@@ -103,7 +108,7 @@ func (s *Server) updateUser(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	req.ID = id
-	if err := s.prepareUser(&req, false); err != nil {
+	if err := s.prepareUser(r, &req, false); err != nil {
 		return err
 	}
 	if id == claimsOf(r).UserID && (req.Role != domain.RoleAdmin || !req.Enabled) {
@@ -119,6 +124,7 @@ func (s *Server) updateUser(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 	s.audit(r, "update", "user", id, u.Username)
+	s.userRevision(r, &u, "update")
 	s.configChanged(r, "user")
 	fresh, err := s.d.Store.GetUser(r.Context(), id)
 	if err != nil {

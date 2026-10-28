@@ -47,10 +47,12 @@ func (c *Core) AICallback(callID, number, notes string) {
 		if number == "" {
 			number = call.CallerNumber
 		}
-		cb := &domain.Callback{CallID: callID, Number: number, Name: call.CallerName,
+		cb := &domain.Callback{TenantID: call.TenantID, CallID: callID, Number: number, Name: call.CallerName,
 			QueueID: call.aiHandoff, Notes: notes}
-		if err := c.Store.CreateCallback(context.Background(), cb); err == nil {
-			c.publish(domain.EvCallbackCreated, cb)
+		ctx, cancel := c.opCtx()
+		defer cancel()
+		if err := c.Store.CreateCallback(ctx, cb); err == nil {
+			c.publish(call.TenantID, domain.EvCallbackCreated, cb)
 			c.timeline(call, "callback_created", number)
 		}
 	})
@@ -60,7 +62,11 @@ func (c *Core) AICallback(callID, number, notes string) {
 func (c *Core) AITranscript(callID, speaker, text string) {
 	t := domain.TranscriptEntry{CallID: callID, Speaker: speaker, Text: text, At: time.Now().UTC()}
 	_ = c.Store.AddTranscript(context.Background(), t)
-	c.publish(domain.EvTranscript, t)
+	c.post(func() {
+		if call := c.calls[callID]; call != nil {
+			c.publish(call.TenantID, domain.EvTranscript, t)
+		}
+	})
 }
 
 // AIFailed implements AIControl: the realtime session broke.

@@ -16,6 +16,7 @@ import (
 	"callcenter-middleware/internal/core"
 	"callcenter-middleware/internal/domain"
 	"callcenter-middleware/internal/events"
+	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/store"
 
 	"github.com/go-chi/chi/v5"
@@ -37,6 +38,9 @@ type Deps struct {
 	Fetcher  ai.RecordingFetcher
 	Started  time.Time
 	StaticFS http.FileSystem
+	Joow     joow.Provider
+	// DevJoowTokens exposes POST /dev/joow-token to mint local Joow tokens.
+	DevJoowTokens bool
 }
 
 // Server manages the HTTP server lifecycle.

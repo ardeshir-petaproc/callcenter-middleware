@@ -11,7 +11,8 @@ import (
 	"callcenter-middleware/internal/store"
 )
 
-// EnsureAdmin creates the bootstrap admin when the user table is empty.
+// EnsureAdmin creates the bootstrap admin of the default organization when
+// it has no users. That account is also the platform administrator.
 func EnsureAdmin(ctx context.Context, st *store.Store, username, password string) error {
 	n, err := st.CountUsers(ctx)
 	if err != nil || n > 0 {
@@ -22,7 +23,7 @@ func EnsureAdmin(ctx context.Context, st *store.Store, username, password string
 		return err
 	}
 	u := &domain.User{Username: username, DisplayName: "Administrator", Role: domain.RoleAdmin,
-		Enabled: true, PasswordHash: hash, Skills: []string{}}
+		Enabled: true, PasswordHash: hash, Skills: []string{}, PlatformAdmin: true}
 	if err := st.CreateUser(ctx, u); err != nil {
 		return err
 	}
@@ -106,6 +107,9 @@ func Demo(ctx context.Context, st *store.Store) error {
 		}
 	}
 	if err := demoConfig(ctx, st, queues); err != nil {
+		return err
+	}
+	if err := demoOrg(ctx, st, queues, users); err != nil {
 		return err
 	}
 	return demoHistory(ctx, st, queues, users[:4])

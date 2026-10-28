@@ -45,7 +45,7 @@ func newHarness(t *testing.T, ai core.AIManager) *harness {
 }
 
 func (h *harness) reload() {
-	if err := h.core.Reload(context.Background()); err != nil {
+	if err := h.core.Reload(tctx()); err != nil {
 		h.t.Fatal(err)
 	}
 }
@@ -75,7 +75,7 @@ func (h *harness) gone(ch string, cause int) {
 
 func (h *harness) agent(name, ext string) *domain.User {
 	u := &domain.User{Username: name, Role: domain.RoleAgent, Extension: ext, Enabled: true, PasswordHash: "x"}
-	if err := h.st.CreateUser(context.Background(), u); err != nil {
+	if err := h.st.CreateUser(tctx(), u); err != nil {
 		h.t.Fatal(err)
 	}
 	return u
@@ -83,15 +83,20 @@ func (h *harness) agent(name, ext string) *domain.User {
 
 func (h *harness) queue(q domain.Queue, members ...*domain.User) *domain.Queue {
 	q.Enabled = true
-	if err := h.st.Queues.Create(context.Background(), &q); err != nil {
+	if err := h.st.Queues.Create(tctx(), &q); err != nil {
 		h.t.Fatal(err)
 	}
 	var ms []domain.QueueMember
 	for _, u := range members {
 		ms = append(ms, domain.QueueMember{QueueID: q.ID, UserID: u.ID})
 	}
-	if err := h.st.SetQueueMembers(context.Background(), q.ID, ms); err != nil {
+	if err := h.st.SetQueueMembers(tctx(), q.ID, ms); err != nil {
 		h.t.Fatal(err)
 	}
 	return &q
 }
+
+// tctx scopes store access in tests to the default tenant.
+func tctx() context.Context { return store.ForTenant(context.Background(), core.DefaultTenant) }
+
+func ctxFor(tenant int64) context.Context { return store.ForTenant(context.Background(), tenant) }

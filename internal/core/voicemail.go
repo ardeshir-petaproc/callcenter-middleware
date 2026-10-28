@@ -22,7 +22,7 @@ func (c *Core) startVoicemail(call *liveCall) {
 }
 
 func (c *Core) recordVoicemail(call *liveCall, name string, beep bool) {
-	c.recordings[name] = recordingRef{callID: call.ID, number: call.CallerNumber,
+	c.recordings[name] = recordingRef{tenant: call.TenantID, callID: call.ID, number: call.CallerNumber,
 		name: call.CallerName, queueID: call.QueueID, beep: beep, started: c.now()}
 	ctx, cancel := c.opCtx()
 	defer cancel()
@@ -52,7 +52,7 @@ func (c *Core) onRecordingFinished(ev domain.TelephonyEvent) {
 	if ev.Type == domain.EventRecordingFailed || ev.DurationSec < 1 {
 		slog.Info("Voicemail discarded", "recording", ev.RecordingName, "duration", ev.DurationSec)
 	} else {
-		vm := &domain.Voicemail{CallID: ref.callID, CallerNumber: ref.number, CallerName: ref.name,
+		vm := &domain.Voicemail{TenantID: ref.tenant, CallID: ref.callID, CallerNumber: ref.number, CallerName: ref.name,
 			QueueID: ref.queueID, Recording: ev.RecordingName, DurationSec: ev.DurationSec}
 		ctx, cancel := c.opCtx()
 		err := c.Store.CreateVoicemail(ctx, vm)
@@ -60,7 +60,7 @@ func (c *Core) onRecordingFinished(ev domain.TelephonyEvent) {
 		if err != nil {
 			slog.Error("Store voicemail failed", "err", err)
 		} else {
-			c.publish(domain.EvVoicemail, vm)
+			c.publish(ref.tenant, domain.EvVoicemail, vm)
 		}
 	}
 	if call != nil && call.State == domain.CallVoicemail {

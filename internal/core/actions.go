@@ -25,10 +25,10 @@ func (c *Core) execute(call *liveCall, a domain.Action) {
 	}
 	switch a.Type {
 	case domain.ActionQueue:
-		q := c.cache.findQueue(a.Target)
+		q := c.cache.findQueue(call.TenantID, a.Target)
 		if q == nil || !q.Enabled {
 			slog.Warn("Queue not found or disabled, using default", "target", a.Target)
-			def := c.defaultAction()
+			def := c.defaultAction(call.TenantID)
 			if def.Type == domain.ActionQueue && def.Target != a.Target {
 				c.execute(call, def)
 				return
@@ -53,19 +53,19 @@ func (c *Core) execute(call *liveCall, a domain.Action) {
 	case domain.ActionHangup:
 		c.play(call, a.Media, func() { c.hangup(call.callerChan, "normal") })
 	case domain.ActionFlow:
-		if f := c.cache.flowByID(atoi(a.Target)); f != nil {
+		if f := c.cache.flowByID(call.TenantID, atoi(a.Target)); f != nil {
 			call.flow, call.FlowID, call.retries = f, f.ID, 0
 			c.timeline(call, "flow", f.Name)
 			c.playGreeting(call)
 			return
 		}
-		c.execute(call, c.defaultAction())
+		c.execute(call, c.defaultAction(call.TenantID))
 	case domain.ActionAgent:
 		c.directToAgent(call, atoi(a.Target))
 	case domain.ActionExternal:
 		c.transferExternal(call, a.Target)
 	default:
-		c.execute(call, c.defaultAction())
+		c.execute(call, c.defaultAction(call.TenantID))
 	}
 }
 
@@ -103,7 +103,7 @@ func (c *Core) screenPop(call *liveCall, target, reason string) {
 
 // requestCallback stores a callback for the caller and ends the call.
 func (c *Core) requestCallback(call *liveCall, notes string) {
-	cb := &domain.Callback{CallID: call.ID, Number: call.CallerNumber, Name: call.CallerName,
+	cb := &domain.Callback{TenantID: call.TenantID, CallID: call.ID, Number: call.CallerNumber, Name: call.CallerName,
 		QueueID: call.QueueID, Notes: notes}
 	ctx, cancel := c.opCtx()
 	err := c.Store.CreateCallback(ctx, cb)
@@ -111,7 +111,7 @@ func (c *Core) requestCallback(call *liveCall, notes string) {
 	if err != nil {
 		slog.Error("Create callback failed", "call_id", call.ID, "err", err)
 	} else {
-		c.publish(domain.EvCallbackCreated, cb)
+		c.publish(call.TenantID, domain.EvCallbackCreated, cb)
 	}
 	call.Outcome = domain.OutcomeCallback
 	call.State = domain.CallMessage

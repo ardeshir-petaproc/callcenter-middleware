@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"callcenter-middleware/internal/domain"
+	"callcenter-middleware/internal/store"
 
 	"github.com/google/uuid"
 )
@@ -64,6 +65,7 @@ func (c *Core) dialLocked(a *agentRT, number string, setup func(*liveCall)) (*li
 	call.StartedAt = c.now().UTC()
 	call.State = domain.CallDialing
 	call.AgentID = a.UserID
+	call.TenantID = a.TenantID
 	if setup != nil {
 		setup(call)
 	}
@@ -90,7 +92,7 @@ func (c *Core) dialLocked(a *agentRT, number string, setup func(*liveCall)) (*li
 		return call, err
 	}
 	c.changed(call)
-	c.publish(domain.EvScreenPop, map[string]any{"user_id": a.UserID, "call": c.view(call)})
+	c.publish(call.TenantID, domain.EvScreenPop, map[string]any{"user_id": a.UserID, "call": c.view(call)})
 	return call, nil
 }
 
@@ -137,7 +139,7 @@ func (c *Core) onRemotePartyAnswered(l *leg) {
 		call.AnsweredAt = ptr(c.now())
 		call.State = domain.CallConnected
 		c.timeline(call, "answered", call.CallerNumber)
-		if c.Store.GetSetting(ctx, "record_outbound", "false") == "true" {
+		if c.Store.GetSetting(store.ForTenant(ctx, call.TenantID), "record_outbound", "false") == "true" {
 			c.startRecording(call)
 		}
 		c.changed(call)

@@ -23,7 +23,7 @@ func TestLegacyFlow_DTMFBargeInRoutesToDialplanQueue(t *testing.T) {
 	if !h.sw.has("continue ch-100 ext-queues 601") {
 		t.Fatalf("expected continued to queue 601, got %v", h.sw.ops)
 	}
-	calls, _, _ := h.st.ListCalls(context.Background(), domain.CallFilter{})
+	calls, _, _ := h.st.ListCalls(tctx(), domain.CallFilter{})
 	if len(calls) != 1 || calls[0].Outcome != domain.OutcomeDialplan || calls[0].IVRPath != "2" {
 		t.Fatalf("unexpected CDR %+v", calls)
 	}
@@ -61,14 +61,14 @@ func TestDrain_ReleasesCallsToDefaultQueue(t *testing.T) {
 	h.reload()
 	h.incoming("drain-ch-1", "09121111111", "100")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(tctx(), 2*time.Second)
 	defer cancel()
 	h.core.DrainAndRelease(ctx)
 
 	if !h.sw.has("continue drain-ch-1 ext-queues 600") {
 		t.Fatalf("expected drained call released to queue 600, got %v", h.sw.ops)
 	}
-	if len(h.core.Snapshot().Calls) != 0 {
+	if len(h.core.Snapshot(0).Calls) != 0 {
 		t.Fatal("expected no live calls after drain")
 	}
 }

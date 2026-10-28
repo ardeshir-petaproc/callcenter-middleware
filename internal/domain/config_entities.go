@@ -43,6 +43,7 @@ const (
 // Queue describes an ACD queue.
 type Queue struct {
 	ID             int64    `json:"id"`
+	TenantID       int64    `json:"tenant_id"`
 	Name           string   `json:"name"`
 	Description    string   `json:"description"`
 	Mode           string   `json:"mode"`
@@ -60,6 +61,7 @@ type Queue struct {
 	AllowCallback  bool     `json:"allow_callback"`
 	LeaveWhenEmpty bool     `json:"leave_when_empty"`
 	Survey         bool     `json:"survey"`
+	DepartmentID   int64    `json:"department_id"`
 	AlertWaiting   int      `json:"alert_waiting"`
 	AlertWaitSec   int      `json:"alert_wait_sec"`
 	Overflow       Action   `json:"overflow"`
@@ -68,14 +70,16 @@ type Queue struct {
 
 // QueueMember assigns a user to a queue with a penalty (lower rings first).
 type QueueMember struct {
-	QueueID int64 `json:"queue_id"`
-	UserID  int64 `json:"user_id"`
-	Penalty int   `json:"penalty"`
+	TenantID int64 `json:"tenant_id"`
+	QueueID  int64 `json:"queue_id"`
+	UserID   int64 `json:"user_id"`
+	Penalty  int   `json:"penalty"`
 }
 
 // IVRFlow is a data-driven DTMF menu bound to a dialed number (DNIS).
 type IVRFlow struct {
 	ID               int64             `json:"id"`
+	TenantID         int64             `json:"tenant_id"`
 	Name             string            `json:"name"`
 	DNIS             string            `json:"dnis"`
 	GreetingMedia    string            `json:"greeting_media"`
@@ -106,6 +110,7 @@ type Holiday struct {
 // Schedule defines business hours.
 type Schedule struct {
 	ID       int64       `json:"id"`
+	TenantID int64       `json:"tenant_id"`
 	Name     string      `json:"name"`
 	Timezone string      `json:"timezone"`
 	Weekly   []TimeRange `json:"weekly"`
@@ -122,55 +127,42 @@ const (
 	ToolCheckHours      = "check_business_hours"
 )
 
-// AIProfile configures an OpenAI realtime voice agent.
-type AIProfile struct {
-	ID             int64    `json:"id"`
-	Name           string   `json:"name"`
-	Model          string   `json:"model"`
-	Voice          string   `json:"voice"`
-	Language       string   `json:"language"`
-	Instructions   string   `json:"instructions"`
-	Greeting       string   `json:"greeting"`
-	Temperature    float64  `json:"temperature"`
-	Tools          []string `json:"tools"`
-	HandoffQueueID int64    `json:"handoff_queue_id"`
-	MaxDurationSec int      `json:"max_duration_sec"`
-	KnowledgeBase  string   `json:"knowledge_base"`
-	Enabled        bool     `json:"enabled"`
-}
-
 // Disposition is a wrap-up code an agent selects after a call.
 type Disposition struct {
-	ID      int64  `json:"id"`
-	Code    string `json:"code"`
-	Label   string `json:"label"`
-	Enabled bool   `json:"enabled"`
+	ID       int64  `json:"id"`
+	TenantID int64  `json:"tenant_id"`
+	Code     string `json:"code"`
+	Label    string `json:"label"`
+	Enabled  bool   `json:"enabled"`
 }
 
 // PauseReason is a selectable reason for an agent pause.
 type PauseReason struct {
-	ID      int64  `json:"id"`
-	Label   string `json:"label"`
-	Enabled bool   `json:"enabled"`
+	ID       int64  `json:"id"`
+	TenantID int64  `json:"tenant_id"`
+	Label    string `json:"label"`
+	Enabled  bool   `json:"enabled"`
 }
 
 // Webhook receives signed event notifications.
 type Webhook struct {
-	ID      int64    `json:"id"`
-	URL     string   `json:"url"`
-	Events  []string `json:"events"`
-	Secret  string   `json:"secret"`
-	Enabled bool     `json:"enabled"`
+	ID       int64    `json:"id"`
+	TenantID int64    `json:"tenant_id"`
+	URL      string   `json:"url"`
+	Events   []string `json:"events"`
+	Secret   string   `json:"secret"`
+	Enabled  bool     `json:"enabled"`
 }
 
 // Contact is a lightweight CRM record used for screen-pops.
 type Contact struct {
-	ID      int64    `json:"id"`
-	Name    string   `json:"name"`
-	Phone   string   `json:"phone"`
-	Email   string   `json:"email"`
-	Company string   `json:"company"`
-	Notes   string   `json:"notes"`
-	Tags    []string `json:"tags"`
-	VIP     bool     `json:"vip"`
+	ID       int64    `json:"id"`
+	TenantID int64    `json:"tenant_id"`
+	Name     string   `json:"name"`
+	Phone    string   `json:"phone"`
+	Email    string   `json:"email"`
+	Company  string   `json:"company"`
+	Notes    string   `json:"notes"`
+	Tags     []string `json:"tags"`
+	VIP      bool     `json:"vip"`
 }

@@ -7,11 +7,14 @@ import (
 	"time"
 
 	"callcenter-middleware/internal/domain"
+	"callcenter-middleware/internal/store"
 )
 
 // opCtx bounds a single ARI or DB operation executed on the loop.
+// The core sees every tenant, so its store access uses the system scope;
+// every row it writes carries the tenant of the call or agent it belongs to.
 func (c *Core) opCtx() (context.Context, context.CancelFunc) {
-	return context.WithTimeout(c.ctx, 5*time.Second)
+	return context.WithTimeout(store.System(c.ctx), 5*time.Second)
 }
 
 func (c *Core) nextChan(prefix, callID string) string {
@@ -40,16 +43,17 @@ func (c *Core) timeline(call *liveCall, typ, detail string) {
 	slog.Info("Call event", "call_id", call.ID, "type", typ, "detail", detail)
 }
 
-func (c *Core) publish(typ string, data any) {
+// publish broadcasts an event to the dashboards and webhooks of one tenant.
+func (c *Core) publish(tenant int64, typ string, data any) {
 	if c.Publisher != nil {
-		c.Publisher.Publish(domain.Event{Type: typ, Data: data, At: c.now().UTC()})
+		c.Publisher.Publish(domain.Event{TenantID: tenant, Type: typ, Data: data, At: c.now().UTC()})
 	}
 }
 
 // changed persists and broadcasts a call update.
 func (c *Core) changed(call *liveCall) {
 	c.persist(call)
-	c.publish(domain.EvCallUpdated, c.view(call))
+	c.publish(call.TenantID, domain.EvCallUpdated, c.view(call))
 }
 
 func (c *Core) view(call *liveCall) CallView {

@@ -12,25 +12,38 @@ import (
 
 const callCols = `id, direction, caller_number, caller_name, dnis, state, outcome, flow_id, queue_id, agent_id,
 	ai_profile_id, contact_id, ivr_path, started_at, queued_at, answered_at, ended_at, wait_sec, talk_sec,
-	hold_sec, sla_met, disposition, notes, tags, recording, summary, sentiment, hangup_by, csat, campaign_id`
+	hold_sec, sla_met, disposition, notes, tags, recording, summary, sentiment, hangup_by, csat, campaign_id, tenant_id`
 
 // SaveCall inserts or fully replaces a call record.
 func (s *Store) SaveCall(ctx context.Context, c *domain.Call) error {
+	sc, err := scopeOf(ctx)
+	if err != nil {
+		return err
+	}
+	if c.TenantID, err = sc.owner(c.TenantID); err != nil {
+		return err
+	}
 	tags, _ := json.Marshal(nonNil(c.Tags))
-	_, err := s.db.ExecContext(ctx, `INSERT OR REPLACE INTO calls (`+callCols+`)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+	_, err = s.db.ExecContext(ctx, `INSERT OR REPLACE INTO calls (`+callCols+`)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 		c.ID, c.Direction, c.CallerNumber, c.CallerName, c.DNIS, c.State, c.Outcome, c.FlowID, c.QueueID,
 		c.AgentID, c.AIProfileID, c.ContactID, c.IVRPath, ms(c.StartedAt), msPtr(c.QueuedAt),
 		msPtr(c.AnsweredAt), msPtr(c.EndedAt), c.WaitSec, c.TalkSec, c.HoldSec, boolInt(c.SLAMet),
-		c.Disposition, c.Notes, string(tags), c.Recording, c.Summary, c.Sentiment, c.HangupBy, c.CSAT, c.CampaignID)
+		c.Disposition, c.Notes, string(tags), c.Recording, c.Summary, c.Sentiment, c.HangupBy, c.CSAT, c.CampaignID,
+		c.TenantID)
 	return err
 }
 
 // UpdateCallWrapup stores agent-entered disposition, notes and tags.
 func (s *Store) UpdateCallWrapup(ctx context.Context, id, disposition, notes string, tags []string) error {
+	sc, err := scopeOf(ctx)
+	if err != nil {
+		return err
+	}
+	cond, args := sc.filter("tenant_id")
 	t, _ := json.Marshal(nonNil(tags))
-	res, err := s.db.ExecContext(ctx, `UPDATE calls SET disposition = ?, notes = ?, tags = ? WHERE id = ?`,
-		disposition, notes, string(t), id)
+	res, err := s.db.ExecContext(ctx, `UPDATE calls SET disposition = ?, notes = ?, tags = ? WHERE id = ?`+cond,
+		append([]any{disposition, notes, string(t), id}, args...)...)
 	if err != nil {
 		return err
 	}
@@ -39,7 +52,13 @@ func (s *Store) UpdateCallWrapup(ctx context.Context, id, disposition, notes str
 
 // UpdateCallAnalysis stores an AI-generated summary and sentiment.
 func (s *Store) UpdateCallAnalysis(ctx context.Context, id, summary, sentiment string) error {
-	_, err := s.db.ExecContext(ctx, `UPDATE calls SET summary = ?, sentiment = ? WHERE id = ?`, summary, sentiment, id)
+	sc, err := scopeOf(ctx)
+	if err != nil {
+		return err
+	}
+	cond, args := sc.filter("tenant_id")
+	_, err = s.db.ExecContext(ctx, `UPDATE calls SET summary = ?, sentiment = ? WHERE id = ?`+cond,
+		append([]any{summary, sentiment, id}, args...)...)
 	return err
 }
 
@@ -52,7 +71,7 @@ func scanCall(sc interface{ Scan(...any) error }) (*domain.Call, error) {
 	err := sc.Scan(&c.ID, &c.Direction, &c.CallerNumber, &c.CallerName, &c.DNIS, &c.State, &c.Outcome,
 		&c.FlowID, &c.QueueID, &c.AgentID, &c.AIProfileID, &c.ContactID, &c.IVRPath, &started, &queued,
 		&answered, &ended, &c.WaitSec, &c.TalkSec, &c.HoldSec, &sla, &c.Disposition, &c.Notes, &tags,
-		&c.Recording, &c.Summary, &c.Sentiment, &c.HangupBy, &c.CSAT, &c.CampaignID)
+		&c.Recording, &c.Summary, &c.Sentiment, &c.HangupBy, &c.CSAT, &c.CampaignID, &c.TenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +87,13 @@ func scanCall(sc interface{ Scan(...any) error }) (*domain.Call, error) {
 
 // GetCall loads one call by id.
 func (s *Store) GetCall(ctx context.Context, id string) (*domain.Call, error) {
-	c, err := scanCall(s.db.QueryRowContext(ctx, `SELECT `+callCols+` FROM calls WHERE id = ?`, id))
+	sc, err := scopeOf(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cond, args := sc.filter("tenant_id")
+	c, err := scanCall(s.db.QueryRowContext(ctx, `SELECT `+callCols+` FROM calls WHERE id = ?`+cond,
+		append([]any{id}, args...)...))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -77,7 +102,10 @@ func (s *Store) GetCall(ctx context.Context, id string) (*domain.Call, error) {
 
 // ListCalls returns calls matching f, newest first, plus the total count.
 func (s *Store) ListCalls(ctx context.Context, f domain.CallFilter) ([]domain.Call, int, error) {
-	where, args := callWhere(f)
+	where, args, err := callWhere(ctx, f)
+	if err != nil {
+		return nil, 0, err
+	}
 	var total int
 	if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM calls`+where, args...).Scan(&total); err != nil {
 		return nil, 0, err
@@ -103,9 +131,17 @@ func (s *Store) ListCalls(ctx context.Context, f domain.CallFilter) ([]domain.Ca
 	return out, total, rows.Err()
 }
 
-func callWhere(f domain.CallFilter) (string, []any) {
-	var conds []string
+// callWhere builds the WHERE clause for f, always including the tenant scope.
+func callWhere(ctx context.Context, f domain.CallFilter) (string, []any, error) {
+	sc, err := scopeOf(ctx)
+	if err != nil {
+		return "", nil, err
+	}
+	conds := []string{"1=1"}
 	var args []any
+	if !sc.system {
+		conds, args = append(conds, "tenant_id = ?"), append(args, sc.tenant)
+	}
 	if !f.From.IsZero() {
 		conds, args = append(conds, "started_at >= ?"), append(args, ms(f.From))
 	}
@@ -132,10 +168,7 @@ func callWhere(f domain.CallFilter) (string, []any) {
 		conds = append(conds, "(caller_number LIKE ? OR caller_name LIKE ? OR notes LIKE ? OR id = ?)")
 		args = append(args, like, like, like, f.Search)
 	}
-	if len(conds) == 0 {
-		return "", nil
-	}
-	return " WHERE " + strings.Join(conds, " AND "), args
+	return " WHERE " + strings.Join(conds, " AND "), args, nil
 }
 
 // RecentCallsByNumber returns the last calls from a caller number.

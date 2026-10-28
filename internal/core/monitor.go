@@ -18,7 +18,10 @@ func (c *Core) Monitor(callID string, supervisorID int64, mode string) error {
 			return ErrInvalidState
 		}
 		sup := c.agents[supervisorID]
-		if sup == nil || sup.user.DialEndpoint() == "" {
+		if sup == nil || sup.TenantID != call.TenantID {
+			return ErrCallNotFound
+		}
+		if sup.user.DialEndpoint() == "" {
 			return errors.New("supervisor has no extension")
 		}
 		chanID := c.nextChan("sup", call.ID)

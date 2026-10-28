@@ -1,7 +1,6 @@
 package core_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 func setupQueueFlow(h *harness, q *domain.Queue) {
 	flow := &domain.IVRFlow{Name: "main", DNIS: "*", GreetingMedia: "sound:menu", TimeoutSec: 5, MaxRetries: 1,
 		Options: map[string]domain.Action{"1": {Type: domain.ActionQueue, Target: itoa(q.ID)}}, Enabled: true}
-	if err := h.st.Flows.Create(context.Background(), flow); err != nil {
+	if err := h.st.Flows.Create(tctx(), flow); err != nil {
 		h.t.Fatal(err)
 	}
 	h.reload()
@@ -44,7 +43,7 @@ func TestNativeQueue_RingAnswerBridgeAndWrapup(t *testing.T) {
 	if !h.sw.has("addbridge br-") || !h.sw.has("recbridge") {
 		t.Fatalf("expected bridge+recording, got %v", h.sw.ops)
 	}
-	snap := h.core.Snapshot()
+	snap := h.core.Snapshot(0)
 	if len(snap.Calls) != 1 || snap.Calls[0].State != domain.CallConnected || snap.Calls[0].AgentID != alice.ID {
 		t.Fatalf("unexpected snapshot %+v", snap.Calls)
 	}
@@ -62,7 +61,7 @@ func TestNativeQueue_RingAnswerBridgeAndWrapup(t *testing.T) {
 	if st, _ := h.core.Agent(alice.ID); st.Status != domain.AgentAvailable {
 		t.Fatalf("expected available after wrapup, got %s", st.Status)
 	}
-	calls, _, _ := h.st.ListCalls(context.Background(), domain.CallFilter{})
+	calls, _, _ := h.st.ListCalls(tctx(), domain.CallFilter{})
 	c := calls[0]
 	if c.Outcome != domain.OutcomeAnswered || c.TalkSec != 30 || c.AgentID != alice.ID || !c.SLAMet {
 		t.Fatalf("unexpected CDR %+v", c)
@@ -114,14 +113,14 @@ func TestNativeQueue_AbandonAndOverflowToVoicemail(t *testing.T) {
 	if !h.sw.has("recchan c1 vm-") {
 		t.Fatalf("expected voicemail recording, got %v", h.sw.ops)
 	}
-	snap := h.core.Snapshot()
+	snap := h.core.Snapshot(0)
 	name := "vm-" + snap.Calls[0].ID
 	h.event(domain.TelephonyEvent{Type: domain.EventRecordingFinished, RecordingName: name, DurationSec: 7})
-	vms, _ := h.st.ListVoicemails(context.Background(), 10)
+	vms, _ := h.st.ListVoicemails(tctx(), 10)
 	if len(vms) != 1 || vms[0].DurationSec != 7 || vms[0].CallerNumber != "555" {
 		t.Fatalf("unexpected voicemails %+v", vms)
 	}
-	calls, _, _ := h.st.ListCalls(context.Background(), domain.CallFilter{})
+	calls, _, _ := h.st.ListCalls(tctx(), domain.CallFilter{})
 	if calls[0].Outcome != domain.OutcomeVoicemail {
 		t.Fatalf("expected voicemail outcome, got %s", calls[0].Outcome)
 	}
@@ -131,7 +130,7 @@ func TestNativeQueue_AbandonAndOverflowToVoicemail(t *testing.T) {
 	h.dtmf("c2", "1")
 	h.advance(5 * time.Second)
 	h.gone("c2", 16)
-	calls, _, _ = h.st.ListCalls(context.Background(), domain.CallFilter{Outcome: string(domain.OutcomeAbandoned)})
+	calls, _, _ = h.st.ListCalls(tctx(), domain.CallFilter{Outcome: string(domain.OutcomeAbandoned)})
 	if len(calls) != 1 || calls[0].WaitSec != 5 {
 		t.Fatalf("expected abandoned call with 5s wait, got %+v", calls)
 	}
@@ -144,7 +143,7 @@ func TestQueue_CallbackRequestFromQueue(t *testing.T) {
 	h.incoming("c1", "+15551234", "200")
 	h.dtmf("c1", "1")
 	h.dtmf("c1", "*")
-	cbs, _ := h.st.ListCallbacks(context.Background(), "", 10)
+	cbs, _ := h.st.ListCallbacks(tctx(), "", 10)
 	if len(cbs) != 1 || cbs[0].Number != "+15551234" || cbs[0].QueueID != q.ID {
 		t.Fatalf("unexpected callbacks %+v", cbs)
 	}

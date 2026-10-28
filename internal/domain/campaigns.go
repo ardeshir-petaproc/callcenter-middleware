@@ -14,6 +14,7 @@ const (
 // who are available are rung first and then connected to the next lead.
 type Campaign struct {
 	ID           int64  `json:"id"`
+	TenantID     int64  `json:"tenant_id"`
 	Name         string `json:"name"`
 	Description  string `json:"description"`
 	QueueID      int64  `json:"queue_id"`
@@ -36,6 +37,7 @@ const (
 // Lead is one number to call in a campaign.
 type Lead struct {
 	ID          int64     `json:"id"`
+	TenantID    int64     `json:"tenant_id"`
 	CampaignID  int64     `json:"campaign_id"`
 	Number      string    `json:"number"`
 	Name        string    `json:"name"`

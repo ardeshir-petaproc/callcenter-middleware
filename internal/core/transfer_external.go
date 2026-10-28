@@ -5,7 +5,7 @@ import "callcenter-middleware/internal/domain"
 // transferExternal dials an outside number and bridges the caller to it.
 func (c *Core) transferExternal(call *liveCall, number string) {
 	if NormalizePhone(number) == "" {
-		c.execute(call, c.defaultAction())
+		c.execute(call, c.defaultAction(call.TenantID))
 		return
 	}
 	call.State = domain.CallDialing
@@ -25,5 +25,5 @@ func (c *Core) onExternalGone(call *liveCall, l *leg) {
 		c.enqueue(call, call.queue)
 		return
 	}
-	c.execute(call, c.defaultAction())
+	c.execute(call, c.defaultAction(call.TenantID))
 }

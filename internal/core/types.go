@@ -85,6 +85,7 @@ type agentRT struct {
 
 // recordingRef remembers who a voicemail recording belongs to.
 type recordingRef struct {
+	tenant  int64
 	callID  string
 	number  string
 	name    string

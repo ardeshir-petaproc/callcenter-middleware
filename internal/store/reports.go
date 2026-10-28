@@ -76,7 +76,10 @@ func scanSummary(sc interface{ Scan(...any) error }, extra ...any) (Summary, err
 
 // ReportSummary computes KPIs for calls matching f.
 func (s *Store) ReportSummary(ctx context.Context, f domain.CallFilter) (Summary, error) {
-	where, args := callWhere(f)
+	where, args, err := callWhere(ctx, f)
+	if err != nil {
+		return Summary{}, err
+	}
 	return scanSummary(s.db.QueryRowContext(ctx, summarySelect+` FROM calls`+where, args...))
 }
 
@@ -85,12 +88,11 @@ func (s *Store) ReportByGroup(ctx context.Context, f domain.CallFilter, column s
 	if column != "queue_id" && column != "agent_id" {
 		column = "queue_id"
 	}
-	where, args := callWhere(f)
-	if where == "" {
-		where = " WHERE " + column + " > 0"
-	} else {
-		where += " AND " + column + " > 0"
+	where, args, err := callWhere(ctx, f)
+	if err != nil {
+		return nil, err
 	}
+	where += " AND " + column + " > 0"
 	q := `SELECT ` + column + `, ` + summarySelect[len("SELECT "):] + ` FROM calls` + where + ` GROUP BY ` + column
 	rows, err := s.db.QueryContext(ctx, q, args...)
 	if err != nil {
@@ -117,7 +119,10 @@ func (s *Store) ReportBuckets(ctx context.Context, f domain.CallFilter, by strin
 	if by == "hour" {
 		format = "%H"
 	}
-	where, args := callWhere(f)
+	where, args, err := callWhere(ctx, f)
+	if err != nil {
+		return nil, err
+	}
 	q := `SELECT strftime('` + format + `', started_at / 1000 + ?, 'unixepoch') AS k, COUNT(*),
 		COALESCE(SUM(answered_at IS NOT NULL), 0), COALESCE(SUM(outcome = 'abandoned'), 0)
 		FROM calls` + where + ` GROUP BY k ORDER BY k`
@@ -142,7 +147,10 @@ func (s *Store) ReportCounts(ctx context.Context, f domain.CallFilter, column st
 	if column != "outcome" && column != "disposition" && column != "sentiment" {
 		column = "outcome"
 	}
-	where, args := callWhere(f)
+	where, args, err := callWhere(ctx, f)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `SELECT `+column+`, COUNT(*) FROM calls`+where+
 		` GROUP BY `+column+` ORDER BY COUNT(*) DESC`, args...)
 	if err != nil {

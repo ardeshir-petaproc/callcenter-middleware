@@ -126,6 +126,6 @@ func (c *Core) maybeComplete(cp *domain.Campaign) {
 	cp.Status = domain.CampaignCompleted
 	if err := c.Store.Campaigns.Update(ctx, cp); err == nil {
 		slog.Info("Campaign completed", "campaign", cp.Name)
-		c.publish(domain.EvConfigChanged, map[string]string{"entity": "campaign"})
+		c.publish(cp.TenantID, domain.EvConfigChanged, map[string]string{"entity": "campaign"})
 	}
 }

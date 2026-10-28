@@ -10,7 +10,7 @@ import (
 
 var realtimeVoices = []string{"marin", "cedar", "alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"}
 
-func (s *Server) prepareAIProfile(p *domain.AIProfile) error {
+func (s *Server) prepareAIProfile(r *http.Request, p *domain.AIProfile) error {
 	p.Name = strings.TrimSpace(p.Name)
 	if p.Name == "" {
 		return bad("name is required")
@@ -33,7 +33,7 @@ func (s *Server) prepareAIProfile(p *domain.AIProfile) error {
 		return bad("max_duration_sec must be positive")
 	}
 	if p.HandoffQueueID > 0 {
-		if _, err := s.d.Store.Queues.Get(s.ctx(), p.HandoffQueueID); err != nil {
+		if _, err := s.d.Store.Queues.Get(r.Context(), p.HandoffQueueID); err != nil {
 			return bad("handoff queue does not exist")
 		}
 	}

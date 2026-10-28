@@ -75,7 +75,7 @@ func (c *Core) finish(call *liveCall, by string) {
 	}
 	c.timeline(call, "ended", string(call.Outcome)+" by "+by)
 	c.persist(call)
-	c.publish(domain.EvCallEnded, c.view(call))
+	c.publish(call.TenantID, domain.EvCallEnded, c.view(call))
 	c.updateCallback(call)
 	c.updateLead(call)
 	if c.Analyzer != nil && (call.AnsweredAt != nil || call.AIProfileID > 0) {
@@ -125,5 +125,5 @@ func (c *Core) updateCallback(call *liveCall) {
 		cb.Status = domain.CallbackPending
 	}
 	_ = c.Store.UpdateCallback(ctx, cb)
-	c.publish(domain.EvCallbackCreated, cb)
+	c.publish(call.TenantID, domain.EvCallbackCreated, cb)
 }

@@ -6,6 +6,19 @@ import (
 	"callcenter-middleware/internal/domain"
 )
 
+// callScope restricts call-child rows (transcripts, events) to calls of
+// the scope's tenant.
+func callScope(ctx context.Context) (string, []any, error) {
+	sc, err := scopeOf(ctx)
+	if err != nil {
+		return "", nil, err
+	}
+	if sc.system {
+		return "", nil, nil
+	}
+	return " AND call_id IN (SELECT id FROM calls WHERE id = call_id AND tenant_id = ?)", []any{sc.tenant}, nil
+}
+
 // AddTranscript appends one utterance to a call transcript.
 func (s *Store) AddTranscript(ctx context.Context, t domain.TranscriptEntry) error {
 	_, err := s.db.ExecContext(ctx, `INSERT INTO transcripts (call_id, speaker, text, at) VALUES (?, ?, ?, ?)`,
@@ -15,8 +28,12 @@ func (s *Store) AddTranscript(ctx context.Context, t domain.TranscriptEntry) err
 
 // Transcript returns the transcript of a call in order.
 func (s *Store) Transcript(ctx context.Context, callID string) ([]domain.TranscriptEntry, error) {
-	rows, err := s.db.QueryContext(ctx,
-		`SELECT call_id, speaker, text, at FROM transcripts WHERE call_id = ? ORDER BY at, id`, callID)
+	cond, args, err := callScope(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, `SELECT call_id, speaker, text, at FROM transcripts WHERE call_id = ?`+cond+
+		` ORDER BY at, id`, append([]any{callID}, args...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +60,12 @@ func (s *Store) AddCallEvent(ctx context.Context, e domain.CallEvent) error {
 
 // CallEvents returns the timeline of a call in order.
 func (s *Store) CallEvents(ctx context.Context, callID string) ([]domain.CallEvent, error) {
-	rows, err := s.db.QueryContext(ctx,
-		`SELECT call_id, type, detail, at FROM call_events WHERE call_id = ? ORDER BY at, id`, callID)
+	cond, args, err := callScope(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, `SELECT call_id, type, detail, at FROM call_events WHERE call_id = ?`+cond+
+		` ORDER BY at, id`, append([]any{callID}, args...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -62,24 +83,35 @@ func (s *Store) CallEvents(ctx context.Context, callID string) ([]domain.CallEve
 	return out, rows.Err()
 }
 
-// GetSetting returns a stored setting or def when absent.
+// GetSetting returns a tenant setting or def when absent.
 func (s *Store) GetSetting(ctx context.Context, key, def string) string {
+	tenant, _ := TenantOf(ctx)
 	var v string
-	if err := s.db.QueryRowContext(ctx, `SELECT value FROM settings WHERE key = ?`, key).Scan(&v); err != nil {
+	if err := s.db.QueryRowContext(ctx, `SELECT value FROM tenant_settings WHERE tenant_id = ? AND key = ?`,
+		tenant, key).Scan(&v); err != nil {
 		return def
 	}
 	return v
 }
 
-// SetSetting stores a setting value.
+// SetSetting stores a tenant setting value.
 func (s *Store) SetSetting(ctx context.Context, key, value string) error {
-	_, err := s.db.ExecContext(ctx, `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, key, value)
+	sc, err := scopeOf(ctx)
+	if err != nil || sc.system {
+		return ErrNoTenant
+	}
+	_, err = s.db.ExecContext(ctx, `INSERT OR REPLACE INTO tenant_settings (tenant_id, key, value) VALUES (?, ?, ?)`,
+		sc.tenant, key, value)
 	return err
 }
 
-// AllSettings returns every stored setting.
+// AllSettings returns every setting of the scope's tenant.
 func (s *Store) AllSettings(ctx context.Context) (map[string]string, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT key, value FROM settings`)
+	sc, err := scopeOf(ctx)
+	if err != nil || sc.system {
+		return nil, ErrNoTenant
+	}
+	rows, err := s.db.QueryContext(ctx, `SELECT key, value FROM tenant_settings WHERE tenant_id = ?`, sc.tenant)
 	if err != nil {
 		return nil, err
 	}

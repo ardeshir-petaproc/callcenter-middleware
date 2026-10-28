@@ -1,15 +1,12 @@
 package server
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
 	"callcenter-middleware/internal/core"
 	"callcenter-middleware/internal/domain"
 )
-
-func (s *Server) ctx() context.Context { return context.Background() }
 
 func (s *Server) listCallbacks(w http.ResponseWriter, r *http.Request) error {
 	cbs, err := s.d.Store.ListCallbacks(r.Context(), r.URL.Query().Get("status"), qInt(r, "limit", 200))

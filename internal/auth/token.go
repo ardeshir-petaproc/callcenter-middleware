@@ -21,6 +21,8 @@ var ErrInvalidToken = errors.New("invalid token")
 // Claims identify the authenticated user inside a token.
 type Claims struct {
 	UserID   int64       `json:"sub"`
+	TenantID int64       `json:"tid"`
+	Platform bool        `json:"pla,omitempty"`
 	Username string      `json:"usr"`
 	Role     domain.Role `json:"role"`
 	Expires  int64       `json:"exp"`
@@ -45,7 +47,8 @@ func (i *Issuer) Issue(u *domain.User) (string, time.Time, error) {
 	now := time.Now()
 	exp := now.Add(i.ttl)
 	payload, err := json.Marshal(Claims{
-		UserID: u.ID, Username: u.Username, Role: u.Role, Expires: exp.Unix(), IssuedAt: now.Unix(),
+		UserID: u.ID, TenantID: u.TenantID, Platform: u.PlatformAdmin, Username: u.Username, Role: u.Role,
+		Expires: exp.Unix(), IssuedAt: now.Unix(),
 	})
 	if err != nil {
 		return "", time.Time{}, err

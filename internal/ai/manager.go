@@ -10,6 +10,7 @@ import (
 
 	"callcenter-middleware/internal/config"
 	"callcenter-middleware/internal/core"
+	"callcenter-middleware/internal/store"
 )
 
 // ErrNotConfigured is returned when no OpenAI API key is set.
@@ -50,7 +51,7 @@ func (m *Manager) Start(spec core.AISpec, ctl core.AIControl) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(store.ForTenant(context.Background(), spec.TenantID))
 	s := &Session{spec: spec, ctl: ctl, cfg: m.cfg, dir: m.dir, rtp: rtp, cancel: cancel,
 		queues: m.dir.QueueNames(ctx)}
 	m.mu.Lock()

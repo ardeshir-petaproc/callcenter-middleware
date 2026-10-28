@@ -7,34 +7,66 @@ import (
 
 	"callcenter-middleware/internal/auth"
 	"callcenter-middleware/internal/domain"
+	"callcenter-middleware/internal/store"
 )
 
+// login authenticates a local (username/password) account. Organizations
+// are selected by slug; the default organization is used when omitted.
 func (s *Server) login(w http.ResponseWriter, r *http.Request) error {
 	var req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
+		Tenant   string `json:"tenant"`
 	}
 	if err := decode(r, &req); err != nil {
 		return err
 	}
-	key := limiterKey(r, req.Username)
+	slug := strings.TrimSpace(req.Tenant)
+	if slug == "" {
+		slug = "default"
+	}
+	key := limiterKey(r, slug+"/"+req.Username)
 	if s.limiter.blocked(key) {
 		return errStatus(http.StatusTooManyRequests, "too many failed attempts, try again later")
 	}
-	u, err := s.d.Store.GetUserByUsername(r.Context(), strings.TrimSpace(req.Username))
-	if err != nil || !u.Enabled || !auth.CheckPassword(u.PasswordHash, req.Password) {
+	var u *domain.User
+	t, err := s.d.Store.GetTenantBySlug(r.Context(), slug)
+	if err == nil {
+		u, err = s.d.Store.GetUserByUsername(store.ForTenant(r.Context(), t.ID), strings.TrimSpace(req.Username))
+	}
+	if err != nil || !u.Enabled || u.Status == domain.UserDisabled || u.PasswordHash == "" ||
+		!auth.CheckPassword(u.PasswordHash, req.Password) {
 		s.limiter.fail(key)
 		// Constant-ish failure path to avoid username probing.
 		time.Sleep(200 * time.Millisecond)
 		return errStatus(http.StatusUnauthorized, "invalid username or password")
 	}
 	s.limiter.reset(key)
+	return s.issueSession(w, r, u, "login")
+}
+
+// issueSession signs a token for u and returns the session payload.
+func (s *Server) issueSession(w http.ResponseWriter, r *http.Request, u *domain.User, how string) error {
+	t, err := s.d.Store.GetTenant(r.Context(), u.TenantID)
+	if err != nil {
+		return err
+	}
+	if t.Status != domain.TenantActive && !u.PlatformAdmin {
+		return errStatus(http.StatusForbidden, "organization suspended")
+	}
 	tok, exp, err := s.d.Issuer.Issue(u)
 	if err != nil {
 		return err
 	}
-	_ = s.d.Store.Audit(r.Context(), domain.AuditEntry{UserID: u.ID, Username: u.Username, Action: "login", Entity: "user", EntityID: itoa(u.ID)})
-	writeJSON(w, http.StatusOK, map[string]any{"token": tok, "expires_at": exp.UTC(), "user": u})
+	ctx := store.ForTenant(r.Context(), u.TenantID)
+	_ = s.d.Store.Audit(ctx, domain.AuditEntry{UserID: u.ID, Username: u.Username, Action: how, Entity: "user",
+		EntityID: itoa(u.ID)})
+	var custom *domain.CustomRole
+	if u.CustomRoleID > 0 {
+		custom, _ = s.d.Store.Roles.Get(ctx, u.CustomRoleID)
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"token": tok, "expires_at": exp.UTC(), "user": u, "tenant": t,
+		"permissions": domain.PermissionsFor(u.Role, custom).List()})
 	return nil
 }
 
@@ -43,7 +75,8 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return errStatus(http.StatusUnauthorized, "user no longer exists")
 	}
-	resp := map[string]any{"user": u, "agent": nil}
+	p := principalOf(r)
+	resp := map[string]any{"user": u, "agent": nil, "tenant": p.tenant, "permissions": p.perms.List()}
 	if st, ok := s.d.Core.Agent(u.ID); ok {
 		resp["agent"] = st
 	}
@@ -78,73 +111,4 @@ func (s *Server) changePassword(w http.ResponseWriter, r *http.Request) error {
 	s.audit(r, "change_password", "user", u.ID, "")
 	ok(w)
 	return nil
-}
-
-type statusReq struct {
-	Status domain.AgentStatus `json:"status"`
-	Reason string             `json:"reason"`
-}
-
-func (s *Server) applyStatus(w http.ResponseWriter, r *http.Request, userID int64) error {
-	var req statusReq
-	if err := decode(r, &req); err != nil {
-		return err
-	}
-	if err := s.d.Core.SetAgentStatus(userID, req.Status, req.Reason); err != nil {
-		if err.Error() == "status must be available, paused or offline" {
-			return bad(err.Error())
-		}
-		return err
-	}
-	st, _ := s.d.Core.Agent(userID)
-	writeJSON(w, http.StatusOK, st)
-	return nil
-}
-
-func (s *Server) setMyStatus(w http.ResponseWriter, r *http.Request) error {
-	return s.applyStatus(w, r, claimsOf(r).UserID)
-}
-
-func (s *Server) forceStatus(w http.ResponseWriter, r *http.Request) error {
-	id, err := pathID(r)
-	if err != nil {
-		return err
-	}
-	s.audit(r, "force_status", "user", id, "")
-	return s.applyStatus(w, r, id)
-}
-
-func (s *Server) myStats(w http.ResponseWriter, r *http.Request) error {
-	now := time.Now()
-	start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	sum, err := s.d.Store.ReportSummary(r.Context(), domain.CallFilter{From: start, AgentID: claimsOf(r).UserID})
-	if err != nil {
-		return err
-	}
-	writeJSON(w, http.StatusOK, sum)
-	return nil
-}
-
-func (s *Server) myDial(w http.ResponseWriter, r *http.Request) error {
-	var req struct {
-		Number string `json:"number"`
-	}
-	if err := decode(r, &req); err != nil {
-		return err
-	}
-	id, err := s.d.Core.Dial(claimsOf(r).UserID, req.Number, 0)
-	if err != nil {
-		return dialErr(err)
-	}
-	s.audit(r, "dial", "call", id, req.Number)
-	writeJSON(w, http.StatusOK, map[string]string{"call_id": id})
-	return nil
-}
-
-func dialErr(err error) error {
-	switch err.Error() {
-	case "invalid number", "agent has no extension":
-		return bad(err.Error())
-	}
-	return err
 }

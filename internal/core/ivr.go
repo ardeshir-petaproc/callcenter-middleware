@@ -74,7 +74,7 @@ func (c *Core) retryOrFallback(call *liveCall, media string) {
 	}
 	action := call.flow.TimeoutAction
 	if action.Type == domain.ActionNone {
-		action = c.defaultAction()
+		action = c.defaultAction(call.TenantID)
 	}
 	if c.Metrics != nil {
 		c.Metrics.RecordDTMF("timeout", "timeout_fallback")
@@ -84,8 +84,8 @@ func (c *Core) retryOrFallback(call *liveCall, media string) {
 }
 
 // defaultAction is used when configuration leaves a decision unset.
-func (c *Core) defaultAction() domain.Action {
-	for _, q := range c.cache.sortedQueues() {
+func (c *Core) defaultAction(tenant int64) domain.Action {
+	for _, q := range c.cache.sortedQueues(tenant) {
 		if q.Enabled {
 			return domain.Action{Type: domain.ActionQueue, Target: itoa(q.ID)}
 		}

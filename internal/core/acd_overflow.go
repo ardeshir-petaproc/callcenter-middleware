@@ -24,7 +24,7 @@ func (c *Core) overflow(call *liveCall) {
 	if call.queue != nil && call.queue.Overflow.Type != domain.ActionNone {
 		action = call.queue.Overflow
 	}
-	if action.Type == domain.ActionQueue && call.queue != nil && c.cache.findQueue(action.Target) == call.queue {
+	if action.Type == domain.ActionQueue && call.queue != nil && c.cache.findQueue(call.TenantID, action.Target) == call.queue {
 		action = domain.Action{Type: domain.ActionVoicemail}
 	}
 	if c.Metrics != nil && call.queue != nil {
@@ -35,9 +35,13 @@ func (c *Core) overflow(call *liveCall) {
 
 // directToAgent rings one specific agent, keeping the call's queue for fallback.
 func (c *Core) directToAgent(call *liveCall, userID int64) {
+	if c.cache.user(call.TenantID, userID) == nil {
+		c.execute(call, c.defaultAction(call.TenantID))
+		return
+	}
 	q := call.queue
 	if q == nil {
-		q = c.cache.findQueue(c.defaultAction().Target)
+		q = c.cache.findQueue(call.TenantID, c.defaultAction(call.TenantID).Target)
 	}
 	if q == nil {
 		q = &domain.Queue{Name: "direct", Strategy: domain.StrategyRingAll, Enabled: true}

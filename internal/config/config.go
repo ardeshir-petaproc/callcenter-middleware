@@ -23,6 +23,11 @@ type Config struct {
 	QueueMappings map[string]string
 
 	DBPath        string
+	PublicURL     string
+	JoowMode      string // "local" (development) or "http"
+	JoowAPIURL    string
+	JoowAPIKey    string
+	DataKey       string // master key for encrypting stored files and secrets
 	JWTSecret     string
 	JWTGenerated  bool
 	TokenTTL      time.Duration
@@ -76,6 +81,11 @@ func LoadFromEnv() *Config {
 		QueueMappings: parseQueueMappings(getEnv("QUEUE_MAPPINGS", "1=600,2=601,0=600")),
 
 		DBPath:        getEnv("DB_PATH", "data/callcenter.db"),
+		PublicURL:     getEnv("PUBLIC_URL", "http://localhost:8080"),
+		JoowMode:      getEnv("JOOW_MODE", "local"),
+		JoowAPIURL:    getEnv("JOOW_API_URL", ""),
+		JoowAPIKey:    getEnv("JOOW_API_KEY", ""),
+		DataKey:       getEnv("DATA_ENCRYPTION_KEY", ""),
 		JWTSecret:     getEnv("JWT_SECRET", ""),
 		TokenTTL:      time.Duration(getEnvInt("TOKEN_TTL_HOURS", 12)) * time.Hour,
 		AdminUsername: getEnv("ADMIN_USERNAME", "admin"),

@@ -16,6 +16,7 @@ import (
 	"callcenter-middleware/internal/core"
 	"callcenter-middleware/internal/domain"
 	"callcenter-middleware/internal/events"
+	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/metrics"
 	"callcenter-middleware/internal/notify"
 	"callcenter-middleware/internal/seed"
@@ -37,7 +38,8 @@ func main() {
 		os.Exit(1)
 	}
 	defer st.Close()
-	bootstrap(cfg, st)
+	idp := joowProvider(cfg, st)
+	bootstrap(cfg, st, idp)
 
 	promMetrics := metrics.NewPrometheusMetrics()
 	hub := events.NewHub()
@@ -72,7 +74,7 @@ func main() {
 	httpServer := server.NewServer(cfg.HTTPPort, server.Deps{
 		Config: cfg, Store: st, Core: callCore, Hub: hub, Issuer: auth.NewIssuer(cfg.JWTSecret, cfg.TokenTTL),
 		Stream: stream, OpenAI: openai, Fetcher: ariClient, Started: time.Now(),
-		StaticFS: server.StaticFS(web.Assets()),
+		StaticFS: server.StaticFS(web.Assets()), Joow: idp, DevJoowTokens: cfg.JoowMode != "http",
 	})
 	go func() {
 		if err := httpServer.Start(); err != nil {
@@ -101,8 +103,9 @@ func main() {
 	slog.Info("Clean shutdown complete")
 }
 
-func bootstrap(cfg *config.Config, st *store.Store) {
-	ctx := context.Background()
+func bootstrap(cfg *config.Config, st *store.Store, idp joow.Provider) {
+	root := context.Background()
+	ctx := store.ForTenant(root, core.DefaultTenant)
 	if err := seed.EnsureAdmin(ctx, st, cfg.AdminUsername, cfg.AdminPassword); err != nil {
 		slog.Error("Bootstrap admin failed", "err", err)
 		os.Exit(1)
@@ -110,11 +113,31 @@ func bootstrap(cfg *config.Config, st *store.Store) {
 	if err := seed.EnsureDefaults(ctx, st); err != nil {
 		slog.Warn("Seed defaults failed", "err", err)
 	}
-	if cfg.SeedDemo {
-		if err := seed.Demo(ctx, st); err != nil {
-			slog.Warn("Seed demo data failed", "err", err)
+	if !cfg.SeedDemo {
+		return
+	}
+	if err := seed.Demo(ctx, st); err != nil {
+		slog.Warn("Seed demo data failed", "err", err)
+	}
+	if err := seed.DemoSecondTenant(root, st); err != nil {
+		slog.Warn("Seed second demo tenant failed", "err", err)
+	}
+	if local, ok := idp.(*joow.Local); ok {
+		if err := seed.DemoJoowAccounts(root, local.Upsert); err != nil {
+			slog.Warn("Seed Joow accounts failed", "err", err)
 		}
 	}
+}
+
+// joowProvider selects the Joow integration: the real Joow API or the
+// self-contained local provider used for development and demos.
+func joowProvider(cfg *config.Config, st *store.Store) joow.Provider {
+	if cfg.JoowMode == "http" && cfg.JoowAPIURL != "" {
+		slog.Info("Joow integration: HTTP", "url", cfg.JoowAPIURL)
+		return joow.NewHTTP(cfg.JoowAPIURL, cfg.JoowAPIKey)
+	}
+	slog.Warn("Joow integration: local development provider")
+	return joow.NewLocal(st.DB(), cfg.JWTSecret)
 }
 
 // startBackground runs webhook delivery and voicemail transcription.

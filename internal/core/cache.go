@@ -2,38 +2,44 @@ package core
 
 import (
 	"context"
-	"sort"
-	"strconv"
-	"strings"
 
 	"callcenter-middleware/internal/domain"
+	"callcenter-middleware/internal/store"
 )
 
-// configCache is an immutable snapshot of configuration used by the loop.
+// configCache is an immutable snapshot of configuration for every tenant.
+// Lookups are tenant-aware so a call can never be routed into another
+// tenant's queues, flows, agents or AI profiles.
 type configCache struct {
-	queues    map[int64]*domain.Queue
-	flows     []domain.IVRFlow
-	schedules map[int64]*domain.Schedule
-	profiles  map[int64]*domain.AIProfile
-	members   map[int64][]domain.QueueMember
-	users     map[int64]*domain.User
-	campaigns []domain.Campaign
+	queues      map[int64]*domain.Queue
+	flows       []domain.IVRFlow
+	schedules   map[int64]*domain.Schedule
+	profiles    map[int64]*domain.AIProfile
+	members     map[int64][]domain.QueueMember
+	users       map[int64]*domain.User
+	campaigns   []domain.Campaign
+	departments map[int64]*domain.Department
+	numbers     map[string]*domain.PhoneNumber
+	jobs        map[int64]*domain.JobProfile
+}
+
+func index[T any](items []T, id func(*T) int64) map[int64]*T {
+	out := make(map[int64]*T, len(items))
+	for i := range items {
+		out[id(&items[i])] = &items[i]
+	}
+	return out
 }
 
 func loadCache(ctx context.Context, d Deps) (*configCache, error) {
 	st := d.Store
-	cc := &configCache{
-		queues: map[int64]*domain.Queue{}, schedules: map[int64]*domain.Schedule{},
-		profiles: map[int64]*domain.AIProfile{}, members: map[int64][]domain.QueueMember{},
-		users: map[int64]*domain.User{},
-	}
+	ctx = store.System(ctx)
+	cc := &configCache{members: map[int64][]domain.QueueMember{}, numbers: map[string]*domain.PhoneNumber{}}
 	queues, err := st.Queues.List(ctx)
 	if err != nil {
 		return nil, err
 	}
-	for i := range queues {
-		cc.queues[queues[i].ID] = &queues[i]
-	}
+	cc.queues = index(queues, func(q *domain.Queue) int64 { return q.ID })
 	if cc.flows, err = st.Flows.List(ctx); err != nil {
 		return nil, err
 	}
@@ -41,18 +47,33 @@ func loadCache(ctx context.Context, d Deps) (*configCache, error) {
 	if err != nil {
 		return nil, err
 	}
-	for i := range schedules {
-		cc.schedules[schedules[i].ID] = &schedules[i]
-	}
+	cc.schedules = index(schedules, func(s *domain.Schedule) int64 { return s.ID })
 	profiles, err := st.AIProfiles.List(ctx)
 	if err != nil {
 		return nil, err
 	}
-	for i := range profiles {
-		cc.profiles[profiles[i].ID] = &profiles[i]
-	}
+	cc.profiles = index(profiles, func(p *domain.AIProfile) int64 { return p.ID })
 	if cc.campaigns, err = st.Campaigns.List(ctx); err != nil {
 		return nil, err
+	}
+	depts, err := st.Departments.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cc.departments = index(depts, func(d *domain.Department) int64 { return d.ID })
+	jobs, err := st.JobProfiles.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cc.jobs = index(jobs, func(j *domain.JobProfile) int64 { return j.ID })
+	numbers, err := st.Numbers.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for i := range numbers {
+		if n := &numbers[i]; n.Enabled {
+			cc.numbers[NormalizePhone(n.Number)] = n
+		}
 	}
 	members, err := st.ListMembers(ctx)
 	if err != nil {
@@ -65,9 +86,7 @@ func loadCache(ctx context.Context, d Deps) (*configCache, error) {
 	if err != nil {
 		return nil, err
 	}
-	for i := range users {
-		cc.users[users[i].ID] = &users[i]
-	}
+	cc.users = index(users, func(u *domain.User) int64 { return u.ID })
 	return cc, nil
 }
 
@@ -83,84 +102,4 @@ func (c *Core) Reload(ctx context.Context) error {
 		c.dispatch()
 		return nil
 	})
-}
-
-// flowFor finds the enabled flow for a dialed number, falling back to a
-// catch-all flow ("*" or empty DNIS).
-func (cc *configCache) flowFor(dnis string) *domain.IVRFlow {
-	var fallback *domain.IVRFlow
-	for i := range cc.flows {
-		f := &cc.flows[i]
-		if !f.Enabled {
-			continue
-		}
-		if f.DNIS == dnis && dnis != "" {
-			return f
-		}
-		if (f.DNIS == "*" || f.DNIS == "") && fallback == nil {
-			fallback = f
-		}
-	}
-	return fallback
-}
-
-func (cc *configCache) flowByID(id int64) *domain.IVRFlow {
-	for i := range cc.flows {
-		if cc.flows[i].ID == id {
-			return &cc.flows[i]
-		}
-	}
-	return nil
-}
-
-// findQueue resolves a queue by id, name or extension.
-func (cc *configCache) findQueue(ref string) *domain.Queue {
-	ref = strings.TrimSpace(ref)
-	if id, err := strconv.ParseInt(ref, 10, 64); err == nil {
-		if q, ok := cc.queues[id]; ok {
-			return q
-		}
-	}
-	for _, q := range cc.sortedQueues() {
-		if strings.EqualFold(q.Name, ref) || (q.Extension != "" && q.Extension == ref) {
-			return q
-		}
-	}
-	return nil
-}
-
-func (cc *configCache) sortedQueues() []*domain.Queue {
-	out := make([]*domain.Queue, 0, len(cc.queues))
-	for _, q := range cc.queues {
-		out = append(out, q)
-	}
-	sort.Slice(out, func(i, j int) bool {
-		if out[i].Priority != out[j].Priority {
-			return out[i].Priority > out[j].Priority
-		}
-		return out[i].ID < out[j].ID
-	})
-	return out
-}
-
-func (cc *configCache) penalty(queueID, userID int64) (int, bool) {
-	for _, m := range cc.members[queueID] {
-		if m.UserID == userID {
-			return m.Penalty, true
-		}
-	}
-	return 0, false
-}
-
-func (cc *configCache) queuesOf(userID int64) []int64 {
-	ids := []int64{}
-	for qid, ms := range cc.members {
-		for _, m := range ms {
-			if m.UserID == userID {
-				ids = append(ids, qid)
-			}
-		}
-	}
-	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
-	return ids
 }

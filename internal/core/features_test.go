@@ -1,7 +1,6 @@
 package core_test
 
 import (
-	"context"
 	"sync"
 	"testing"
 	"time"
@@ -33,8 +32,8 @@ func TestAIAgent_BridgesMediaAndHandsOffToQueue(t *testing.T) {
 	alice := h.agent("alice", "1001")
 	q := h.queue(domain.Queue{Name: "Humans"}, alice)
 	p := &domain.AIProfile{Name: "Concierge", HandoffQueueID: q.ID, Enabled: true}
-	_ = h.st.AIProfiles.Create(context.Background(), p)
-	_ = h.st.Flows.Create(context.Background(), &domain.IVRFlow{Name: "ai-first", DNIS: "300", Enabled: true,
+	_ = h.st.AIProfiles.Create(tctx(), p)
+	_ = h.st.Flows.Create(tctx(), &domain.IVRFlow{Name: "ai-first", DNIS: "300", Enabled: true,
 		DirectAction: domain.Action{Type: domain.ActionAI, Target: itoa(p.ID)}})
 	h.reload()
 	_ = h.core.SetAgentStatus(alice.ID, domain.AgentAvailable, "")
@@ -61,7 +60,7 @@ func TestAIAgent_BridgesMediaAndHandsOffToQueue(t *testing.T) {
 	if v.Summary != "AI handoff: wants refund" || v.AIProfileID != p.ID {
 		t.Fatalf("unexpected call view %+v", v.Call)
 	}
-	tr, _ := h.st.Transcript(context.Background(), callID)
+	tr, _ := h.st.Transcript(tctx(), callID)
 	if len(tr) != 1 || tr[0].Text != "I need a human" {
 		t.Fatalf("unexpected transcript %+v", tr)
 	}
@@ -70,8 +69,8 @@ func TestAIAgent_BridgesMediaAndHandsOffToQueue(t *testing.T) {
 func TestAfterHours_RunsAfterHoursAction(t *testing.T) {
 	h := newHarness(t, nil)
 	sch := &domain.Schedule{Name: "office", Weekly: []domain.TimeRange{{Day: 1, Start: "09:00", End: "17:00"}}}
-	_ = h.st.Schedules.Create(context.Background(), sch)
-	_ = h.st.Flows.Create(context.Background(), &domain.IVRFlow{Name: "main", DNIS: "*", Enabled: true,
+	_ = h.st.Schedules.Create(tctx(), sch)
+	_ = h.st.Flows.Create(tctx(), &domain.IVRFlow{Name: "main", DNIS: "*", Enabled: true,
 		GreetingMedia: "sound:menu", ScheduleID: sch.ID, AfterHoursAction: domain.Action{Type: domain.ActionVoicemail}})
 	h.reload()
 	h.incoming("c1", "555", "200") // Tuesday: closed
@@ -93,7 +92,7 @@ func TestTransfer_ConnectedCallToAnotherQueue(t *testing.T) {
 	h.dtmf("c1", "1")
 	legA := h.sw.lastOrig()
 	h.answer(legA.ChannelID)
-	callID := h.core.Snapshot().Calls[0].ID
+	callID := h.core.Snapshot(0).Calls[0].ID
 
 	if err := h.core.Transfer(callID, domain.Action{Type: domain.ActionQueue, Target: itoa(q2.ID)}); err != nil {
 		t.Fatal(err)

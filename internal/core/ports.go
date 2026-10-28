@@ -9,6 +9,7 @@ import (
 
 // AISpec describes an AI voice session to start.
 type AISpec struct {
+	TenantID     int64
 	CallID       string
 	CallerNumber string
 	CallerName   string

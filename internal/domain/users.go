@@ -30,6 +30,7 @@ func (r Role) Valid() bool { return r.Rank() > 0 }
 // User is an operator of the call center: admin, supervisor or agent.
 type User struct {
 	ID           int64     `json:"id"`
+	TenantID     int64     `json:"tenant_id"`
 	Username     string    `json:"username"`
 	DisplayName  string    `json:"display_name"`
 	Email        string    `json:"email"`
@@ -41,6 +42,58 @@ type User struct {
 	PasswordHash string    `json:"-"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+
+	// Identity and access.
+	JoowAccountID string `json:"joow_account_id"`
+	CustomRoleID  int64  `json:"custom_role_id"`
+	PlatformAdmin bool   `json:"platform_admin"`
+	Status        string `json:"status"` // active, invited, disabled
+
+	Profile
+}
+
+// Profile is the organizational profile of an employee. It is also an
+// input of the routing engine (departments, languages, job profile).
+type Profile struct {
+	Title         string   `json:"title"`
+	DepartmentIDs []int64  `json:"department_ids"`
+	ManagerID     int64    `json:"manager_id"`
+	Languages     []string `json:"languages"`
+	ScheduleID    int64    `json:"schedule_id"`
+	JobProfileID  int64    `json:"job_profile_id"`
+	Phone         string   `json:"phone"`
+}
+
+// User statuses.
+const (
+	UserActive   = "active"
+	UserInvited  = "invited"
+	UserDisabled = "disabled"
+)
+
+// InDepartment reports whether the user belongs to department id.
+func (u *User) InDepartment(id int64) bool {
+	for _, d := range u.DepartmentIDs {
+		if d == id {
+			return true
+		}
+	}
+	return false
+}
+
+// SpeaksAny reports whether the user speaks one of langs (or langs is empty).
+func (u *User) SpeaksAny(langs []string) bool {
+	if len(langs) == 0 {
+		return true
+	}
+	for _, want := range langs {
+		for _, l := range u.Languages {
+			if l == want {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // DialEndpoint returns the Asterisk endpoint used to ring this user.
@@ -86,6 +139,7 @@ const (
 // AgentState is the live view of an agent maintained by the call core.
 type AgentState struct {
 	UserID      int64       `json:"user_id"`
+	TenantID    int64       `json:"tenant_id"`
 	Username    string      `json:"username"`
 	DisplayName string      `json:"display_name"`
 	Extension   string      `json:"extension"`
@@ -103,8 +157,9 @@ type AgentState struct {
 
 // AgentEvent is a persisted status transition used for reporting.
 type AgentEvent struct {
-	UserID int64       `json:"user_id"`
-	Status AgentStatus `json:"status"`
-	Reason string      `json:"reason"`
-	At     time.Time   `json:"at"`
+	TenantID int64       `json:"tenant_id"`
+	UserID   int64       `json:"user_id"`
+	Status   AgentStatus `json:"status"`
+	Reason   string      `json:"reason"`
+	At       time.Time   `json:"at"`
 }

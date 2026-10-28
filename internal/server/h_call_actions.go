@@ -12,10 +12,10 @@ import (
 func (s *Server) liveCallFor(r *http.Request) (string, error) {
 	id := chi.URLParam(r, "id")
 	v, ok := s.d.Core.LiveCall(id)
-	if !ok {
+	if !ok || v.TenantID != tenantOf(r) {
 		return "", core.ErrCallNotFound
 	}
-	if !isSup(r) && v.AgentID != claimsOf(r).UserID {
+	if !can(r, domain.PermCallsControl) && v.AgentID != claimsOf(r).UserID {
 		return "", errForbidden
 	}
 	return id, nil

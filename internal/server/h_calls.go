@@ -20,7 +20,7 @@ func callFilter(r *http.Request) domain.CallFilter {
 
 func (s *Server) listCalls(w http.ResponseWriter, r *http.Request) error {
 	f := callFilter(r)
-	if !isSup(r) {
+	if !can(r, domain.PermCallsAll) {
 		f.AgentID = claimsOf(r).UserID
 	}
 	items, total, err := s.d.Store.ListCalls(r.Context(), f)
@@ -37,7 +37,7 @@ func (s *Server) loadCall(r *http.Request) (*domain.Call, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !isSup(r) && call.AgentID != claimsOf(r).UserID {
+	if !can(r, domain.PermCallsAll) && call.AgentID != claimsOf(r).UserID {
 		return nil, errForbidden
 	}
 	return call, nil

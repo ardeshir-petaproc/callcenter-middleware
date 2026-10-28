@@ -1,7 +1,6 @@
 package core_test
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -29,7 +28,7 @@ func TestSurvey_CollectsCSATAfterAgentHangsUp(t *testing.T) {
 	h.finishPlayback() // survey prompt done
 	h.dtmf("c1", "4")
 	h.finishPlayback() // thanks prompt done
-	calls, _, _ := h.st.ListCalls(context.Background(), domain.CallFilter{})
+	calls, _, _ := h.st.ListCalls(tctx(), domain.CallFilter{})
 	if len(calls) != 1 || calls[0].CSAT != 4 || calls[0].TalkSec != 40 || calls[0].Outcome != domain.OutcomeAnswered {
 		t.Fatalf("unexpected CDR %+v", calls)
 	}
@@ -39,7 +38,7 @@ func TestCampaign_ProgressiveDialerAndRetries(t *testing.T) {
 	h := newHarness(t, nil)
 	a := h.agent("a", "1001")
 	q := h.queue(domain.Queue{Name: "Outbound"}, a)
-	ctx := context.Background()
+	ctx := tctx()
 	cp := &domain.Campaign{Name: "Renewals", QueueID: q.ID, Status: domain.CampaignRunning, MaxAttempts: 2, RetryMinutes: 10}
 	_ = h.st.Campaigns.Create(ctx, cp)
 	_, _ = h.st.AddLeads(ctx, cp.ID, []domain.Lead{{Number: "+15550001", Name: "Lead One"}})
@@ -100,7 +99,7 @@ func TestQueueAlert_RaisedAndCleared(t *testing.T) {
 		h.dtmf(ch, "1")
 	}
 	h.core.Tick()
-	if snap := h.core.Snapshot(); len(snap.Alerts) != 1 || snap.Alerts[0].QueueID != q.ID {
+	if snap := h.core.Snapshot(0); len(snap.Alerts) != 1 || snap.Alerts[0].QueueID != q.ID {
 		t.Fatalf("expected active alert in snapshot, got %+v", snap.Alerts)
 	}
 	h.gone("c1", 16)

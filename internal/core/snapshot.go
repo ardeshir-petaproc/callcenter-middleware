@@ -6,23 +6,29 @@ import (
 	"callcenter-middleware/internal/domain"
 )
 
-// Snapshot returns a consistent copy of all live state.
-func (c *Core) Snapshot() Snapshot {
+// Snapshot returns a consistent copy of one tenant's live state
+// (tenant 0 returns every tenant, for platform tooling and tests).
+func (c *Core) Snapshot(tenant int64) Snapshot {
 	var s Snapshot
 	_ = c.do(func() error {
-		s = c.snapshot()
+		s = c.snapshot(tenant)
 		return nil
 	})
 	return s
 }
 
-func (c *Core) snapshot() Snapshot {
+func (c *Core) snapshot(tenant int64) Snapshot {
 	s := Snapshot{Calls: []CallView{}, Agents: []domain.AgentState{}, Queues: []QueueView{}, At: c.now().UTC()}
 	for _, call := range c.calls {
-		s.Calls = append(s.Calls, c.view(call))
+		if tenant == 0 || call.TenantID == tenant {
+			s.Calls = append(s.Calls, c.view(call))
+		}
 	}
 	sort.Slice(s.Calls, func(i, j int) bool { return s.Calls[i].StartedAt.Before(s.Calls[j].StartedAt) })
 	for _, a := range c.agents {
+		if tenant != 0 && a.TenantID != tenant {
+			continue
+		}
 		st := a.AgentState
 		if a.pendingStatus != "" {
 			st.PauseReason = "next: " + string(a.pendingStatus)
@@ -30,7 +36,7 @@ func (c *Core) snapshot() Snapshot {
 		s.Agents = append(s.Agents, st)
 	}
 	sort.Slice(s.Agents, func(i, j int) bool { return s.Agents[i].UserID < s.Agents[j].UserID })
-	s.Queues = c.queueViews()
+	s.Queues = c.queueViews(tenant)
 	s.Alerts = []QueueAlert{}
 	for _, v := range s.Queues {
 		if c.alerts[v.ID] {
@@ -44,10 +50,10 @@ func (c *Core) snapshot() Snapshot {
 	return s
 }
 
-func (c *Core) queueViews() []QueueView {
+func (c *Core) queueViews(tenant int64) []QueueView {
 	out := []QueueView{}
 	now := c.now()
-	for _, q := range c.cache.sortedQueues() {
+	for _, q := range c.cache.sortedQueues(tenant) {
 		v := QueueView{ID: q.ID, Name: q.Name, Members: len(c.cache.members[q.ID])}
 		for _, m := range c.cache.members[q.ID] {
 			a := c.agents[m.UserID]
@@ -100,7 +106,7 @@ func (c *Core) updateGauges() {
 		c.checkAlerts()
 		return
 	}
-	for _, v := range c.queueViews() {
+	for _, v := range c.queueViews(0) {
 		c.Metrics.SetQueueWaiting(v.Name, v.Waiting)
 	}
 	c.checkAlerts()

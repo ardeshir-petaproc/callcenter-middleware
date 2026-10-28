@@ -48,9 +48,10 @@ type HandoffNotification struct {
 
 // Event is a realtime notification published to dashboards and webhooks.
 type Event struct {
-	Type string    `json:"type"`
-	Data any       `json:"data"`
-	At   time.Time `json:"at"`
+	TenantID int64     `json:"tenant_id"`
+	Type     string    `json:"type"`
+	Data     any       `json:"data"`
+	At       time.Time `json:"at"`
 }
 
 // Realtime event types.

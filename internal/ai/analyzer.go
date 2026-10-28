@@ -41,7 +41,7 @@ func (a *Analyzer) Analyze(ctx context.Context, callID string) {
 	if a.OpenAI == nil || a.OpenAI.cfg.OpenAIAPIKey == "" {
 		return
 	}
-	ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
+	ctx, cancel := context.WithTimeout(store.System(ctx), 3*time.Minute)
 	defer cancel()
 	call, err := a.Store.GetCall(ctx, callID)
 	if err != nil {
@@ -83,7 +83,7 @@ func (a *Analyzer) Analyze(ctx context.Context, callID string) {
 	}
 	if a.Pub != nil {
 		if updated, err := a.Store.GetCall(ctx, callID); err == nil {
-			a.Pub.Publish(domain.Event{Type: domain.EvCallEnded, Data: updated})
+			a.Pub.Publish(domain.Event{TenantID: updated.TenantID, Type: domain.EvCallEnded, Data: updated})
 		}
 	}
 }
@@ -102,7 +102,7 @@ func (a *Analyzer) TranscribeVoicemail(ctx context.Context, vm domain.Voicemail)
 	if a.OpenAI == nil || a.OpenAI.cfg.OpenAIAPIKey == "" || a.Fetcher == nil {
 		return
 	}
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	ctx, cancel := context.WithTimeout(store.System(ctx), 2*time.Minute)
 	defer cancel()
 	text, err := a.transcribeRecording(ctx, vm.Recording)
 	if err != nil {

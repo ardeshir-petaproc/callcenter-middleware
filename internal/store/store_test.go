@@ -20,7 +20,7 @@ func open(t *testing.T) *Store {
 }
 
 func TestCollectionCRUD(t *testing.T) {
-	st, ctx := open(t), context.Background()
+	st, ctx := open(t), ForTenant(context.Background(), 1)
 	q := &domain.Queue{Name: "Sales", RequiredSkills: []string{"en"}, Overflow: domain.Action{Type: domain.ActionVoicemail}}
 	if err := st.Queues.Create(ctx, q); err != nil || q.ID == 0 {
 		t.Fatalf("create: %v %d", err, q.ID)
@@ -45,7 +45,7 @@ func TestCollectionCRUD(t *testing.T) {
 }
 
 func TestUsersUniqueAndPasswordKept(t *testing.T) {
-	st, ctx := open(t), context.Background()
+	st, ctx := open(t), ForTenant(context.Background(), 1)
 	u := &domain.User{Username: "Ana", Role: domain.RoleAgent, PasswordHash: "h1", Enabled: true}
 	if err := st.CreateUser(ctx, u); err != nil {
 		t.Fatal(err)
@@ -64,7 +64,7 @@ func TestUsersUniqueAndPasswordKept(t *testing.T) {
 }
 
 func TestReports(t *testing.T) {
-	st, ctx := open(t), context.Background()
+	st, ctx := open(t), ForTenant(context.Background(), 1)
 	base := time.Date(2026, 10, 20, 10, 0, 0, 0, time.UTC)
 	mk := func(id string, answered bool, wait, talk int, sla bool, outcome domain.CallOutcome, agent int64) {
 		c := &domain.Call{ID: id, Direction: "inbound", State: domain.CallEnded, Outcome: outcome, QueueID: 1,
@@ -105,7 +105,7 @@ func TestReports(t *testing.T) {
 }
 
 func TestAgentTime(t *testing.T) {
-	st, ctx := open(t), context.Background()
+	st, ctx := open(t), ForTenant(context.Background(), 1)
 	t0 := time.Date(2026, 10, 20, 9, 0, 0, 0, time.UTC)
 	for _, e := range []domain.AgentEvent{
 		{UserID: 1, Status: domain.AgentAvailable, At: t0.Add(-time.Hour)}, // before window

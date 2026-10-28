@@ -14,7 +14,7 @@ type QueueAlert struct {
 }
 
 func (c *Core) checkAlerts() {
-	for _, v := range c.queueViews() {
+	for _, v := range c.queueViews(0) {
 		q := c.cache.queues[v.ID]
 		if q == nil || (q.AlertWaiting <= 0 && q.AlertWaitSec <= 0) {
 			delete(c.alerts, v.ID)
@@ -30,7 +30,7 @@ func (c *Core) checkAlerts() {
 		if breach {
 			level = "alert"
 		}
-		c.publish(domain.EvQueueAlert, QueueAlert{QueueID: v.ID, Name: v.Name, Level: level,
+		c.publish(q.TenantID, domain.EvQueueAlert, QueueAlert{QueueID: v.ID, Name: v.Name, Level: level,
 			Waiting: v.Waiting, LongestWaitSec: v.LongestWaitSec, Available: v.Available})
 	}
 }

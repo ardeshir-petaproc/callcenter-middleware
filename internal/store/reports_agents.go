@@ -17,9 +17,14 @@ type AgentTime struct {
 // sums the time spent in each status. The last status before from is used
 // as the starting state so long-running statuses are counted correctly.
 func (s *Store) ReportAgentTime(ctx context.Context, from, to time.Time) ([]AgentTime, error) {
+	cond, targs, err := scoped(ctx, "tenant_id")
+	if err != nil {
+		return nil, err
+	}
+	args := append([]any{ms(to), ms(from), ms(from)}, targs...)
 	rows, err := s.db.QueryContext(ctx, `SELECT user_id, status, at FROM agent_events
-		WHERE at < ? AND (at >= ? OR id IN (SELECT MAX(id) FROM agent_events WHERE at < ? GROUP BY user_id))
-		ORDER BY user_id, at, id`, ms(to), ms(from), ms(from))
+		WHERE at < ? AND (at >= ? OR id IN (SELECT MAX(id) FROM agent_events WHERE at < ? GROUP BY user_id))`+cond+`
+		ORDER BY user_id, at, id`, args...)
 	if err != nil {
 		return nil, err
 	}

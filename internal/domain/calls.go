@@ -46,6 +46,7 @@ const (
 // Call is a call detail record plus live state.
 type Call struct {
 	ID           string      `json:"id"`
+	TenantID     int64       `json:"tenant_id"`
 	Direction    string      `json:"direction"`
 	CallerNumber string      `json:"caller_number"`
 	CallerName   string      `json:"caller_name"`
@@ -95,21 +96,22 @@ type CallEvent struct {
 
 // CallFilter narrows call history queries.
 type CallFilter struct {
-	From      time.Time
-	To        time.Time
-	QueueID   int64
-	AgentID   int64
-	Outcome   string
-	Direction string
+	From       time.Time
+	To         time.Time
+	QueueID    int64
+	AgentID    int64
+	Outcome    string
+	Direction  string
 	Search     string
 	CampaignID int64
 	Limit      int
-	Offset    int
+	Offset     int
 }
 
 // Callback is a request to call a customer back.
 type Callback struct {
 	ID         int64      `json:"id"`
+	TenantID   int64      `json:"tenant_id"`
 	CallID     string     `json:"call_id"`
 	Number     string     `json:"number"`
 	Name       string     `json:"name"`
@@ -135,6 +137,7 @@ const (
 // Voicemail is a recorded caller message.
 type Voicemail struct {
 	ID           int64     `json:"id"`
+	TenantID     int64     `json:"tenant_id"`
 	CallID       string    `json:"call_id"`
 	CallerNumber string    `json:"caller_number"`
 	CallerName   string    `json:"caller_name"`
@@ -149,6 +152,7 @@ type Voicemail struct {
 // AuditEntry records an administrative action.
 type AuditEntry struct {
 	ID       int64     `json:"id"`
+	TenantID int64     `json:"tenant_id"`
 	UserID   int64     `json:"user_id"`
 	Username string    `json:"username"`
 	Action   string    `json:"action"`

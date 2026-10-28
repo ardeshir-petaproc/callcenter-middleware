@@ -58,7 +58,8 @@ func (d *Dispatcher) Run(ctx context.Context, events <-chan domain.Event) {
 		hooks := d.hooks
 		d.mu.RUnlock()
 		for _, h := range hooks {
-			if h.Enabled && matches(h.Events, ev.Type) {
+			// Webhooks only ever receive their own tenant's events.
+			if h.Enabled && h.TenantID == ev.TenantID && matches(h.Events, ev.Type) {
 				go d.deliver(ctx, h, ev)
 			}
 		}

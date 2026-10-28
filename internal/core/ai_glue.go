@@ -11,10 +11,10 @@ import (
 // ExternalMedia RTP channel. Any failure falls back to a human queue.
 func (c *Core) startAI(call *liveCall, profileID int64) {
 	c.stopPlayback(call)
-	profile := c.cache.profiles[profileID]
+	profile := c.cache.profile(call.TenantID, profileID)
 	if profile == nil {
 		for _, p := range c.cache.profiles {
-			if p.Enabled {
+			if p.Enabled && p.TenantID == call.TenantID {
 				profile = p
 				break
 			}
@@ -23,12 +23,12 @@ func (c *Core) startAI(call *liveCall, profileID int64) {
 	if profile == nil || !profile.Enabled || c.AI == nil {
 		slog.Warn("AI agent unavailable, falling back to queue", "call_id", call.ID, "profile", profileID)
 		c.timeline(call, "ai_unavailable", "")
-		c.execute(call, c.defaultAction())
+		c.execute(call, c.defaultAction(call.TenantID))
 		return
 	}
 	call.AIProfileID = profile.ID
 	call.aiHandoff = profile.HandoffQueueID
-	host, err := c.AI.Start(AISpec{CallID: call.ID, CallerNumber: call.CallerNumber,
+	host, err := c.AI.Start(AISpec{TenantID: call.TenantID, CallID: call.ID, CallerNumber: call.CallerNumber,
 		CallerName: call.CallerName, Profile: *profile}, c)
 	if err != nil {
 		c.aiFallback(call, "start: "+err.Error())
@@ -98,20 +98,20 @@ func (c *Core) aiFallback(call *liveCall, reason string) {
 func (c *Core) aiHandoffQueue(call *liveCall, queueRef string) {
 	var q *domain.Queue
 	if queueRef != "" {
-		q = c.cache.findQueue(queueRef)
+		q = c.cache.findQueue(call.TenantID, queueRef)
 	}
 	if q == nil && call.aiHandoff > 0 {
-		q = c.cache.queues[call.aiHandoff]
+		q = c.cache.findQueue(call.TenantID, itoa(call.aiHandoff))
 	}
 	if q == nil || !q.Enabled {
-		c.execute(call, c.defaultAction())
+		c.execute(call, c.defaultAction(call.TenantID))
 		return
 	}
 	c.execute(call, domain.Action{Type: domain.ActionQueue, Target: itoa(q.ID)})
 }
 
 func (c *Core) tickAI(call *liveCall, now time.Time) {
-	p := c.cache.profiles[call.AIProfileID]
+	p := c.cache.profile(call.TenantID, call.AIProfileID)
 	if p == nil || p.MaxDurationSec <= 0 || call.aiStart.IsZero() {
 		return
 	}

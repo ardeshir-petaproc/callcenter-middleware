@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"callcenter-middleware/internal/domain"
+	"callcenter-middleware/internal/store"
 
 	"github.com/google/uuid"
 )
@@ -33,6 +34,8 @@ func (c *Core) startInbound(ev domain.TelephonyEvent) {
 	call.StartedAt = c.now().UTC()
 	call.State = domain.CallIVR
 	call.callerChan = ev.ChannelID
+	tenant, number := c.cache.tenantFor(ev.DNIS)
+	call.TenantID = tenant
 	c.calls[call.ID] = call
 	c.legs[ev.ChannelID] = &leg{chanID: ev.ChannelID, call: call, role: roleCaller, answered: true, since: c.now()}
 	if c.Metrics != nil {
@@ -48,9 +51,13 @@ func (c *Core) startInbound(ev domain.TelephonyEvent) {
 	}
 	c.timeline(call, "started", "from "+call.CallerNumber+" to "+call.DNIS)
 
-	flow := c.cache.flowFor(ev.DNIS)
-	if flow == nil {
+	flow := c.cache.flowFor(tenant, ev.DNIS, number)
+	if flow == nil && tenant == DefaultTenant {
 		flow = c.legacyFlow()
+	} else if flow == nil {
+		// A tenant without flows still answers: straight to its first queue.
+		flow = &domain.IVRFlow{TenantID: tenant, Name: "default", Enabled: true, TimeoutSec: 5,
+			DirectAction: c.defaultAction(tenant)}
 	}
 	call.flow, call.FlowID = flow, flow.ID
 	c.changed(call)
@@ -95,7 +102,7 @@ func (c *Core) matchContact(call *liveCall) {
 	}
 	ctx, cancel := c.opCtx()
 	defer cancel()
-	if ct := FindContact(ctx, c.Store, call.CallerNumber); ct != nil {
+	if ct := FindContact(store.ForTenant(ctx, call.TenantID), c.Store, call.CallerNumber); ct != nil {
 		call.ContactID = ct.ID
 		if call.CallerName == "" {
 			call.CallerName = ct.Name

@@ -9,13 +9,13 @@ import (
 	"callcenter-middleware/internal/domain"
 )
 
-const cbCols = `id, call_id, number, name, queue_id, status, assigned_to, due_at, attempts, notes, created_at, updated_at`
+const cbCols = `id, tenant_id, call_id, number, name, queue_id, status, assigned_to, due_at, attempts, notes, created_at, updated_at`
 
 func scanCallback(sc interface{ Scan(...any) error }) (*domain.Callback, error) {
 	var c domain.Callback
 	var due sql.NullInt64
 	var created, updated int64
-	if err := sc.Scan(&c.ID, &c.CallID, &c.Number, &c.Name, &c.QueueID, &c.Status, &c.AssignedTo,
+	if err := sc.Scan(&c.ID, &c.TenantID, &c.CallID, &c.Number, &c.Name, &c.QueueID, &c.Status, &c.AssignedTo,
 		&due, &c.Attempts, &c.Notes, &created, &updated); err != nil {
 		return nil, err
 	}
@@ -26,13 +26,18 @@ func scanCallback(sc interface{ Scan(...any) error }) (*domain.Callback, error) 
 
 // CreateCallback inserts a callback request.
 func (s *Store) CreateCallback(ctx context.Context, c *domain.Callback) error {
+	owner, err := ownerFor(ctx, c.TenantID)
+	if err != nil {
+		return err
+	}
+	c.TenantID = owner
 	now := time.Now().UTC()
 	if c.Status == "" {
 		c.Status = domain.CallbackPending
 	}
 	res, err := s.db.ExecContext(ctx, `INSERT INTO callbacks
-		(call_id, number, name, queue_id, status, assigned_to, due_at, attempts, notes, created_at, updated_at)
-		VALUES (?,?,?,?,?,?,?,?,?,?,?)`, c.CallID, c.Number, c.Name, c.QueueID, c.Status, c.AssignedTo,
+		(tenant_id, call_id, number, name, queue_id, status, assigned_to, due_at, attempts, notes, created_at, updated_at)
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`, owner, c.CallID, c.Number, c.Name, c.QueueID, c.Status, c.AssignedTo,
 		msPtr(c.DueAt), c.Attempts, c.Notes, ms(now), ms(now))
 	if err != nil {
 		return err
@@ -44,11 +49,15 @@ func (s *Store) CreateCallback(ctx context.Context, c *domain.Callback) error {
 
 // UpdateCallback saves mutable callback fields.
 func (s *Store) UpdateCallback(ctx context.Context, c *domain.Callback) error {
+	cond, args, err := scoped(ctx, "tenant_id")
+	if err != nil {
+		return err
+	}
 	c.UpdatedAt = time.Now().UTC()
 	res, err := s.db.ExecContext(ctx, `UPDATE callbacks SET number = ?, name = ?, queue_id = ?, status = ?,
-		assigned_to = ?, due_at = ?, attempts = ?, notes = ?, updated_at = ? WHERE id = ?`,
-		c.Number, c.Name, c.QueueID, c.Status, c.AssignedTo, msPtr(c.DueAt), c.Attempts, c.Notes,
-		ms(c.UpdatedAt), c.ID)
+		assigned_to = ?, due_at = ?, attempts = ?, notes = ?, updated_at = ? WHERE id = ?`+cond,
+		append([]any{c.Number, c.Name, c.QueueID, c.Status, c.AssignedTo, msPtr(c.DueAt), c.Attempts, c.Notes,
+			ms(c.UpdatedAt), c.ID}, args...)...)
 	if err != nil {
 		return err
 	}
@@ -57,7 +66,12 @@ func (s *Store) UpdateCallback(ctx context.Context, c *domain.Callback) error {
 
 // GetCallback loads one callback.
 func (s *Store) GetCallback(ctx context.Context, id int64) (*domain.Callback, error) {
-	c, err := scanCallback(s.db.QueryRowContext(ctx, `SELECT `+cbCols+` FROM callbacks WHERE id = ?`, id))
+	cond, args, err := scoped(ctx, "tenant_id")
+	if err != nil {
+		return nil, err
+	}
+	c, err := scanCallback(s.db.QueryRowContext(ctx, `SELECT `+cbCols+` FROM callbacks WHERE id = ?`+cond,
+		append([]any{id}, args...)...))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -66,13 +80,16 @@ func (s *Store) GetCallback(ctx context.Context, id int64) (*domain.Callback, er
 
 // ListCallbacks returns callbacks, optionally filtered by status.
 func (s *Store) ListCallbacks(ctx context.Context, status string, limit int) ([]domain.Callback, error) {
+	cond, args, err := scoped(ctx, "tenant_id")
+	if err != nil {
+		return nil, err
+	}
 	if limit <= 0 {
 		limit = 200
 	}
-	q := `SELECT ` + cbCols + ` FROM callbacks`
-	args := []any{}
+	q := `SELECT ` + cbCols + ` FROM callbacks WHERE 1=1` + cond
 	if status != "" {
-		q += ` WHERE status = ?`
+		q += ` AND status = ?`
 		args = append(args, status)
 	}
 	q += ` ORDER BY CASE status WHEN 'pending' THEN 0 WHEN 'in_progress' THEN 1 ELSE 2 END, created_at DESC LIMIT ?`
@@ -94,7 +111,11 @@ func (s *Store) ListCallbacks(ctx context.Context, status string, limit int) ([]
 
 // DeleteCallback removes a callback.
 func (s *Store) DeleteCallback(ctx context.Context, id int64) error {
-	res, err := s.db.ExecContext(ctx, `DELETE FROM callbacks WHERE id = ?`, id)
+	cond, args, err := scoped(ctx, "tenant_id")
+	if err != nil {
+		return err
+	}
+	res, err := s.db.ExecContext(ctx, `DELETE FROM callbacks WHERE id = ?`+cond, append([]any{id}, args...)...)
 	if err != nil {
 		return err
 	}

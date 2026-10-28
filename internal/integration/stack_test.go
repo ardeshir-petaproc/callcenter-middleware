@@ -18,6 +18,7 @@ import (
 	"callcenter-middleware/internal/core"
 	"callcenter-middleware/internal/domain"
 	"callcenter-middleware/internal/events"
+	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/seed"
 	"callcenter-middleware/internal/server"
 	"callcenter-middleware/internal/sim"
@@ -30,6 +31,7 @@ type stack struct {
 	api  *httptest.Server
 	core *core.Core
 	st   *store.Store
+	idp  *joow.Local
 }
 
 func newStack(t *testing.T, speed float64) *stack {
@@ -48,10 +50,18 @@ func newStack(t *testing.T, speed float64) *stack {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(func() { cancel(); st.Close() })
-	if err := seed.EnsureAdmin(ctx, st, "admin", "admin123"); err != nil {
+	tctx := store.ForTenant(ctx, core.DefaultTenant)
+	if err := seed.EnsureAdmin(tctx, st, "admin", "admin123"); err != nil {
 		t.Fatal(err)
 	}
-	if err := seed.Demo(ctx, st); err != nil {
+	if err := seed.Demo(tctx, st); err != nil {
+		t.Fatal(err)
+	}
+	if err := seed.DemoSecondTenant(ctx, st); err != nil {
+		t.Fatal(err)
+	}
+	idp := joow.NewLocal(st.DB(), "test")
+	if err := seed.DemoJoowAccounts(ctx, idp.Upsert); err != nil {
 		t.Fatal(err)
 	}
 	hub := events.NewHub()
@@ -65,11 +75,12 @@ func newStack(t *testing.T, speed float64) *stack {
 	}
 	go func() { _ = stream.Subscribe(ctx, evs) }()
 	srv := server.NewServer("0", server.Deps{Config: cfg, Store: st, Core: c, Hub: hub,
-		Issuer: auth.NewIssuer("test", time.Hour), Stream: stream, Fetcher: client, Started: time.Now()})
+		Issuer: auth.NewIssuer("test", time.Hour), Stream: stream, Fetcher: client, Started: time.Now(),
+		Joow: idp, DevJoowTokens: true})
 	api := httptest.NewServer(srv.Handler())
 	t.Cleanup(api.Close)
 	waitFor(t, 5*time.Second, "ARI connected", stream.IsConnected)
-	return &stack{t: t, sim: s, api: api, core: c, st: st}
+	return &stack{t: t, sim: s, api: api, core: c, st: st, idp: idp}
 }
 
 func waitFor(t *testing.T, d time.Duration, what string, cond func() bool) {
