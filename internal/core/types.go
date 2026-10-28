@@ -110,6 +110,15 @@ type CallView struct {
 	ConsultAgent  int64   `json:"consult_agent_id,omitempty"`
 }
 
+// CallerLabel describes the caller for notifications ("Name (+1555…)") and
+// returns the call id.
+func (v CallView) CallerLabel() (string, string) {
+	if v.CallerName != "" {
+		return v.CallerName + " (" + v.CallerNumber + ")", v.ID
+	}
+	return v.CallerNumber, v.ID
+}
+
 // QueueView is the live status of one queue.
 type QueueView struct {
 	ID             int64  `json:"id"`

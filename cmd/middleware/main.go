@@ -77,6 +77,8 @@ func main() {
 	}()
 	startBackground(ctx, st, hub, analyzer)
 	go svc.mail.Run(ctx, time.Minute)
+	pops, _ := hub.Subscribe(256)
+	go joow.RunAlerts(ctx, pops, idp, st.GetUser, cfg.PublicURL)
 	retain := &retention.Service{Store: st, Deleter: ariClient}
 	go retain.Run(ctx, time.Hour)
 

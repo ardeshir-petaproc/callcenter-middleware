@@ -23,9 +23,10 @@ POST /v1/notifications          X-Api-Key  {"account_id", "kind", "title", "body
 works by adapting `internal/joow/http.go` (≈100 lines); nothing else in the
 code base talks to Joow directly.
 
-Notification kinds sent today: `invitation`, `ticket_assigned`. Planned:
-`incoming_call` (screen-pop for agents not looking at the panel),
-`qa_evaluation`, `routing_rule_pending` (approver inbox).
+Notification kinds sent today: `invitation`, `ticket_assigned` and
+`incoming_call` (sent when an agent's phone starts ringing, with the caller
+and a link to the agent console). Planned: `qa_evaluation`,
+`routing_rule_pending` (approver inbox).
 
 ## Sign-in flows
 
