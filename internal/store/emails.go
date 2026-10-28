@@ -116,3 +116,14 @@ func (s *Store) TicketMailbox(ctx context.Context, ticketID int64) (int64, strin
 		` ORDER BY id DESC LIMIT 1`, append([]any{ticketID}, args...)...).Scan(&connector, &msgID)
 	return connector, msgID, err
 }
+
+// DeleteEmail forgets an imported message (used when its import failed, so
+// the next sync retries it).
+func (s *Store) DeleteEmail(ctx context.Context, id int64) error {
+	cond, args, err := scoped(ctx, "tenant_id")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, `DELETE FROM emails WHERE id = ?`+cond, append([]any{id}, args...)...)
+	return err
+}

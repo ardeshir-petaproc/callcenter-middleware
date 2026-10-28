@@ -97,6 +97,17 @@ func TestEmail_ConsentTicketsThreadingAndPurge(t *testing.T) {
 	if res.Imported != 0 {
 		t.Fatalf("re-sync must not import twice, got %d", res.Imported)
 	}
+	// Quoting someone else's ticket number does not write into that ticket.
+	deliver(email("m3@customer.com", "mallory@customer.com", "Re: ["+tk.Number+"] hijack", "attacker text", ""))
+	s.call("POST", "/email-connectors/"+itoa(c.ID)+"/sync", admin, nil, &res)
+	s.call("GET", "/tickets/"+itoa(tk.ID), admin, nil, &detail)
+	if len(detail.Comments) != 1 {
+		t.Fatalf("spoofed sender must not join the ticket: %+v", detail.Comments)
+	}
+	s.call("GET", "/tickets?q=hijack", admin, nil, &list)
+	if len(list.Items) != 1 || list.Items[0].RequesterEmail != "mallory@customer.com" {
+		t.Fatalf("spoofed reply should open its own ticket: %+v", list.Items)
+	}
 	// A staff reply is emailed to the customer with the ticket number in
 	// the subject; internal notes are not.
 	s.call("POST", "/tickets/"+itoa(tk.ID)+"/comments", admin, map[string]any{"body": "internal only", "internal": true}, nil)

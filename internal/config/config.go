@@ -26,6 +26,7 @@ type Config struct {
 	DataDir       string // encrypted knowledge files and keys
 	PublicURL     string
 	JoowMode      string // "local" (development) or "http"
+	JoowDevTokens bool   // local mode only: expose /dev/joow-token (implied by SEED_DEMO)
 	JoowAPIURL    string
 	JoowAPIKey    string
 	DataKey       string // master key for encrypting stored files and secrets
@@ -85,6 +86,7 @@ func LoadFromEnv() *Config {
 		DataDir:       getEnv("DATA_DIR", "data"),
 		PublicURL:     getEnv("PUBLIC_URL", "http://localhost:8080"),
 		JoowMode:      getEnv("JOOW_MODE", "local"),
+		JoowDevTokens: getEnvBool("JOOW_DEV_TOKENS", false),
 		JoowAPIURL:    getEnv("JOOW_API_URL", ""),
 		JoowAPIKey:    getEnv("JOOW_API_KEY", ""),
 		DataKey:       getEnv("DATA_ENCRYPTION_KEY", ""),

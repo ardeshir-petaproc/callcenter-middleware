@@ -106,7 +106,7 @@ func (s *Server) configRoutes(r chi.Router) {
 	mountCRUD(r, "/pause-reasons", s, s.d.Store.PauseReasons, crudOpts[domain.PauseReason]{entity: "pause_reason",
 		prepare: preparePauseReason})
 	mountCRUD(r, "/webhooks", s, s.d.Store.Webhooks, crudOpts[domain.Webhook]{entity: "webhook", prepare: prepareWebhook,
-		readPerm: domain.PermSettingsManage, reload: true})
+		readPerm: domain.PermSettingsManage, reload: true, check: s.sealWebhook, present: hideWebhookSecret})
 	r.Get("/contacts/lookup", handler(s.lookupContact).ServeHTTP)
 	mountCRUD(r, "/contacts", s, s.d.Store.Contacts, crudOpts[domain.Contact]{entity: "contact", prepare: prepareContact,
 		writePerm: anyone, filter: contactFilter})

@@ -13,7 +13,7 @@ const (
 	PermAIManage         Permission = "ai.manage"         // AI agent profiles
 	PermRoutingManage    Permission = "routing.manage"    // topics, draft routing rules
 	PermRoutingApprove   Permission = "routing.approve"   // activate routing rules
-	PermKBManage         Permission = "kb.manage"         // knowledge sources, email connectors
+	PermKBManage         Permission = "kb.manage"         // knowledge sources (email connectors need settings.manage)
 	PermKBRestricted     Permission = "kb.restricted"     // read sources marked restricted
 	PermTicketsAll       Permission = "tickets.all"       // see and manage every ticket
 	PermCallsAll         Permission = "calls.all"         // see every call and live state
@@ -24,7 +24,7 @@ const (
 	PermQAEvaluate       Permission = "qa.evaluate"       // quality evaluations
 	PermReportsView      Permission = "reports.view"
 	PermCampaignsManage  Permission = "campaigns.manage"
-	PermSettingsManage   Permission = "settings.manage" // settings, webhooks, retention
+	PermSettingsManage   Permission = "settings.manage" // settings, email connectors, retention, inbound key, webhooks
 	PermAuditView        Permission = "audit.view"
 )
 

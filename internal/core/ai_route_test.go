@@ -41,4 +41,14 @@ func TestAIRoute_ConnectsChosenEmployeeOrFallsBack(t *testing.T) {
 	if h.sw.lastOrig().Endpoint != "PJSIP/1001" {
 		t.Fatalf("expected handoff queue (alice), got %+v", h.sw.lastOrig())
 	}
+
+	// A rule fallback such as voicemail is executed as decided.
+	h.incoming("c3", "557", "300")
+	call3 := ai.started[2].CallID
+	h.answer("media-" + call3)
+	ai.ctl.AIRoute(call3, domain.Action{Type: domain.ActionVoicemail}, "fallback", "after hours")
+	h.core.Tick()
+	if !h.sw.has("play c3 sound:vm-intro") {
+		t.Fatalf("expected voicemail, got %v", h.sw.ops)
+	}
 }

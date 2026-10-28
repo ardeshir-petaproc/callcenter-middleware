@@ -80,19 +80,19 @@ func (s *Service) sync(ctx context.Context, c *domain.EmailConnector) (int, erro
 	c.UIDValidity = validity
 	imported := 0
 	for _, raw := range raws {
+		// The position only advances past messages handled successfully, so
+		// a failed import is retried on the next sync.
+		if p, err := Parse(raw.Data); err == nil && Matches(c, p) {
+			ok, err := s.ingest(ctx, c, raw.UID, p)
+			if err != nil {
+				return imported, err
+			}
+			if ok {
+				imported++
+			}
+		}
 		if raw.UID > c.LastUID {
 			c.LastUID = raw.UID
-		}
-		p, err := Parse(raw.Data)
-		if err != nil || !Matches(c, p) {
-			continue
-		}
-		ok, err := s.ingest(ctx, c, raw.UID, p)
-		if err != nil {
-			return imported, err
-		}
-		if ok {
-			imported++
 		}
 	}
 	return imported, nil
@@ -141,12 +141,14 @@ func (s *Service) ingest(ctx context.Context, c *domain.EmailConnector, uid uint
 			src.DepartmentIDs = []int64{c.DepartmentID}
 		}
 		if err := s.KB.Save(ctx, src, "", []byte(text)); err != nil {
+			_ = s.Store.DeleteEmail(ctx, m.ID) // retried on the next sync
 			return false, err
 		}
 		return true, s.Store.LinkEmail(ctx, m.ID, 0, src.ID)
 	}
 	ticketID, err := s.toTicket(ctx, c, p, text)
 	if err != nil {
+		_ = s.Store.DeleteEmail(ctx, m.ID) // retried on the next sync
 		return false, err
 	}
 	return true, s.Store.LinkEmail(ctx, m.ID, ticketID, 0)

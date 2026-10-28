@@ -26,9 +26,12 @@ func TestDispatcherSignsAndFilters(t *testing.T) {
 	defer srv.Close()
 
 	d := NewDispatcher(hooks{
-		{URL: srv.URL, Events: []string{domain.EvCallEnded}, Secret: "s3cret", Enabled: true},
+		{URL: srv.URL, Events: []string{domain.EvCallEnded}, Secret: "enc:sealed", Enabled: true},
 		{URL: srv.URL, Events: []string{"*"}, Enabled: false},
 	})
+	d.Open = func(_ int64, s string) (string, error) { // sealed secrets are decrypted before signing
+		return map[string]string{"enc:sealed": "s3cret"}[s], nil
+	}
 	evs := make(chan domain.Event, 2)
 	evs <- domain.Event{Type: domain.EvAgentUpdated, Data: 1}
 	evs <- domain.Event{Type: domain.EvCallEnded, Data: map[string]string{"id": "c1"}}

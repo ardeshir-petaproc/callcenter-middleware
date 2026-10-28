@@ -21,6 +21,7 @@ import (
 	"callcenter-middleware/internal/notify"
 	"callcenter-middleware/internal/retention"
 	"callcenter-middleware/internal/routing"
+	"callcenter-middleware/internal/secure"
 	"callcenter-middleware/internal/seed"
 	"callcenter-middleware/internal/server"
 	"callcenter-middleware/internal/store"
@@ -75,7 +76,7 @@ func main() {
 			slog.Error("ARI WebSocket stream exited", "err", err)
 		}
 	}()
-	startBackground(ctx, st, hub, analyzer)
+	startBackground(ctx, st, hub, analyzer, svc.mail.Box)
 	go svc.mail.Run(ctx, time.Minute)
 	pops, _ := hub.Subscribe(256)
 	go joow.RunAlerts(ctx, pops, idp, st.GetUser, cfg.PublicURL)
@@ -85,7 +86,7 @@ func main() {
 	httpServer := server.NewServer(cfg.HTTPPort, server.Deps{
 		Config: cfg, Store: st, Core: callCore, Hub: hub, Issuer: auth.NewIssuer(cfg.JWTSecret, cfg.TokenTTL),
 		Stream: stream, OpenAI: openai, Fetcher: ariClient, Started: time.Now(),
-		StaticFS: server.StaticFS(web.Assets()), Joow: idp, Tickets: svc.tickets, KB: svc.kb, Mail: svc.mail, Router: router, Retention: retain, Messages: svc.messages, DevJoowTokens: cfg.JoowMode != "http",
+		StaticFS: server.StaticFS(web.Assets()), Joow: idp, Tickets: svc.tickets, KB: svc.kb, Mail: svc.mail, Router: router, Retention: retain, Messages: svc.messages, DevJoowTokens: devJoowTokens(cfg),
 	})
 	go func() {
 		if err := httpServer.Start(); err != nil {
@@ -140,21 +141,12 @@ func bootstrap(cfg *config.Config, st *store.Store, idp joow.Provider) {
 	}
 }
 
-// joowProvider selects the Joow integration: the real Joow API or the
-// self-contained local provider used for development and demos.
-func joowProvider(cfg *config.Config, st *store.Store) joow.Provider {
-	if cfg.JoowMode == "http" && cfg.JoowAPIURL != "" {
-		slog.Info("Joow integration: HTTP", "url", cfg.JoowAPIURL)
-		return joow.NewHTTP(cfg.JoowAPIURL, cfg.JoowAPIKey)
-	}
-	slog.Warn("Joow integration: local development provider")
-	return joow.NewLocal(st.DB(), cfg.JWTSecret)
-}
-
 // startBackground runs webhook delivery and voicemail transcription.
-func startBackground(ctx context.Context, st *store.Store, hub *events.Hub, analyzer *ai.Analyzer) {
+func startBackground(ctx context.Context, st *store.Store, hub *events.Hub, analyzer *ai.Analyzer, box *secure.Box) {
 	hookEvents, _ := hub.Subscribe(1024)
-	go notify.NewDispatcher(st).Run(ctx, hookEvents)
+	hooks := notify.NewDispatcher(st)
+	hooks.Open = box.OpenString
+	go hooks.Run(ctx, hookEvents)
 
 	vmEvents, _ := hub.Subscribe(64)
 	go func() {

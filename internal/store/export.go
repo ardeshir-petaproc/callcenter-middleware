@@ -29,3 +29,12 @@ func (s *Store) EachEntity(ctx context.Context, fn func(kind string, id int64, d
 	}
 	return rows.Err()
 }
+
+// HasSealedData reports whether any data encrypted with the master key
+// exists (sealed secrets or email bodies), across all tenants.
+func (s *Store) HasSealedData(ctx context.Context) bool {
+	var one int
+	err := s.db.QueryRowContext(ctx, `SELECT 1 FROM entities WHERE data LIKE '%"enc:%'
+		UNION ALL SELECT 1 FROM emails WHERE body LIKE 'enc:%' LIMIT 1`).Scan(&one)
+	return err == nil
+}

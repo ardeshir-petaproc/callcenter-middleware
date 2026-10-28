@@ -3,17 +3,31 @@ package integration
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+
+	"callcenter-middleware/internal/domain"
+	"callcenter-middleware/internal/store"
 )
 
 func TestExport_OrganizationZipIsScopedAndRedacted(t *testing.T) {
 	s := newStack(t, 40)
 	admin := s.login("admin", "admin123")
+	var hook domain.Webhook
 	s.call("POST", "/webhooks", admin, map[string]any{"url": "http://example.test/hook", "secret": "s3cret",
-		"events": []string{"call.ended"}, "enabled": true}, nil)
+		"events": []string{"call.ended"}, "enabled": true}, &hook)
+	stored, _ := s.st.Webhooks.Get(store.ForTenant(context.Background(), 1), hook.ID)
+	if hook.Secret != "" || !hook.HasSecret || !strings.HasPrefix(stored.Secret, "enc:") {
+		t.Fatalf("webhook secret must be sealed and hidden: %+v stored=%q", hook, stored.Secret)
+	}
+	hook.URL = "http://example.test/hook2"
+	s.call("PUT", "/webhooks/"+itoa(hook.ID), admin, hook, nil)
+	if again, _ := s.st.Webhooks.Get(store.ForTenant(context.Background(), 1), hook.ID); again.Secret != stored.Secret {
+		t.Fatal("updating without a secret must keep the stored one")
+	}
 	get := func(tok string) (*http.Response, []byte) {
 		req, _ := http.NewRequest("GET", s.api.URL+"/api/v1/export/organization.zip", nil)
 		req.Header.Set("Authorization", "Bearer "+tok)

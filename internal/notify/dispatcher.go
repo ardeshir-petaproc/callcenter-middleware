@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -28,6 +29,8 @@ type Dispatcher struct {
 	client *http.Client
 	mu     sync.RWMutex
 	hooks  []domain.Webhook
+	// Open decrypts sealed webhook secrets ("enc:..."), see secure.Box.
+	Open func(tenant int64, sealed string) (string, error)
 }
 
 // NewDispatcher creates a webhook dispatcher.
@@ -104,8 +107,14 @@ func (d *Dispatcher) post(ctx context.Context, h domain.Webhook, body []byte) er
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	if h.Secret != "" {
-		req.Header.Set("X-Callcenter-Signature", "sha256="+Sign(h.Secret, body))
+	secret := h.Secret
+	if d.Open != nil && strings.HasPrefix(secret, "enc:") {
+		if secret, err = d.Open(h.TenantID, secret); err != nil {
+			return err
+		}
+	}
+	if secret != "" {
+		req.Header.Set("X-Callcenter-Signature", "sha256="+Sign(secret, body))
 	}
 	resp, err := d.client.Do(req)
 	if err != nil {

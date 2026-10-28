@@ -22,6 +22,14 @@ type crudOpts[T any] struct {
 	history   bool              // keep a revision of every change
 	onDelete  func(r *http.Request, id int64)
 	filter    func(items []T, q string) []T
+	present   func(*T) // strips secrets from responses
+}
+
+func (o crudOpts[T]) show(item *T) *T {
+	if o.present != nil {
+		o.present(item)
+	}
+	return item
 }
 
 // mountCRUD registers list/create/get/update/delete routes for a collection.
@@ -51,6 +59,9 @@ func mountCRUD[T any](r chi.Router, path string, s *Server, c *store.Collection[
 		if q := r.URL.Query().Get("q"); q != "" && o.filter != nil {
 			items = o.filter(items, q)
 		}
+		for i := range items {
+			o.show(&items[i])
+		}
 		writeJSON(w, http.StatusOK, items)
 		return nil
 	}).ServeHTTP)
@@ -63,7 +74,7 @@ func mountCRUD[T any](r chi.Router, path string, s *Server, c *store.Collection[
 		if err != nil {
 			return err
 		}
-		writeJSON(w, http.StatusOK, item)
+		writeJSON(w, http.StatusOK, o.show(item))
 		return nil
 	}).ServeHTTP)
 	r.With(write).Post(path, handler(func(w http.ResponseWriter, r *http.Request) error {
@@ -78,7 +89,7 @@ func mountCRUD[T any](r chi.Router, path string, s *Server, c *store.Collection[
 			return err
 		}
 		changed(r, "create", c.IDOf(&item))
-		writeJSON(w, http.StatusCreated, item)
+		writeJSON(w, http.StatusCreated, o.show(&item))
 		return nil
 	}).ServeHTTP)
 	r.With(write).Put(path+"/{id}", handler(func(w http.ResponseWriter, r *http.Request) error {
@@ -101,7 +112,7 @@ func mountCRUD[T any](r chi.Router, path string, s *Server, c *store.Collection[
 			return err
 		}
 		changed(r, "update", id)
-		writeJSON(w, http.StatusOK, item)
+		writeJSON(w, http.StatusOK, o.show(&item))
 		return nil
 	}).ServeHTTP)
 	r.With(write).Delete(path+"/{id}", handler(func(w http.ResponseWriter, r *http.Request) error {

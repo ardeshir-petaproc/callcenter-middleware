@@ -148,12 +148,13 @@ type PauseReason struct {
 
 // Webhook receives signed event notifications.
 type Webhook struct {
-	ID       int64    `json:"id"`
-	TenantID int64    `json:"tenant_id"`
-	URL      string   `json:"url"`
-	Events   []string `json:"events"`
-	Secret   string   `json:"secret"`
-	Enabled  bool     `json:"enabled"`
+	ID        int64    `json:"id"`
+	TenantID  int64    `json:"tenant_id"`
+	URL       string   `json:"url"`
+	Events    []string `json:"events"`
+	Secret    string   `json:"secret"` // sealed at rest; never returned
+	Enabled   bool     `json:"enabled"`
+	HasSecret bool     `json:"has_secret"`
 }
 
 // Contact is a lightweight CRM record used for screen-pops.

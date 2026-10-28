@@ -34,7 +34,10 @@ func (c *Core) AIRoute(callID string, target domain.Action, reason, summary stri
 		}
 		c.timeline(call, "ai_route", reason)
 		c.stopAI(call)
-		if target.Type != domain.ActionAgent && target.Type != domain.ActionQueue {
+		// Any routing outcome (agent, queue, or a rule fallback such as
+		// voicemail or an outside number) is executed as decided; only "no
+		// decision" (or handing to the AI again) uses the profile's handoff.
+		if target.Type == domain.ActionNone || target.Type == domain.ActionAI {
 			c.aiHandoffQueue(call, "")
 			return
 		}
