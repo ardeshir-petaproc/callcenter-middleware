@@ -105,7 +105,10 @@ func (s *Service) writeBlob(tenant int64, src *domain.KnowledgeSource, fileName 
 	sum := sha256.Sum256(data)
 	src.Checksum, src.Size = hex.EncodeToString(sum[:]), int64(len(data))
 	if fileName == "" {
-		src.Kind, src.FileName, src.MimeType = domain.KBText, "", "text/plain"
+		src.FileName, src.MimeType = "", "text/plain"
+		if src.Kind != domain.KBEmail {
+			src.Kind = domain.KBText
+		}
 	} else {
 		src.FileName = filepath.Base(fileName)
 		src.MimeType = mime.TypeByExtension(strings.ToLower(filepath.Ext(fileName)))

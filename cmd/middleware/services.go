@@ -6,10 +6,28 @@ import (
 	"path/filepath"
 
 	"callcenter-middleware/internal/config"
+	"callcenter-middleware/internal/events"
+	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/kb"
+	"callcenter-middleware/internal/mail"
 	"callcenter-middleware/internal/secure"
 	"callcenter-middleware/internal/store"
+	"callcenter-middleware/internal/tickets"
 )
+
+// services are the business services shared by the API and background jobs.
+type services struct {
+	tickets *tickets.Service
+	kb      *kb.Service
+	mail    *mail.Service
+}
+
+func newServices(cfg *config.Config, st *store.Store, hub *events.Hub, idp joow.Provider) *services {
+	b := box(cfg)
+	t := &tickets.Service{Store: st, Pub: hub, Joow: idp}
+	k := &kb.Service{Store: st, Box: b, Dir: cfg.DataDir}
+	return &services{tickets: t, kb: k, mail: &mail.Service{Store: st, Box: b, Tickets: t, KB: k, Mailbox: mail.IMAP{}}}
+}
 
 // box returns the encryption box for stored files and secrets. Without
 // DATA_ENCRYPTION_KEY a random key is generated once and kept in DATA_DIR.
@@ -24,8 +42,4 @@ func box(cfg *config.Config) *secure.Box {
 		os.Exit(1)
 	}
 	return b
-}
-
-func knowledge(cfg *config.Config, st *store.Store) *kb.Service {
-	return &kb.Service{Store: st, Box: box(cfg), Dir: cfg.DataDir}
 }

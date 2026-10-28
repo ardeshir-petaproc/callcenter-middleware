@@ -107,3 +107,21 @@ func (s *Store) GetTicket(ctx context.Context, id int64) (*domain.Ticket, error)
 	}
 	return t, err
 }
+
+// TicketByNumber loads a ticket by its number (e.g. "T-1001").
+func (s *Store) TicketByNumber(ctx context.Context, number string) (*domain.Ticket, error) {
+	var seq int64
+	if _, err := fmt.Sscanf(number, "T-%d", &seq); err != nil {
+		return nil, ErrNotFound
+	}
+	cond, args, err := scoped(ctx, "tenant_id")
+	if err != nil {
+		return nil, err
+	}
+	t, err := scanTicket(s.db.QueryRowContext(ctx, `SELECT `+ticketCols+` FROM tickets WHERE seq = ?`+cond,
+		append([]any{seq}, args...)...))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	return t, err
+}

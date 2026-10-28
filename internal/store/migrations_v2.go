@@ -19,6 +19,7 @@ var versioned = []struct {
 	{3, joowV3},
 	{4, ticketsV4},
 	{5, knowledgeV5},
+	{6, emailV6},
 }
 
 func (s *Store) migrateVersions(ctx context.Context) error {

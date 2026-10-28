@@ -22,7 +22,6 @@ import (
 	"callcenter-middleware/internal/seed"
 	"callcenter-middleware/internal/server"
 	"callcenter-middleware/internal/store"
-	"callcenter-middleware/internal/tickets"
 	"callcenter-middleware/internal/web"
 )
 
@@ -71,11 +70,13 @@ func main() {
 		}
 	}()
 	startBackground(ctx, st, hub, analyzer)
+	svc := newServices(cfg, st, hub, idp)
+	go svc.mail.Run(ctx, time.Minute)
 
 	httpServer := server.NewServer(cfg.HTTPPort, server.Deps{
 		Config: cfg, Store: st, Core: callCore, Hub: hub, Issuer: auth.NewIssuer(cfg.JWTSecret, cfg.TokenTTL),
 		Stream: stream, OpenAI: openai, Fetcher: ariClient, Started: time.Now(),
-		StaticFS: server.StaticFS(web.Assets()), Joow: idp, Tickets: &tickets.Service{Store: st, Pub: hub, Joow: idp}, KB: knowledge(cfg, st), DevJoowTokens: cfg.JoowMode != "http",
+		StaticFS: server.StaticFS(web.Assets()), Joow: idp, Tickets: svc.tickets, KB: svc.kb, Mail: svc.mail, DevJoowTokens: cfg.JoowMode != "http",
 	})
 	go func() {
 		if err := httpServer.Start(); err != nil {

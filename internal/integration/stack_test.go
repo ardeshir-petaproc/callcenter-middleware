@@ -20,6 +20,7 @@ import (
 	"callcenter-middleware/internal/events"
 	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/kb"
+	"callcenter-middleware/internal/mail"
 	"callcenter-middleware/internal/secure"
 	"callcenter-middleware/internal/seed"
 	"callcenter-middleware/internal/server"
@@ -77,10 +78,12 @@ func newStack(t *testing.T, speed float64) *stack {
 		t.Fatal(err)
 	}
 	go func() { _ = stream.Subscribe(ctx, evs) }()
+	box, tk := secure.New("test"), &tickets.Service{Store: st, Pub: hub, Joow: idp}
+	kbs := &kb.Service{Store: st, Box: box, Dir: t.TempDir()}
 	srv := server.NewServer("0", server.Deps{Config: cfg, Store: st, Core: c, Hub: hub,
 		Issuer: auth.NewIssuer("test", time.Hour), Stream: stream, Fetcher: client, Started: time.Now(),
-		Joow: idp, DevJoowTokens: true, Tickets: &tickets.Service{Store: st, Pub: hub, Joow: idp},
-		KB: &kb.Service{Store: st, Box: secure.New("test"), Dir: t.TempDir()}})
+		Joow: idp, DevJoowTokens: true, Tickets: tk, KB: kbs,
+		Mail: &mail.Service{Store: st, Box: box, Tickets: tk, KB: kbs, Mailbox: mail.IMAP{Timeout: 5 * time.Second}}})
 	api := httptest.NewServer(srv.Handler())
 	t.Cleanup(api.Close)
 	waitFor(t, 5*time.Second, "ARI connected", stream.IsConnected)

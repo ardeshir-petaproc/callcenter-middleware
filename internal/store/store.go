@@ -38,6 +38,7 @@ type Store struct {
 	Invitations  *Collection[domain.Invitation]
 	SLAPolicies  *Collection[domain.SLAPolicy]
 	KB           *Collection[domain.KnowledgeSource]
+	Mailboxes    *Collection[domain.EmailConnector]
 }
 
 // Open opens (and migrates) the database at path. Use ":memory:" for tests.
@@ -82,6 +83,7 @@ func Open(path string) (*Store, error) {
 	s.KB = newCollection(db, "kb_source", func(x *domain.KnowledgeSource) (*int64, *int64) { return &x.ID, &x.TenantID })
 	s.SLAPolicies = newCollection(db, "sla_policy", func(x *domain.SLAPolicy) (*int64, *int64) { return &x.ID, &x.TenantID })
 	s.Invitations = newCollection(db, "invitation", func(x *domain.Invitation) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.Mailboxes = newCollection(db, "email_connector", func(x *domain.EmailConnector) (*int64, *int64) { return &x.ID, &x.TenantID })
 	return s, nil
 }
 
