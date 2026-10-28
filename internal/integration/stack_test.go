@@ -82,27 +82,17 @@ func newStack(t *testing.T, speed float64) *stack {
 	go func() { _ = stream.Subscribe(ctx, evs) }()
 	box, tk := secure.New("test"), &tickets.Service{Store: st, Pub: hub, Joow: idp}
 	kbs := &kb.Service{Store: st, Box: box, Dir: t.TempDir()}
+	ms := &mail.Service{Store: st, Box: box, Tickets: tk, KB: kbs, Mailbox: mail.IMAP{Timeout: 5 * time.Second}}
+	tk.OnReply = ms.Reply
 	srv := server.NewServer("0", server.Deps{Config: cfg, Store: st, Core: c, Hub: hub,
 		Issuer: auth.NewIssuer("test", time.Hour), Stream: stream, Fetcher: client, Started: time.Now(),
 		Joow: idp, DevJoowTokens: true, Tickets: tk, KB: kbs,
-		Mail:   &mail.Service{Store: st, Box: box, Tickets: tk, KB: kbs, Mailbox: mail.IMAP{Timeout: 5 * time.Second}},
+		Mail:   ms,
 		Router: &routing.Engine{Store: st, Live: c}, Retention: &retention.Service{Store: st, Deleter: client}})
 	api := httptest.NewServer(srv.Handler())
 	t.Cleanup(api.Close)
 	waitFor(t, 5*time.Second, "ARI connected", stream.IsConnected)
 	return &stack{t: t, sim: s, api: api, core: c, st: st, idp: idp}
-}
-
-func waitFor(t *testing.T, d time.Duration, what string, cond func() bool) {
-	t.Helper()
-	deadline := time.Now().Add(d)
-	for time.Now().Before(deadline) {
-		if cond() {
-			return
-		}
-		time.Sleep(20 * time.Millisecond)
-	}
-	t.Fatalf("timed out waiting for %s", what)
 }
 
 func (s *stack) call(method, path, token string, body any, out any) int {

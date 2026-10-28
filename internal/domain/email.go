@@ -34,6 +34,10 @@ type EmailConnector struct {
 	TicketCategory string   `json:"ticket_category"`
 	KBCategory     string   `json:"kb_category"`
 	AIEnabled      bool     `json:"ai_enabled"` // knowledge from this mailbox may be used by the AI
+	SMTPHost       string   `json:"smtp_host"`  // optional: send ticket replies to customers
+	SMTPPort       int      `json:"smtp_port"`
+	SMTPSecurity   string   `json:"smtp_security"` // tls, starttls or none
+	FromAddress    string   `json:"from_address"`
 	PollMinutes    int      `json:"poll_minutes"`
 	Enabled        bool     `json:"enabled"`
 	ConsentBy      int64    `json:"consent_by"`

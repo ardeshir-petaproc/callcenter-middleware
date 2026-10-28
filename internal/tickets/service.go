@@ -33,6 +33,9 @@ type Service struct {
 	Pub   domain.Publisher
 	Joow  joow.Provider
 	Now   func() time.Time
+	// OnReply delivers staff replies to the customer (e.g. by email). It
+	// runs in the background with a tenant-scoped context.
+	OnReply func(ctx context.Context, t *domain.Ticket, c *domain.TicketComment)
 }
 
 func (s *Service) now() time.Time {

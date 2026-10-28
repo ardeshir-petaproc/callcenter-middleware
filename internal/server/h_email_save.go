@@ -60,6 +60,28 @@ func validateMailbox(c *domain.EmailConnector) error {
 	if c.FromFilter == nil {
 		c.FromFilter = []string{}
 	}
+	return normalizeSMTP(c)
+}
+
+// normalizeSMTP validates the optional outgoing mail settings used to send
+// ticket replies to customers.
+func normalizeSMTP(c *domain.EmailConnector) error {
+	if c.SMTPHost = strings.TrimSpace(c.SMTPHost); c.SMTPHost == "" {
+		return nil
+	}
+	ports := map[string]int{domain.EmailTLS: 465, domain.EmailStartTLS: 587, domain.EmailPlain: 25}
+	if c.SMTPSecurity == "" {
+		c.SMTPSecurity = domain.EmailStartTLS
+	}
+	if _, ok := ports[c.SMTPSecurity]; !ok {
+		return bad("smtp_security must be tls, starttls or none")
+	}
+	if c.SMTPPort == 0 {
+		c.SMTPPort = ports[c.SMTPSecurity]
+	}
+	if strings.ContainsAny(c.FromAddress, "<> ") {
+		return bad("from_address must be a plain email address")
+	}
 	return nil
 }
 

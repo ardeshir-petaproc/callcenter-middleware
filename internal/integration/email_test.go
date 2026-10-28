@@ -48,8 +48,10 @@ func TestEmail_ConsentTicketsThreadingAndPurge(t *testing.T) {
 	s := newStack(t, 40)
 	admin := s.login("admin", "admin123")
 	port, deliver := fakeIMAP(t)
+	smtpPort, sent := fakeSMTP(t)
 	conn := map[string]any{"name": "Support inbox", "host": "127.0.0.1", "port": port, "security": "none",
-		"username": "username", "password": "password", "from_filter": []string{"@customer.com"}, "ticket_category": "email"}
+		"username": "username", "password": "password", "from_filter": []string{"@customer.com"}, "ticket_category": "email",
+		"smtp_host": "127.0.0.1", "smtp_port": smtpPort, "smtp_security": "none", "from_address": "support@acme.test"}
 	if code := s.call("POST", "/email-connectors", admin, conn, nil); code != 400 {
 		t.Fatalf("connecting without consent must fail, got %d", code)
 	}
@@ -94,6 +96,19 @@ func TestEmail_ConsentTicketsThreadingAndPurge(t *testing.T) {
 	s.call("POST", "/email-connectors/"+itoa(c.ID)+"/sync", admin, nil, &res)
 	if res.Imported != 0 {
 		t.Fatalf("re-sync must not import twice, got %d", res.Imported)
+	}
+	// A staff reply is emailed to the customer with the ticket number in
+	// the subject; internal notes are not.
+	s.call("POST", "/tickets/"+itoa(tk.ID)+"/comments", admin, map[string]any{"body": "internal only", "internal": true}, nil)
+	s.call("POST", "/tickets/"+itoa(tk.ID)+"/comments", admin, map[string]any{"body": "We corrected the invoice."}, nil)
+	select {
+	case msg := <-sent:
+		if !strings.Contains(msg, "To: ali@customer.com") || !strings.Contains(msg, tk.Number) ||
+			!strings.Contains(msg, "In-Reply-To: <m2@customer.com>") || strings.Contains(msg, "internal only") {
+			t.Fatalf("reply email: %s", msg)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("reply was not emailed")
 	}
 
 	// Knowledge from mail lands as draft; the AI can be cut off from it.

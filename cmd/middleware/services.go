@@ -26,7 +26,9 @@ func newServices(cfg *config.Config, st *store.Store, hub *events.Hub, idp joow.
 	b := box(cfg)
 	t := &tickets.Service{Store: st, Pub: hub, Joow: idp}
 	k := &kb.Service{Store: st, Box: b, Dir: cfg.DataDir}
-	return &services{tickets: t, kb: k, mail: &mail.Service{Store: st, Box: b, Tickets: t, KB: k, Mailbox: mail.IMAP{}}}
+	m := &mail.Service{Store: st, Box: b, Tickets: t, KB: k, Mailbox: mail.IMAP{}}
+	t.OnReply = m.Reply
+	return &services{tickets: t, kb: k, mail: m}
 }
 
 // box returns the encryption box for stored files and secrets. Without

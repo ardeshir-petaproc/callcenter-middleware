@@ -102,3 +102,17 @@ func (s *Store) PurgeEmails(ctx context.Context, connectorID int64) error {
 	_, err = s.db.ExecContext(ctx, `DELETE FROM emails WHERE connector_id = ?`+cond, append([]any{connectorID}, args...)...)
 	return err
 }
+
+// TicketMailbox returns the connector and Message-ID of the latest email
+// imported into a ticket, so replies go out through the same mailbox.
+func (s *Store) TicketMailbox(ctx context.Context, ticketID int64) (int64, string, error) {
+	cond, args, err := scoped(ctx, "tenant_id")
+	if err != nil {
+		return 0, "", err
+	}
+	var connector int64
+	var msgID string
+	err = s.db.QueryRowContext(ctx, `SELECT connector_id, message_id FROM emails WHERE ticket_id = ?`+cond+
+		` ORDER BY id DESC LIMIT 1`, append([]any{ticketID}, args...)...).Scan(&connector, &msgID)
+	return connector, msgID, err
+}

@@ -137,6 +137,13 @@ that are active, not expired, AI-enabled and within its profile's
 Status fields: `status: never|ok|error, last_sync, last_error, imported,
 consent_by, consent_at`.
 
+Optional outgoing mail: `smtp_host, smtp_port, smtp_security
+(tls|starttls|none), from_address`. When set, public staff replies on
+tickets that came in through the connector are emailed to the customer
+(subject `Re: [T-1001] …`, threaded with In-Reply-To); the customer's
+answer threads back onto the ticket. A failed delivery adds an internal
+note to the ticket.
+
 ## Routing
 
 | Method | Path | Permission | Body | Response |

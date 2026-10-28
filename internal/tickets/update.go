@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"callcenter-middleware/internal/domain"
+	"callcenter-middleware/internal/store"
 )
 
 // Patch holds optional field changes.
@@ -122,6 +123,8 @@ func (s *Service) Comment(ctx context.Context, id int64, body string, internal b
 	kind := "reply"
 	if internal {
 		kind = "note"
+	} else if by.ID > 0 && s.OnReply != nil {
+		go s.OnReply(store.ForTenant(context.Background(), t.TenantID), t, c)
 	}
 	s.event(ctx, t, kind, "", "", by)
 	return c, nil
