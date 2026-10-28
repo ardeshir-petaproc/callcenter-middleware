@@ -17,7 +17,15 @@ GET  /v1/me                     Authorization: Bearer <Joow session token>  → 
 GET  /v1/accounts?q=&limit=     X-Api-Key: <service key>                     → {"accounts": [Account]}
 GET  /v1/accounts/{id}          X-Api-Key                                    → Account
 POST /v1/notifications          X-Api-Key  {"account_id", "kind", "title", "body", "url", "data"}
+POST /v1/messages               X-Api-Key  {"conversation_id", "text"}   (reply to a customer conversation)
 ```
+
+In the other direction, Joow forwards customer chat messages to the call
+center: `POST /api/v1/inbound/messages?org=<slug>` with header
+`X-Inbound-Key` (issued in the panel, `POST /integrations/inbound-key`) and
+body `{channel: "joow", conversation_id, from_id, from_name, from_phone,
+text}`. Conversations become tickets and staff replies go back to the
+conversation.
 
 `Account = {id, name, email, phone, avatar_url}`. Any equivalent Joow API
 works by adapting `internal/joow/http.go` (≈100 lines); nothing else in the

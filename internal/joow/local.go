@@ -103,3 +103,9 @@ func (l *Local) Notify(_ context.Context, accountID string, n Notification) erro
 	slog.Info("Joow notification (local provider)", "account", accountID, "kind", n.Kind, "title", n.Title)
 	return nil
 }
+
+// SendMessage implements Messenger for development: the message is logged.
+func (l *Local) SendMessage(_ context.Context, conversationID, text string) error {
+	slog.Info("Joow message (local provider)", "conversation", conversationID, "chars", len([]rune(text)))
+	return nil
+}

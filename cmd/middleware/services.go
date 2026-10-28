@@ -1,15 +1,18 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"path/filepath"
 
 	"callcenter-middleware/internal/config"
+	"callcenter-middleware/internal/domain"
 	"callcenter-middleware/internal/events"
 	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/kb"
 	"callcenter-middleware/internal/mail"
+	"callcenter-middleware/internal/messages"
 	"callcenter-middleware/internal/secure"
 	"callcenter-middleware/internal/store"
 	"callcenter-middleware/internal/tickets"
@@ -17,9 +20,10 @@ import (
 
 // services are the business services shared by the API and background jobs.
 type services struct {
-	tickets *tickets.Service
-	kb      *kb.Service
-	mail    *mail.Service
+	tickets  *tickets.Service
+	kb       *kb.Service
+	mail     *mail.Service
+	messages *messages.Service
 }
 
 func newServices(cfg *config.Config, st *store.Store, hub *events.Hub, idp joow.Provider) *services {
@@ -27,8 +31,12 @@ func newServices(cfg *config.Config, st *store.Store, hub *events.Hub, idp joow.
 	t := &tickets.Service{Store: st, Pub: hub, Joow: idp}
 	k := &kb.Service{Store: st, Box: b, Dir: cfg.DataDir}
 	m := &mail.Service{Store: st, Box: b, Tickets: t, KB: k, Mailbox: mail.IMAP{}}
-	t.OnReply = m.Reply
-	return &services{tickets: t, kb: k, mail: m}
+	msgs := &messages.Service{Store: st, Tickets: t, Joow: idp}
+	t.OnReply = func(ctx context.Context, tk *domain.Ticket, c *domain.TicketComment) {
+		m.Reply(ctx, tk, c)
+		msgs.Reply(ctx, tk, c)
+	}
+	return &services{tickets: t, kb: k, mail: m, messages: msgs}
 }
 
 // box returns the encryption box for stored files and secrets. Without

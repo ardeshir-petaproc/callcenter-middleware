@@ -114,3 +114,8 @@ func (h *HTTP) Notify(ctx context.Context, accountID string, n Notification) err
 		"url": n.URL, "data": n.Data}
 	return h.do(ctx, http.MethodPost, "/v1/notifications", "", body, nil)
 }
+
+// SendMessage implements Messenger: POST /v1/messages {conversation_id, text}.
+func (h *HTTP) SendMessage(ctx context.Context, conversationID, text string) error {
+	return h.do(ctx, "POST", "/v1/messages", "", map[string]string{"conversation_id": conversationID, "text": text}, nil)
+}

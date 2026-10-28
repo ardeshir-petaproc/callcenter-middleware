@@ -76,13 +76,13 @@ Legend: ✅ implemented and tested · 🟡 partly / needs a Joow-side counterpar
 
 | Requirement | Status | Where |
 |---|---|---|
-| From call / message / email / manual | ✅ (message = Joow chat pending) | `source` call/email/manual/ai |
+| From call / message / email / manual | ✅ | `source` call/email/manual/ai/message; chat via `/inbound/messages` (Joow conversations) |
 | Unique id, category, priority, status, owner, history | ✅ | `T-<n>` per tenant, history table |
 | Internal notes vs customer-visible replies | ✅ | `internal` flag |
 | Link to call, recording, AI summary | ✅ | `call_ids`, `/calls/{id}/ticket` |
 | Statuses new → closed | ✅ | |
 | Response / resolution / overdue reports | ✅ | SLA policies, `/tickets/stats`, `overdue=1` |
-| Replies sent to the customer by email / Joow message | ✅ email / ⏳ Joow | SMTP per connector (`internal/mail/reply.go`); Joow messaging pending (D8) |
+| Replies sent to the customer by email / Joow message | ✅ | SMTP per connector (`internal/mail/reply.go`); Joow conversations via `Messenger` (`internal/messages`) |
 
 ## 7. Quality and compliance
 
@@ -129,6 +129,6 @@ export `GET /export/organization.zip`).
 | D5 | Speech/AI provider and Persian quality | OpenAI Realtime now (good Persian). Abstracted behind `core.AIManager`, so a local STT/TTS (e.g. for data residency) can be added per tenant. |
 | D6 | Knowledge retrieval | FTS5 keyword search now (works for Persian, cheap, explainable). Add embeddings (pgvector or SQLite vector extension) as a second ranking stage when the corpus grows. |
 | D7 | Email access | IMAP + app password with folder/filter scoping now; add OAuth (Gmail, Microsoft Graph) with read-only scopes so consent and revocation happen at the provider too. |
-| D8 | Customer replies channel | SMTP per connector for email tickets (done); Joow messages for customers on Joow once a messaging API exists. |
+| D8 | Customer replies channel | SMTP per connector for email tickets, Joow `POST /v1/messages` for chat tickets (both done; the Joow endpoint is our proposed contract). |
 | D9 | Data residency & hosting | Deploy per region (single binary + Asterisk); tenants pinned to a deployment; recordings stay on the Asterisk host / object storage in-region. |
 | D10 | Repository layout | Keep the monorepo-style layout (Go `cmd/` + `internal/`, `web/`, `desktop/`); split services only when an independent scaling or ownership need appears. |

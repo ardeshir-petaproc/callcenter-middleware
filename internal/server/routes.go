@@ -20,6 +20,7 @@ func (s *Server) registerRoutes(r chi.Router) {
 		r.Post("/auth/joow", handler(s.loginJoow).ServeHTTP)
 		r.Post("/auth/accept-invite", handler(s.acceptInvite).ServeHTTP)
 		r.Get("/auth/invite/{token}", handler(s.peekInvite).ServeHTTP)
+		r.Post("/inbound/messages", handler(s.inboundMessage).ServeHTTP)
 		if s.d.DevJoowTokens {
 			r.Post("/dev/joow-token", handler(s.devJoowToken).ServeHTTP)
 		}

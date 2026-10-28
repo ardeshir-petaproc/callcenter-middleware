@@ -33,6 +33,12 @@ type Notification struct {
 	Data  map[string]any `json:"data,omitempty"`
 }
 
+// Messenger is implemented by providers that can send chat messages into a
+// Joow conversation (replies to customers who wrote via Joow).
+type Messenger interface {
+	SendMessage(ctx context.Context, conversationID, text string) error
+}
+
 // Provider is the boundary to Joow.
 type Provider interface {
 	Name() string

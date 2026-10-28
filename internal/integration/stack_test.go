@@ -21,6 +21,7 @@ import (
 	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/kb"
 	"callcenter-middleware/internal/mail"
+	"callcenter-middleware/internal/messages"
 	"callcenter-middleware/internal/retention"
 	"callcenter-middleware/internal/routing"
 	"callcenter-middleware/internal/secure"
@@ -83,11 +84,15 @@ func newStack(t *testing.T, speed float64) *stack {
 	box, tk := secure.New("test"), &tickets.Service{Store: st, Pub: hub, Joow: idp}
 	kbs := &kb.Service{Store: st, Box: box, Dir: t.TempDir()}
 	ms := &mail.Service{Store: st, Box: box, Tickets: tk, KB: kbs, Mailbox: mail.IMAP{Timeout: 5 * time.Second}}
-	tk.OnReply = ms.Reply
+	msgs := &messages.Service{Store: st, Tickets: tk, Joow: idp}
+	tk.OnReply = func(ctx context.Context, t *domain.Ticket, c *domain.TicketComment) {
+		ms.Reply(ctx, t, c)
+		msgs.Reply(ctx, t, c)
+	}
 	srv := server.NewServer("0", server.Deps{Config: cfg, Store: st, Core: c, Hub: hub,
 		Issuer: auth.NewIssuer("test", time.Hour), Stream: stream, Fetcher: client, Started: time.Now(),
 		Joow: idp, DevJoowTokens: true, Tickets: tk, KB: kbs,
-		Mail:   ms,
+		Mail: ms, Messages: msgs,
 		Router: &routing.Engine{Store: st, Live: c}, Retention: &retention.Service{Store: st, Deleter: client}})
 	api := httptest.NewServer(srv.Handler())
 	t.Cleanup(api.Close)

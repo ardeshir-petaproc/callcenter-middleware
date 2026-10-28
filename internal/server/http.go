@@ -19,6 +19,7 @@ import (
 	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/kb"
 	"callcenter-middleware/internal/mail"
+	"callcenter-middleware/internal/messages"
 	"callcenter-middleware/internal/retention"
 	"callcenter-middleware/internal/routing"
 	"callcenter-middleware/internal/store"
@@ -49,6 +50,7 @@ type Deps struct {
 	Mail      *mail.Service
 	Router    *routing.Engine
 	Retention *retention.Service
+	Messages  *messages.Service
 	// DevJoowTokens exposes POST /dev/joow-token to mint local Joow tokens.
 	DevJoowTokens bool
 }

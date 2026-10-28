@@ -97,6 +97,19 @@ requester_*, call_ids[], tags[], created_by, created_at, updated_at,
 first_response_at, resolved_at, closed_at, response_due_at,
 resolution_due_at}`. Changes publish `ticket.updated` on the WebSocket.
 
+### Tickets from chat messages (Joow and other channels)
+
+| Method | Path | Auth | Body | Response |
+|---|---|---|---|---|
+| POST | `/integrations/inbound-key` | `settings.manage` | | `{key, header: "X-Inbound-Key", endpoint}` — issues a new key (shown once; rotating invalidates the old one) |
+| POST | `/inbound/messages?org=<slug>` | `X-Inbound-Key` | `{channel, conversation_id, from_id, from_name, from_phone, from_email, text}` | `{ticket_id, number, created}` |
+
+The first message of a conversation opens a ticket (`source: "message"`,
+subject = first line); later messages are added as customer replies and
+reopen a resolved or waiting ticket (a closed ticket starts a new one).
+Staff replies on tickets from the `joow` channel are sent back to the
+conversation through the Joow provider (`POST /v1/messages`).
+
 ## Knowledge base
 
 | Method | Path | Body / Query | Response |
