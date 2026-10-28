@@ -18,6 +18,7 @@ import (
 	"callcenter-middleware/internal/events"
 	"callcenter-middleware/internal/joow"
 	"callcenter-middleware/internal/store"
+	"callcenter-middleware/internal/tickets"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -39,6 +40,7 @@ type Deps struct {
 	Started  time.Time
 	StaticFS http.FileSystem
 	Joow     joow.Provider
+	Tickets  *tickets.Service
 	// DevJoowTokens exposes POST /dev/joow-token to mint local Joow tokens.
 	DevJoowTokens bool
 }

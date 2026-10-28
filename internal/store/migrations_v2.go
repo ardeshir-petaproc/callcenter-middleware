@@ -17,6 +17,7 @@ var versioned = []struct {
 }{
 	{2, multiTenantV2},
 	{3, joowV3},
+	{4, ticketsV4},
 }
 
 func (s *Store) migrateVersions(ctx context.Context) error {
@@ -120,4 +121,28 @@ var joowV3 = []string{
 	`CREATE TABLE IF NOT EXISTS joow_accounts (
 		id TEXT PRIMARY KEY, name TEXT NOT NULL DEFAULT '', email TEXT NOT NULL DEFAULT '',
 		phone TEXT NOT NULL DEFAULT '', avatar_url TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL)`,
+}
+
+var ticketsV4 = []string{
+	`CREATE TABLE IF NOT EXISTS tickets (
+		id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id INTEGER NOT NULL, seq INTEGER NOT NULL,
+		subject TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', category TEXT NOT NULL DEFAULT '',
+		priority TEXT NOT NULL, status TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'manual',
+		department_id INTEGER NOT NULL DEFAULT 0, assignee_id INTEGER NOT NULL DEFAULT 0,
+		contact_id INTEGER NOT NULL DEFAULT 0, requester_name TEXT NOT NULL DEFAULT '',
+		requester_phone TEXT NOT NULL DEFAULT '', requester_email TEXT NOT NULL DEFAULT '',
+		call_ids TEXT NOT NULL DEFAULT '[]', tags TEXT NOT NULL DEFAULT '[]', created_by INTEGER NOT NULL DEFAULT 0,
+		created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, first_response_at INTEGER, resolved_at INTEGER,
+		closed_at INTEGER, response_due_at INTEGER, resolution_due_at INTEGER, UNIQUE (tenant_id, seq))`,
+	`CREATE INDEX IF NOT EXISTS idx_tickets_tenant ON tickets(tenant_id, status, updated_at)`,
+	`CREATE TABLE IF NOT EXISTS ticket_comments (
+		id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id INTEGER NOT NULL, ticket_id INTEGER NOT NULL,
+		author_id INTEGER NOT NULL DEFAULT 0, author_name TEXT NOT NULL DEFAULT '', body TEXT NOT NULL,
+		internal INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL)`,
+	`CREATE INDEX IF NOT EXISTS idx_ticket_comments ON ticket_comments(ticket_id)`,
+	`CREATE TABLE IF NOT EXISTS ticket_events (
+		id INTEGER PRIMARY KEY AUTOINCREMENT, tenant_id INTEGER NOT NULL, ticket_id INTEGER NOT NULL,
+		type TEXT NOT NULL, from_value TEXT NOT NULL DEFAULT '', to_value TEXT NOT NULL DEFAULT '',
+		actor_id INTEGER NOT NULL DEFAULT 0, actor_name TEXT NOT NULL DEFAULT '', at INTEGER NOT NULL)`,
+	`CREATE INDEX IF NOT EXISTS idx_ticket_events ON ticket_events(ticket_id)`,
 }

@@ -23,6 +23,7 @@ import (
 	"callcenter-middleware/internal/server"
 	"callcenter-middleware/internal/sim"
 	"callcenter-middleware/internal/store"
+	"callcenter-middleware/internal/tickets"
 )
 
 type stack struct {
@@ -76,7 +77,7 @@ func newStack(t *testing.T, speed float64) *stack {
 	go func() { _ = stream.Subscribe(ctx, evs) }()
 	srv := server.NewServer("0", server.Deps{Config: cfg, Store: st, Core: c, Hub: hub,
 		Issuer: auth.NewIssuer("test", time.Hour), Stream: stream, Fetcher: client, Started: time.Now(),
-		Joow: idp, DevJoowTokens: true})
+		Joow: idp, DevJoowTokens: true, Tickets: &tickets.Service{Store: st, Pub: hub, Joow: idp}})
 	api := httptest.NewServer(srv.Handler())
 	t.Cleanup(api.Close)
 	waitFor(t, 5*time.Second, "ARI connected", stream.IsConnected)

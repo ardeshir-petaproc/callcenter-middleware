@@ -40,6 +40,7 @@ func (s *Server) registerRoutes(r chi.Router) {
 				s.reportRoutes(r)
 				s.campaignRoutes(r)
 				s.platformRoutes(r)
+				s.ticketRoutes(r)
 			})
 		})
 	})

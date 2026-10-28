@@ -36,6 +36,7 @@ type Store struct {
 	Numbers      *Collection[domain.PhoneNumber]
 	Roles        *Collection[domain.CustomRole]
 	Invitations  *Collection[domain.Invitation]
+	SLAPolicies  *Collection[domain.SLAPolicy]
 }
 
 // Open opens (and migrates) the database at path. Use ":memory:" for tests.
@@ -77,6 +78,7 @@ func Open(path string) (*Store, error) {
 	s.JobProfiles = newCollection(db, "job_profile", func(x *domain.JobProfile) (*int64, *int64) { return &x.ID, &x.TenantID })
 	s.Numbers = newCollection(db, "phone_number", func(x *domain.PhoneNumber) (*int64, *int64) { return &x.ID, &x.TenantID })
 	s.Roles = newCollection(db, "custom_role", func(x *domain.CustomRole) (*int64, *int64) { return &x.ID, &x.TenantID })
+	s.SLAPolicies = newCollection(db, "sla_policy", func(x *domain.SLAPolicy) (*int64, *int64) { return &x.ID, &x.TenantID })
 	s.Invitations = newCollection(db, "invitation", func(x *domain.Invitation) (*int64, *int64) { return &x.ID, &x.TenantID })
 	return s, nil
 }

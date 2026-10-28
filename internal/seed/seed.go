@@ -112,5 +112,8 @@ func Demo(ctx context.Context, st *store.Store) error {
 	if err := demoOrg(ctx, st, queues, users); err != nil {
 		return err
 	}
+	if err := demoTickets(ctx, st, users); err != nil {
+		return err
+	}
 	return demoHistory(ctx, st, queues, users[:4])
 }

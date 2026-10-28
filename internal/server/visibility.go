@@ -44,11 +44,25 @@ type eventFilter struct {
 	me      int64
 	all     bool
 	myCalls map[string]bool
+	tickets *domain.TicketVisibility
+}
+
+func (f *eventFilter) seesTicket(t *domain.Ticket) bool {
+	v := f.tickets
+	if v == nil || t.AssigneeID == v.UserID || t.CreatedBy == v.UserID {
+		return true
+	}
+	for _, d := range v.DepartmentIDs {
+		if d == t.DepartmentID {
+			return true
+		}
+	}
+	return false
 }
 
 func newEventFilter(r *http.Request) *eventFilter {
 	return &eventFilter{tenant: tenantOf(r), me: claimsOf(r).UserID, all: can(r, domain.PermCallsAll),
-		myCalls: map[string]bool{}}
+		myCalls: map[string]bool{}, tickets: visibility(r)}
 }
 
 func (f *eventFilter) allow(ev domain.Event) bool {
@@ -68,6 +82,8 @@ func (f *eventFilter) allow(ev domain.Event) bool {
 		return f.myCalls[data.ID]
 	case domain.TranscriptEntry:
 		return f.myCalls[data.CallID]
+	case *domain.Ticket:
+		return f.seesTicket(data)
 	case map[string]any:
 		if uid, ok := data["user_id"].(int64); ok {
 			return uid == f.me
