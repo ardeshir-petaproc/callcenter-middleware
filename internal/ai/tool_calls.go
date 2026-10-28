@@ -35,6 +35,10 @@ func (s *Session) handleTool(ctx context.Context, callID, name, rawArgs string) 
 	var a toolArgs
 	_ = json.Unmarshal([]byte(rawArgs), &a)
 	slog.Info("AI tool call", "call_id", s.spec.CallID, "tool", name)
+	if s.dir != nil && s.dir.Store != nil {
+		_ = s.dir.Store.Audit(ctx, domain.AuditEntry{Username: "ai:" + s.spec.Profile.Name, Action: "ai." + name,
+			Entity: "call", EntityID: s.spec.CallID, Detail: truncate(rawArgs, 500)})
+	}
 	id := s.spec.CallID
 	var result any
 	respond := true
